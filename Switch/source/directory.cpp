@@ -20,11 +20,11 @@ void fslib::directory::open(const std::string &directoryPath)
     // Error being used and clear entry vector
     Result fsError = 0;
     m_DirectoryList.clear();
-    // Get filesystem and "pure" path.
+    // Get filesystem and path without device in the beginning.
     FsFileSystem targetFileSystem;
     std::string deviceName = fslib::getDeviceFromPath(directoryPath);
     std::string truePath = fslib::removeDeviceFromPath(directoryPath);
-    bool filesystemMounted = fslib::getFilesystemHandleByName(deviceName, targetFileSystem);
+    bool filesystemMounted = fslib::getFileSystemHandleByName(deviceName, targetFileSystem);
     if (deviceName.empty() || truePath.empty() || filesystemMounted == false)
     {
         // Set error string and bail.

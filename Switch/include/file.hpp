@@ -30,10 +30,20 @@ namespace fslib
             void close(void);
             // Returns whether file was opened successfully or not.
             bool isOpen(void) const;
+            // Returns whether end of file has been hit.
+            bool endOfFile(void) const;
             // Reads readSize of bytes from stream. Returns size that was actually read.
             size_t read(void *buffer, size_t readSize);
             // Writes writeSize from buffer to file. Switch/libnx provides no way to really return what size was written?
             size_t write(const void *buffer, size_t writeSize);
+            // Reads a byte from the stream.
+            char getChar(void);
+            // Writes a byte to stream.
+            bool putChar(char c);
+            // Reads until line end or end of file.
+            bool getLine(std::string &lineOut);
+            // Flushes file.
+            bool flush(void);
 
         private:
             // The underlying switch file handle.

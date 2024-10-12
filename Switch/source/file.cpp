@@ -34,7 +34,7 @@ void fslib::file::open(const std::string &filePath, FsOpenMode openMode)
     FsFileSystem targetFileSystem;
     std::string deviceName = fslib::getDeviceFromPath(filePath);
     std::string truePath = fslib::removeDeviceFromPath(filePath);
-    bool fileSystemFound = fslib::getFilesystemHandleByName(deviceName, targetFileSystem);
+    bool fileSystemFound = fslib::getFileSystemHandleByName(deviceName, targetFileSystem);
     if (deviceName.empty() || truePath.empty() || fileSystemFound == false)
     {
         g_ErrorString = fslib::getFormattedString("Error opening \"%s\": Invalid path supplied or filesystem not opened.", filePath.c_str());
@@ -84,6 +84,12 @@ bool fslib::file::isOpen(void) const
     return m_IsOpen;
 }
 
+bool fslib::file::endOfFile(void) const
+{
+    // Like this just in case.
+    return m_Offset >= m_FileSize;
+}
+
 size_t fslib::file::read(void *buffer, size_t readSize)
 {
     uint64_t bytesRead = 0;
@@ -111,6 +117,68 @@ size_t fslib::file::write(const void *buffer, size_t writeSize)
     // There's no way to really check what was written on Switch.
     m_Offset += writeSize;
     return writeSize;
+}
+
+char fslib::file::getChar(void)
+{
+    if (m_Offset >= m_FileSize)
+    {
+        return -1;
+    }
+
+    char returnChar = 0x00;
+    uint64_t bytesRead = 0;
+    Result fsError = fsFileRead(&m_FileHandle, m_Offset++, &returnChar, 1, 0, &bytesRead);
+    if (R_FAILED(fsError))
+    {
+        g_ErrorString = fslib::getFormattedString("Error 0x%X reading byte from file.", fsError);
+        return 0;
+    }
+    return returnChar;
+}
+
+bool fslib::file::putChar(char c)
+{
+    // Just incase.
+    fslib::file::resizeIfNeeded(1);
+
+    Result fsError = fsFileWrite(&m_FileHandle, m_Offset++, &c, 1, 0);
+    if (R_FAILED(fsError))
+    {
+        g_ErrorString = fslib::getFormattedString("Error 0x%X writing byte to file.", fsError);
+        return false;
+    }
+    return true;
+}
+
+bool fslib::file::getLine(std::string &lineOut)
+{
+    // Clear line
+    lineOut.clear();
+    while (m_Offset < m_FileSize)
+    {
+        // I want to rethink this some time...
+        char currentChar = fslib::file::getChar();
+        if (currentChar == '\n' || currentChar == '\r')
+        {
+            // Just assume we've hit the end of the line and return true.
+            return true;
+        }
+        lineOut += currentChar;
+    }
+    // Assumed end of file is hit.
+    return false;
+}
+
+bool fslib::file::flush(void)
+{
+    Result fsError = fsFileFlush(&m_FileHandle);
+    if (R_FAILED(fsError))
+    {
+        g_ErrorString = fslib::getFormattedString("Error 0x%X flushing file.", fsError);
+        return false;
+    }
+    return true;
 }
 
 bool fslib::file::openForReading(FsFileSystem &fileSystem, const std::string &filePath)

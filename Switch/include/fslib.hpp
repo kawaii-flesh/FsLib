@@ -10,6 +10,8 @@ namespace fslib
     void exit(void);
     // Returns internal error string.
     std::string getErrorString(void);
-    // Retrieves the fileHandle associated with [deviceName]. Returns false on failure.
-    bool getFilesystemHandleByName(const std::string &deviceName, FsFileSystem &handleOut);
+    // Uses deviceName to search the map for the filesystem associated with it.s
+    bool getFileSystemHandleByName(const std::string &deviceName, FsFileSystem &handleOut);
+    // Attempts to create directory recursively. Still trying to figure out how to error check this a good way.
+    bool createDirectoryRecursively(const std::string &directoryPath);
 } // namespace fslib

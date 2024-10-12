@@ -49,7 +49,7 @@ std::string fslib::getErrorString(void)
     return g_ErrorString;
 }
 
-bool fslib::getFilesystemHandleByName(const std::string &deviceName, FsFileSystem &handleOut)
+bool fslib::getFileSystemHandleByName(const std::string &deviceName, FsFileSystem &handleOut)
 {
     if (s_DeviceMap.find(deviceName) != s_DeviceMap.end())
     {
@@ -59,4 +59,33 @@ bool fslib::getFilesystemHandleByName(const std::string &deviceName, FsFileSyste
     // Set error string and return false.
     g_ErrorString = fslib::getFormattedString("\"%s\" was not found in device map!", deviceName.c_str());
     return false;
+}
+
+bool fslib::createDirectoryRecursively(const std::string &directoryPath)
+{
+    // Get stuff we need to start.
+    FsFileSystem targetFileSystem;
+    std::string deviceName = fslib::getDeviceFromPath(directoryPath);
+    std::string truePath = fslib::removeDeviceFromPath(directoryPath);
+    bool targetSystemFound = fslib::getFileSystemHandleByName(deviceName, targetFileSystem);
+    if (deviceName.empty() || truePath.empty() || targetSystemFound == false)
+    {
+        g_ErrorString = fslib::getFormattedString("Error creating directories: Invalid path supplied.");
+        return false;
+    }
+
+    // Skip the first slash. This is going to need work when I get my switch back. I feel like I'm missing something here.
+    size_t slashPosition = 1;
+    while ((slashPosition = truePath.find_first_of('/', slashPosition)) != truePath.npos)
+    {
+        std::string currentDirectoryPath = truePath.substr(0, slashPosition);
+        Result fsError = fsFsCreateDirectory(&targetFileSystem, currentDirectoryPath.c_str());
+        if (R_FAILED(fsError))
+        {
+            // Set the error string, but don't return. This can happen because of the directory already existing.
+            g_ErrorString = fslib::getFormattedString("Error 0x%X creating directory \"%s\".", fsError, currentDirectoryPath.c_str());
+        }
+    }
+    // I might rework this when I have time. Error checking this might be tricky.
+    return true;
 }
