@@ -12,10 +12,7 @@ fslib::directory::directory(const std::string &directoryPath)
 
 fslib::directory::~directory()
 {
-    if (m_IsOpen)
-    {
-        fsDirClose(&m_DirectoryHandle);
-    }
+    fslib::directory::close();
 }
 
 void fslib::directory::open(const std::string &directoryPath)
@@ -59,6 +56,14 @@ void fslib::directory::open(const std::string &directoryPath)
         return;
     }
     m_IsOpen = true;
+}
+
+void fslib::directory::close(void)
+{
+    if (m_IsOpen)
+    {
+        fsDirClose(&m_DirectoryHandle);
+    }
 }
 
 bool fslib::directory::isOpen(void) const

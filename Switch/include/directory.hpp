@@ -14,6 +14,8 @@ namespace fslib
             ~directory();
             // Opens directory. isOpen can be checked to see if operation succeeded.
             void open(const std::string &directoryPath);
+            // Closes directory handle.
+            void close(void);
             // Returns whether opening directory was successful
             bool isOpen(void) const;
             // Returns number of entries for directory.
