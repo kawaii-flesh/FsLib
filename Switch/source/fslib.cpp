@@ -13,6 +13,12 @@ namespace
 // This error string is shared globally, but I didn't want it extern'd in the header.
 std::string g_ErrorString;
 
+// This is for opening functions to search and make sure there are no duplicate uses of the same device name.
+static inline bool deviceNameIsInUse(const std::string &deviceName)
+{
+    return s_DeviceMap.find(deviceName) != s_DeviceMap.end();
+}
+
 bool fslib::initialize(void)
 {
     // Just in case.
@@ -47,6 +53,78 @@ void fslib::exit(void)
 std::string fslib::getErrorString(void)
 {
     return g_ErrorString;
+}
+
+bool fslib::openSystemSaveFileSystem(const std::string &deviceName, uint64_t systemSaveID)
+{
+    if (deviceNameIsInUse(deviceName))
+    {
+        g_ErrorString = fslib::getFormattedString("Error mounting system save data with device name \"%s\".", deviceName.c_str());
+        return false;
+    }
+
+    FsSaveDataAttribute saveAttributes = {.application_id = 0,
+                                          .uid = 0,
+                                          .system_save_data_id = systemSaveID,
+                                          .save_data_type = FsSaveDataType_System,
+                                          .save_data_rank = FsSaveDataRank_Primary,
+                                          .save_data_index = 0};
+
+    Result fsError = fsOpenSaveDataFileSystem(&s_DeviceMap[deviceName], FsSaveDataSpaceId_User, &saveAttributes);
+    if (R_FAILED(fsError))
+    {
+        g_ErrorString = fslib::getFormattedString("Error 0x%X opening system save data.", fsError);
+        return false;
+    }
+    return true;
+}
+
+bool fslib::openAccountSaveFileSystem(const std::string &deviceName, uint64_t applicationID, AccountUid userID)
+{
+    if (deviceNameIsInUse(deviceName))
+    {
+        g_ErrorString = fslib::getFormattedString("Error mounting account save with device name \"%s\".", deviceName.c_str());
+        return false;
+    }
+
+    FsSaveDataAttribute saveAttributes = {.application_id = applicationID,
+                                          .uid = userID,
+                                          .system_save_data_id = 0,
+                                          .save_data_type = FsSaveDataType_Account,
+                                          .save_data_rank = FsSaveDataRank_Primary,
+                                          .save_data_index = 0};
+
+    Result fsError = fsOpenSaveDataFileSystem(&s_DeviceMap[deviceName], FsSaveDataSpaceId_User, &saveAttributes);
+    if (R_FAILED(fsError))
+    {
+        g_ErrorString = fslib::getFormattedString("Error 0x%X opening account save data.", fsError);
+        return false;
+    }
+    return true;
+}
+
+bool fslib::openBCATSaveFileSystem(const std::string &deviceName, uint64_t applicationID)
+{
+    if (deviceNameIsInUse(deviceName))
+    {
+        g_ErrorString = fslib::getFormattedString("Error mounting BCAT with device name \"%s\".", deviceName.c_str());
+        return false;
+    }
+
+    FsSaveDataAttribute saveAttributes = {.application_id = applicationID,
+                                          .uid = {0},
+                                          .system_save_data_id = 0,
+                                          .save_data_type = FsSaveDataType_Bcat,
+                                          .save_data_rank = FsSaveDataRank_Primary,
+                                          .save_data_index = 0};
+
+    Result fsError = fsOpenSaveDataFileSystem(&s_DeviceMap[deviceName], FsSaveDataSpaceId_User, &saveAttributes);
+    if (R_FAILED(fsError))
+    {
+        g_ErrorString = fslib::getFormattedString("Error 0x%X opening BCAT save data.", fsError);
+        return false;
+    }
+    return true;
 }
 
 bool fslib::getFileSystemHandleByName(const std::string &deviceName, FsFileSystem &handleOut)
