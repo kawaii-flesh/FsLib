@@ -21,6 +21,7 @@ void fslib::file::operator<<(const char *string)
 {
     size_t stringLength = std::strlen(string);
     fslib::file::write(string, stringLength);
+    fslib::file::flush();
 }
 
 void fslib::file::operator<<(const std::string &string)
