@@ -127,6 +127,102 @@ bool fslib::openBCATSaveFileSystem(const std::string &deviceName, uint64_t appli
     return true;
 }
 
+bool fslib::openDeviceSaveFileSystem(const std::string &deviceName, uint64_t applicationID)
+{
+    if (deviceNameIsInUse(deviceName))
+    {
+        g_ErrorString = fslib::getFormattedString("Error opening Device Save Data with device name \"%s\".", deviceName.c_str());
+        return false;
+    }
+
+    FsSaveDataAttribute saveAttributes = {.application_id = applicationID,
+                                          .uid = {0},
+                                          .system_save_data_id = 0,
+                                          .save_data_type = FsSaveDataType_Device,
+                                          .save_data_rank = FsSaveDataRank_Primary,
+                                          .save_data_index = 0};
+
+    Result fsError = fsOpenSaveDataFileSystem(&s_DeviceMap[deviceName], FsSaveDataSpaceId_User, &saveAttributes);
+    if (R_FAILED(fsError))
+    {
+        g_ErrorString = fslib::getFormattedString("Error 0x%X opening device save data.", fsError);
+        return false;
+    }
+    return true;
+}
+
+bool fslib::openTemporarySaveFileSystem(const std::string &deviceName)
+{
+    if (deviceNameIsInUse(deviceName))
+    {
+        g_ErrorString = fslib::getFormattedString("Error opening Temporary save data with device name \"%s\".", deviceName.c_str());
+        return false;
+    }
+
+    FsSaveDataAttribute saveAttributes = {.application_id = 0,
+                                          .uid = {0},
+                                          .system_save_data_id = 0,
+                                          .save_data_type = FsSaveDataType_Temporary,
+                                          .save_data_rank = FsSaveDataRank_Primary,
+                                          .save_data_index = 0};
+
+    Result fsError = fsOpenSaveDataFileSystem(&s_DeviceMap[deviceName], FsSaveDataSpaceId_User, &saveAttributes);
+    if (R_FAILED(fsError))
+    {
+        g_ErrorString = fslib::getFormattedString("Error 0x%X opening Temporary save filesystem.", fsError);
+        return false;
+    }
+    return true;
+}
+
+bool fslib::openCacheSaveFileSystem(const std::string &deviceName, uint64_t applicationID, uint16_t cacheIndex)
+{
+    if (deviceNameIsInUse(deviceName))
+    {
+        g_ErrorString = fslib::getFormattedString("Error opening cache save filesystem with device name \"%s\".", deviceName.c_str());
+        return false;
+    }
+
+    FsSaveDataAttribute saveAttributes = {.application_id = applicationID,
+                                          .uid = {0},
+                                          .system_save_data_id = 0,
+                                          .save_data_type = FsSaveDataType_Cache,
+                                          .save_data_rank = FsSaveDataRank_Primary,
+                                          .save_data_index = cacheIndex};
+
+    Result fsError = fsOpenSaveDataFileSystem(&s_DeviceMap[deviceName], FsSaveDataSpaceId_User, &saveAttributes);
+    if (R_FAILED(fsError))
+    {
+        g_ErrorString = fslib::getFormattedString("Error 0x%X opening cache save filesystem.", fsError);
+        return false;
+    }
+    return true;
+}
+
+bool fslib::openSystemBCATSaveFileSystem(const std::string &deviceName, uint64_t systemSaveID)
+{
+    if (deviceNameIsInUse(deviceName))
+    {
+        g_ErrorString = fslib::getFormattedString("Error opening system bcat save with device name \"%s\".", deviceName.c_str());
+        return false;
+    }
+
+    FsSaveDataAttribute saveAttributes = {.application_id = 0,
+                                          .uid = {0},
+                                          .system_save_data_id = systemSaveID,
+                                          .save_data_type = FsSaveDataType_SystemBcat,
+                                          .save_data_rank = FsSaveDataRank_Primary,
+                                          .save_data_index = 0};
+
+    Result fsError = fsOpenSaveDataFileSystem(&s_DeviceMap[deviceName], FsSaveDataSpaceId_User, &saveAttributes);
+    if (R_FAILED(fsError))
+    {
+        g_ErrorString = fslib::getFormattedString("Error 0x%X opening system bcat save filesystem.", fsError);
+        return false;
+    }
+    return true;
+}
+
 bool fslib::closeFileSystem(const std::string &deviceName)
 {
     if (deviceNameIsInUse(deviceName))
