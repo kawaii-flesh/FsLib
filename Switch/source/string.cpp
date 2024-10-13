@@ -16,7 +16,7 @@ std::string fslib::getDeviceFromPath(const std::string &path)
         return std::string("");
     }
     // Return the substring
-    return path.substr(0, colonPosition - 1);
+    return path.substr(0, colonPosition);
 }
 
 std::string fslib::removeDeviceFromPath(const std::string &path)
