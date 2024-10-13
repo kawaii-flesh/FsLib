@@ -5,25 +5,23 @@
 #include <cstring>
 
 // Sorts by entry type, then alphabetically.
-static bool compareEntries(const FsDirectoryEntry &entryA, const FsDirectoryEntry &entryB)
+static bool CompareEntries(const FsDirectoryEntry &EntryA, const FsDirectoryEntry &EntryB)
 {
-    if (entryA.type != entryB.type)
+    if (EntryA.type != EntryB.type)
     {
-        return entryA.type == FsDirEntryType_Dir;
+        return EntryA.type == FsDirEntryType_Dir;
     }
 
-    size_t entryALength = std::strlen(entryA.name);
-    size_t entryBLength = std::strlen(entryB.name);
-    // So we don't try to read out of bounds.
-    size_t shortestString = entryALength < entryBLength ? entryALength : entryBLength;
-    for (size_t i = 0; i < shortestString; i++)
+    size_t EntryALength = std::strlen(EntryA.name);
+    size_t EntryBLength = std::strlen(EntryB.name);
+    size_t ShortestString = EntryALength < EntryBLength ? EntryALength : EntryBLength;
+    for (size_t i = 0; i < ShortestString; i++)
     {
-        // Might need to add utf-8 support here since filesystems themselves can handle it. Only the SD card gets weird with it.
-        int charA = std::tolower(entryA.name[i]);
-        int charB = std::tolower(entryB.name[i]);
-        if (charA != charB)
+        int CharA = std::tolower(EntryA.name[i]);
+        int CharB = std::tolower(EntryB.name[i]);
+        if (CharA != CharB)
         {
-            return charA < charB;
+            return CharA < CharB;
         }
     }
     return false;
@@ -78,7 +76,7 @@ void FsLib::Directory::Open(const std::string &DirectoryPath)
         return;
     }
     // Sort the array.
-    std::sort(m_DirectoryList.get(), m_DirectoryList.get() + m_EntryCount, compareEntries);
+    std::sort(m_DirectoryList.get(), m_DirectoryList.get() + m_EntryCount, CompareEntries);
     // Close handle for sure
     Directory::Close();
     // We're good
