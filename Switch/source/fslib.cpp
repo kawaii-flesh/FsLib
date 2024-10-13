@@ -127,6 +127,16 @@ bool fslib::openBCATSaveFileSystem(const std::string &deviceName, uint64_t appli
     return true;
 }
 
+bool fslib::closeFileSystem(const std::string &deviceName)
+{
+    if (deviceNameIsInUse(deviceName))
+    {
+        fsFsClose(&s_DeviceMap[deviceName]);
+        return true;
+    }
+    return false;
+}
+
 bool fslib::getFileSystemHandleByName(const std::string &deviceName, FsFileSystem &handleOut)
 {
     if (s_DeviceMap.find(deviceName) != s_DeviceMap.end())

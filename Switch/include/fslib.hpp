@@ -16,6 +16,9 @@ namespace fslib
     bool openAccountSaveFileSystem(const std::string &deviceName, uint64_t applicationID, AccountUid userID);
     // Opens bcat to deviceName
     bool openBCATSaveFileSystem(const std::string &deviceName, uint64_t applicationID);
+    // The rest go here tomorrow.
+    // Closes filesystem handle associated with deviceName.
+    bool closeFileSystem(const std::string &deviceName);
     // Uses deviceName to search the map for the filesystem associated with it.s
     bool getFileSystemHandleByName(const std::string &deviceName, FsFileSystem &handleOut);
     // Attempts to create directory recursively. Still trying to figure out how to error check this a good way.
