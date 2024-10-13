@@ -1,6 +1,33 @@
 #include "directory.hpp"
 #include "fslib.hpp"
 #include "string.hpp"
+#include <algorithm>
+#include <cstring>
+
+// Sorts by entry type->alphabetically.
+static bool compareEntries(const FsDirectoryEntry &entryA, const FsDirectoryEntry &entryB)
+{
+    if (entryA.type != entryB.type)
+    {
+        return entryA.type == FsDirEntryType_Dir;
+    }
+
+    size_t entryALength = std::strlen(entryA.name);
+    size_t entryBLength = std::strlen(entryB.name);
+    // So we don't try to compare out of bounds. JIC.
+    size_t shortest = entryALength < entryBLength ? entryALength : entryBLength;
+    for (size_t i = 0; i < shortest; i++)
+    {
+        // Might need to add utf-8 support here since filesystems themselves can handle it. Only the SD card gets weird with it.
+        int charA = std::tolower(entryA.name[i]);
+        int charB = std::tolower(entryB.name[i]);
+        if (charA != charB)
+        {
+            return charA < charB;
+        }
+    }
+    return false;
+}
 
 // fslib global error string.
 extern std::string g_ErrorString;
@@ -55,6 +82,8 @@ void fslib::directory::open(const std::string &directoryPath)
         g_ErrorString = fslib::getFormattedString("Error reading entries for \"%s\".", directoryPath.c_str());
         return;
     }
+    // To do: The directory handle/service isn't needed anymore after this. There's no reason to keep it open. Might need code restructure to do it cleanly.
+    std::sort(m_DirectoryList.begin(), m_DirectoryList.end(), compareEntries);
     m_IsOpen = true;
 }
 
