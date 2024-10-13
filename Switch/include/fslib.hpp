@@ -1,34 +1,35 @@
 #pragma once
+#include "directory.hpp"
+#include "file.hpp"
 #include <string>
 #include <switch.h>
 
-namespace fslib
+namespace FsLib
 {
     // Initializes fslib and mounts sd card.
-    bool initialize(void);
+    bool Initialize(void);
     // Exits
-    void exit(void);
+    void Exit(void);
     // Returns internal error string.
-    std::string getErrorString(void);
+    std::string GetErrorString(void);
     // Opens system save data and associates deviceName with it.
-    bool openSystemSaveFileSystem(const std::string &deviceName, uint64_t systemSaveID);
+    bool OpenSystemSaveFileSystem(const std::string &DeviceName, uint64_t SystemSaveID);
     // Opens account save data and associates deviceName with it.
-    bool openAccountSaveFileSystem(const std::string &deviceName, uint64_t applicationID, AccountUid userID);
+    bool OpenAccountSaveFileSystem(const std::string &DeviceName, uint64_t ApplicationID, AccountUid UserID);
     // Opens bcat to deviceName
-    bool openBCATSaveFileSystem(const std::string &deviceName, uint64_t applicationID);
+    bool OpenBCATSaveFileSystem(const std::string &DeviceName, uint64_t ApplicationID);
     // Opens device save and assigns deviceName to it
-    bool openDeviceSaveFileSystem(const std::string &deviceName, uint64_t applicationID);
+    bool OpenDeviceSaveFileSystem(const std::string &DeviceName, uint64_t ApplicationID);
     // Opens temporary save data and assigns deviceName to it.
-    bool openTemporarySaveFileSystem(const std::string &deviceName);
+    bool OpenTemporarySaveFileSystem(const std::string &DeviceName);
     // Opens cache save and associates it with deviceName.
-    bool openCacheSaveFileSystem(const std::string &deviceName, uint64_t applicationID, uint16_t cacheIndex);
+    bool OpenCacheSaveFileSystem(const std::string &DeviceName, uint64_t ApplicationID, uint16_t SaveIndex);
     // Opens system bcat and associates it with deviceName
-    bool openSystemBCATSaveFileSystem(const std::string &deviceName, uint64_t systemSaveID);
-    // The rest go here tomorrow. Oops, I lied.
+    bool OpenSystemBCATSaveFileSystem(const std::string &DeviceName, uint64_t SystemSaveID);
     // Closes filesystem handle associated with deviceName.
-    bool closeFileSystem(const std::string &deviceName);
-    // Uses deviceName to search the map for the filesystem associated with it.s
-    bool getFileSystemHandleByName(const std::string &deviceName, FsFileSystem &handleOut);
+    bool CloseFileSystem(const std::string &DeviceName);
+    // Uses deviceName to search the map for the filesystem associated with it. Used by Directory and File. No need to use, but if you want...
+    bool GetFileSystemHandleByDeviceName(const std::string &DeviceName, FsFileSystem &HandleOut);
     // Attempts to create directory recursively. Still trying to figure out how to error check this a good way.
-    bool createDirectoryRecursively(const std::string &directoryPath);
-} // namespace fslib
+    bool CreateDirectoryRecursively(const std::string &DirectoryPath);
+} // namespace FsLib

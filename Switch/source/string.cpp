@@ -7,36 +7,35 @@ namespace
     constexpr int VA_BUFFER_SIZE = 0x1000;
 }
 
-std::string fslib::getDeviceFromPath(const std::string &path)
+std::string FsLib::String::GetDeviceNameFromPath(const std::string &Path)
 {
-    size_t colonPosition = path.find_first_of(':');
-    if (colonPosition == path.npos)
+    size_t ColonPosition = Path.find_first_of(':');
+    if (ColonPosition == Path.npos)
     {
         // Just return an empty string.
         return std::string("");
     }
-    // Return the substring
-    return path.substr(0, colonPosition);
+    return Path.substr(0, ColonPosition);
 }
 
-std::string fslib::removeDeviceFromPath(const std::string &path)
+std::string FsLib::String::GetTruePathFromPath(const std::string &Path)
 {
-    size_t colonPosition = path.find_first_of(':');
-    if (colonPosition == path.npos)
+    size_t ColonPosition = Path.find_first_of(':');
+    if (ColonPosition == Path.npos)
     {
         return std::string("");
     }
-    return path.substr(colonPosition + 1, path.length());
+    return Path.substr(ColonPosition + 1);
 }
 
-std::string fslib::getFormattedString(const char *format, ...)
+std::string FsLib::String::GetFormattedString(const char *Format, ...)
 {
-    std::array<char, VA_BUFFER_SIZE> vaBuffer;
+    std::array<char, VA_BUFFER_SIZE> VaBuffer;
 
-    std::va_list vaList;
-    va_start(vaList, format);
-    vsnprintf(vaBuffer.data(), VA_BUFFER_SIZE, format, vaList);
-    va_end(vaList);
+    std::va_list VaList;
+    va_start(VaList, Format);
+    vsnprintf(VaBuffer.data(), VA_BUFFER_SIZE, Format, VaList);
+    va_end(VaList);
 
-    return std::string(vaBuffer.data());
+    return std::string(VaBuffer.data());
 }

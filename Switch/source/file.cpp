@@ -2,264 +2,278 @@
 #include "fslib.hpp"
 #include "string.hpp"
 #include <cstring>
-#include <vector>
 
 // fslib's error string.
 extern std::string g_ErrorString;
 
-fslib::file::file(const std::string &filePath, FsOpenMode openMode)
+FsLib::File::File(const std::string &FilePath, FsOpenMode OpenMode)
 {
-    fslib::file::open(filePath, openMode);
+    File::Open(FilePath, OpenMode);
 }
 
-fslib::file::~file()
+FsLib::File::~File()
 {
-    fslib::file::close();
+    File::Close();
 }
 
-void fslib::file::operator<<(const char *string)
+void FsLib::File::Open(const std::string &FilePath, FsOpenMode OpenMode)
 {
-    size_t stringLength = std::strlen(string);
-    fslib::file::write(string, stringLength);
-    fslib::file::flush();
-}
-
-void fslib::file::operator<<(const std::string &string)
-{
-    *this << string.c_str();
-}
-
-void fslib::file::open(const std::string &filePath, FsOpenMode openMode)
-{
-
-    FsFileSystem targetFileSystem;
-    std::string deviceName = fslib::getDeviceFromPath(filePath);
-    std::string truePath = fslib::removeDeviceFromPath(filePath);
-    bool fileSystemFound = fslib::getFileSystemHandleByName(deviceName, targetFileSystem);
-    if (deviceName.empty() || truePath.empty() || fileSystemFound == false)
+    // Make sure this is false incase file is reused.
+    m_IsOpen = false;
+    // Dissect path.
+    FsFileSystem TargetFileSystem;
+    std::string DeviceName = FsLib::String::GetDeviceNameFromPath(FilePath);
+    std::string TruePath = FsLib::String::GetTruePathFromPath(FilePath);
+    bool FileSystemFound = FsLib::GetFileSystemHandleByDeviceName(DeviceName, TargetFileSystem);
+    if (DeviceName.empty() || TruePath.empty() || FileSystemFound == false)
     {
-        g_ErrorString = fslib::getFormattedString("Error opening \"%s\": Invalid path supplied or filesystem not opened.", filePath.c_str());
+        g_ErrorString = FsLib::String::GetFormattedString("Error opening file: Invalid Path Supplied.");
         return;
     }
 
-    switch (openMode)
+    switch (OpenMode)
     {
         case FsOpenMode_Read:
         {
-            m_IsOpen = fslib::file::openForReading(targetFileSystem, truePath);
+            m_IsOpen = File::OpenForReading(TargetFileSystem, TruePath);
         }
         break;
 
         case FsOpenMode_Write:
         {
-            m_IsOpen = fslib::file::openForWriting(targetFileSystem, truePath);
+            m_IsOpen = File::OpenForWriting(TargetFileSystem, TruePath);
         }
         break;
 
         case FsOpenMode_Append:
         {
-            m_IsOpen = fslib::file::openForAppending(targetFileSystem, truePath);
+            m_IsOpen = File::OpenForAppending(TargetFileSystem, TruePath);
         }
         break;
 
         default:
         {
-            m_IsOpen = false;
+            m_IsOpen = File::OpenForReading(TargetFileSystem, TruePath);
         }
         break;
     }
 }
 
-void fslib::file::close(void)
+void FsLib::File::Close(void)
 {
-    Result fsError = fsFileFlush(&m_FileHandle);
-    if (R_FAILED(fsError))
-    {
-        g_ErrorString = fslib::getFormattedString("Error 0x%X flushing file.", fsError);
-    }
     fsFileClose(&m_FileHandle);
 }
 
-bool fslib::file::isOpen(void) const
+bool FsLib::File::IsOpen(void) const
 {
     return m_IsOpen;
 }
 
-bool fslib::file::endOfFile(void) const
+bool FsLib::File::EndOfFile(void) const
 {
-    // Like this just in case.
+    // The > is JIC. Shouldn't be able to happen.
     return m_Offset >= m_FileSize;
 }
 
-size_t fslib::file::read(void *buffer, size_t readSize)
+size_t FsLib::File::Read(void *Buffer, size_t ReadSize)
 {
-    uint64_t bytesRead = 0;
-    Result fsError = fsFileRead(&m_FileHandle, m_Offset, buffer, readSize, 0, &bytesRead);
-    if (R_FAILED(fsError) || bytesRead != readSize)
+    // Block read operation from a write mode.
+    if (m_OpenMode != FsOpenMode_Read)
     {
-        g_ErrorString = fslib::getFormattedString("Error 0x%X reading from file, or read size mismatch.", fsError);
-        return bytesRead;
-    }
-
-    m_Offset += bytesRead;
-
-    return bytesRead;
-}
-
-size_t fslib::file::write(const void *buffer, size_t writeSize)
-{
-    resizeIfNeeded(writeSize);
-    Result fsError = fsFileWrite(&m_FileHandle, m_Offset, buffer, writeSize, 0);
-    if (R_FAILED(fsError))
-    {
-        g_ErrorString = fslib::getFormattedString("Error 0x%X writing to file.", fsError);
         return 0;
     }
-    // There's no way to really check what was written on Switch.
-    m_Offset += writeSize;
-    return writeSize;
-}
 
-char fslib::file::getChar(void)
-{
-    if (m_Offset >= m_FileSize)
+    uint64_t BytesRead = 0;
+    Result FsError = fsFileRead(&m_FileHandle, m_Offset, Buffer, ReadSize, FsReadOption_None, &BytesRead);
+    if (R_FAILED(FsError) || BytesRead != ReadSize)
     {
-        return -1;
-    }
-
-    char returnChar = 0x00;
-    uint64_t bytesRead = 0;
-    Result fsError = fsFileRead(&m_FileHandle, m_Offset++, &returnChar, 1, 0, &bytesRead);
-    if (R_FAILED(fsError))
-    {
-        g_ErrorString = fslib::getFormattedString("Error 0x%X reading byte from file.", fsError);
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X reading from file: %016d/%016d bytes read.", FsError, BytesRead, ReadSize);
         return 0;
     }
-    return returnChar;
+    // Update offset
+    m_Offset += BytesRead;
+    // Return
+    return BytesRead;
 }
 
-bool fslib::file::putChar(char c)
+size_t FsLib::File::Write(const void *Buffer, size_t WriteSize)
 {
-    // Just incase.
-    fslib::file::resizeIfNeeded(1);
-
-    Result fsError = fsFileWrite(&m_FileHandle, m_Offset++, &c, 1, 0);
-    if (R_FAILED(fsError))
+    if (m_OpenMode == FsOpenMode_Read)
     {
-        g_ErrorString = fslib::getFormattedString("Error 0x%X writing byte to file.", fsError);
+        return 0;
+    }
+    // Resize file if necessary to fit incoming buffer.
+    if (File::ResizeIfNeeded(WriteSize) == false)
+    {
+        return 0;
+    }
+
+    Result FsError = fsFileWrite(&m_FileHandle, m_Offset, Buffer, WriteSize, FsWriteOption_None);
+    if (R_FAILED(FsError))
+    {
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X writing to file.", FsError);
+        return 0;
+    }
+    m_Offset += WriteSize;
+    // There is no way to really check if this was 100% successful.
+    return WriteSize;
+}
+
+char FsLib::File::GetCharacter(void)
+{
+    if (m_OpenMode != FsOpenMode_Read || m_Offset >= m_FileSize)
+    {
+        return 0x00;
+    }
+
+    uint64_t BytesRead = 0;
+    char ReadCharacter = 0x00;
+    Result FsError = fsFileRead(&m_FileHandle, m_Offset++, &ReadCharacter, 1, FsReadOption_None, &BytesRead);
+    if (R_FAILED(FsError) || BytesRead != 1)
+    {
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X reading byte from file.", FsError);
+        return 0x00;
+    }
+    return ReadCharacter;
+}
+
+bool FsLib::File::PutCharacter(char C)
+{
+    if (m_OpenMode == FsOpenMode_Read)
+    {
         return false;
     }
+
+    // Just in case.
+    if (File::ResizeIfNeeded(1) == false)
+    {
+        return false;
+    }
+
+    Result FsError = fsFileWrite(&m_FileHandle, m_Offset++, &C, 1, FsWriteOption_None);
+    if (R_FAILED(FsError))
+    {
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X writing byte to file.", FsError);
+        return false;
+    }
+
     return true;
 }
 
-bool fslib::file::getLine(std::string &lineOut)
+bool FsLib::File::ReadLine(std::string &LineOut)
 {
-    // Clear line
-    lineOut.clear();
+    if (m_OpenMode != FsOpenMode_Read)
+    {
+        return false;
+    }
+
+    // Clear LineOut before beginning.
+    LineOut.clear();
+
     while (m_Offset < m_FileSize)
     {
-        // I want to rethink this some time...
-        char currentChar = fslib::file::getChar();
-        if (currentChar == '\n' || currentChar == '\r')
+        char CurrentCharacter = File::GetCharacter();
+        if (CurrentCharacter == '\n' || CurrentCharacter == '\r')
         {
-            // Just assume we've hit the end of the line and return true.
+            // Just assume the end of a line has been hit. Return true.
             return true;
         }
-        lineOut += currentChar;
+        LineOut += CurrentCharacter;
     }
-    // Assumed end of file is hit.
+    // This means the end of the file was hit and no lines, I guess
     return false;
 }
 
-bool fslib::file::flush(void)
+void FsLib::File::Flush(void)
 {
-    Result fsError = fsFileFlush(&m_FileHandle);
-    if (R_FAILED(fsError))
-    {
-        g_ErrorString = fslib::getFormattedString("Error 0x%X flushing file.", fsError);
-        return false;
-    }
-    return true;
+    fsFileFlush(&m_FileHandle);
 }
 
-bool fslib::file::openForReading(FsFileSystem &fileSystem, const std::string &filePath)
+bool FsLib::File::OpenForReading(FsFileSystem &FileSystem, const std::string &FilePath)
 {
-    Result fsError = fsFsOpenFile(&fileSystem, filePath.c_str(), FsOpenMode_Read, &m_FileHandle);
-    if (R_FAILED(fsError))
+    Result FsError = fsFsOpenFile(&FileSystem, FilePath.c_str(), FsOpenMode_Read, &m_FileHandle);
+    if (R_FAILED(FsError))
     {
-        g_ErrorString = fslib::getFormattedString("Error 0x%X opening file for reading.", fsError);
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening file for reading.", FsError);
         return false;
     }
 
-    fsError = fsFileGetSize(&m_FileHandle, &m_FileSize);
-    if (R_FAILED(fsError))
+    FsError = fsFileGetSize(&m_FileHandle, &m_FileSize);
+    if (R_FAILED(FsError))
     {
-        g_ErrorString = fslib::getFormattedString("Error 0x%X obtaining file size.", fsError);
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X retrieving file size.", FsError);
         return false;
     }
-    // Set offset to 0.
+    // Starting offset in this case is 0.
     m_Offset = 0;
+
     return true;
 }
 
-bool fslib::file::openForWriting(FsFileSystem &fileSystem, const std::string &filePath)
+bool FsLib::File::OpenForWriting(FsFileSystem &FileSystem, const std::string &FilePath)
 {
-    // Start by deleting file if it exists. If this fails, it's not really important. It probably just means the file doesn't exist yet.
-    fsFsDeleteFile(&fileSystem, filePath.c_str());
+    // Start with deleting file if it already exists.
+    fsFsDeleteFile(&FileSystem, FilePath.c_str());
 
-    Result fsError = fsFsCreateFile(&fileSystem, filePath.c_str(), 0, 0);
-    if (R_FAILED(fsError))
+    // Try to recreate it.
+    Result FsError = fsFsCreateFile(&FileSystem, FilePath.c_str(), 0, 0);
+    if (R_FAILED(FsError))
     {
-        g_ErrorString = fslib::getFormattedString("Error 0x%X opening file for writing.", fsError);
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X creating file.", FsError);
         return false;
     }
 
-    fsError = fsFsOpenFile(&fileSystem, filePath.c_str(), FsOpenMode_Write, &m_FileHandle);
-    if (R_FAILED(fsError))
+    FsError = fsFsOpenFile(&FileSystem, FilePath.c_str(), FsOpenMode_Write, &m_FileHandle);
+    if (R_FAILED(FsError))
     {
-        g_ErrorString = fslib::getFormattedString("Error 0x%X opening file for writing.", fsError);
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening file for writing.", FsError);
         return false;
     }
-    // File size and offset are both 0 for this one.
+    // Offset and Size are both 0 in this case.
     m_Offset = 0;
     m_FileSize = 0;
+
     return true;
 }
 
-bool fslib::file::openForAppending(FsFileSystem &fileSystem, const std::string &filePath)
+bool FsLib::File::OpenForAppending(FsFileSystem &FileSystem, const std::string &FilePath)
 {
-    Result fsError = fsFsOpenFile(&fileSystem, filePath.c_str(), 0, &m_FileHandle);
-    if (R_FAILED(fsError))
+    Result FsError = fsFsOpenFile(&FileSystem, FilePath.c_str(), FsOpenMode_Append, &m_FileHandle);
+    if (R_FAILED(FsError))
     {
-        g_ErrorString = fslib::getFormattedString("Error 0x%X opening file for appending.", fsError);
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening file for appending.", FsError);
         return false;
     }
 
-    fsError = fsFileGetSize(&m_FileHandle, &m_FileSize);
-    if (R_FAILED(fsError))
+    FsError = fsFileGetSize(&m_FileHandle, &m_FileSize);
+    if (R_FAILED(FsError))
     {
-        g_ErrorString = fslib::getFormattedString("Error 0x%X obtaining file size.", fsError);
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X retrieving file size.", FsError);
         return false;
     }
-    // Both are file's size in this case
+    // This is the same in this case.
     m_Offset = m_FileSize;
+
     return true;
 }
 
-bool fslib::file::resizeIfNeeded(size_t dataSize)
+bool FsLib::File::ResizeIfNeeded(size_t BufferSize)
 {
-    // Basically, if writing dataSize to file starting at m_Offset would be larger than the file is, resize it to fit.
-    if (m_FileSize - m_Offset < static_cast<int64_t>(dataSize))
+    // Get the space remaining between offset and file's end.
+    int64_t WriteSizeRemaining = m_FileSize - m_Offset;
+
+    if (WriteSizeRemaining < static_cast<int64_t>(BufferSize))
     {
-        int64_t newFileSize = (m_FileSize - m_Offset) + dataSize;
-        Result fsError = fsFileSetSize(&m_FileHandle, newFileSize);
-        if (R_FAILED(fsError))
+        int64_t NewFileSize = WriteSizeRemaining + BufferSize;
+
+        Result FsError = fsFileSetSize(&m_FileHandle, NewFileSize);
+        if (R_FAILED(FsError))
         {
-            g_ErrorString = fslib::getFormattedString("Error 0x%X resizing file.", fsError);
+            g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X resizing file.", FsError);
             return false;
         }
         // Update file size.
-        m_FileSize = newFileSize;
+        m_FileSize = NewFileSize;
     }
     return true;
 }

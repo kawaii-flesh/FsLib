@@ -2,6 +2,13 @@
 #include "string.hpp"
 #include <unordered_map>
 
+// This macro is so I can reject requests to mount with sdmc as device without having to repeat typing it over and over
+#define SDMC_DEVICE_GUARD(DeviceName)                                                                                                                          \
+    if (DeviceName == SD_CARD_DEVICE_NAME)                                                                                                                     \
+    {                                                                                                                                                          \
+        return false;                                                                                                                                          \
+    }
+
 namespace
 {
     // Filesystems paired with their mount point.
@@ -11,265 +18,284 @@ namespace
 } // namespace
 
 // This error string is shared globally, but I didn't want it extern'd in the header.
-std::string g_ErrorString;
+std::string g_ErrorString = "No Errors to report, sir.";
 
 // This is for opening functions to search and make sure there are no duplicate uses of the same device name.
-static inline bool deviceNameIsInUse(const std::string &deviceName)
+static bool DeviceNameIsInUse(const std::string &DeviceName)
 {
-    return s_DeviceMap.find(deviceName) != s_DeviceMap.end();
+    return s_DeviceMap.find(DeviceName) != s_DeviceMap.end();
 }
 
-bool fslib::initialize(void)
+bool FsLib::Initialize(void)
 {
-    // Just in case.
-    Result fsError = fsInitialize();
-    if (R_FAILED(fsError))
+    // Just in case. I think LibNX takes care of this by default.
+    Result FsError = fsInitialize();
+    if (R_FAILED(FsError))
     {
-        // We're gonna set the string, but this might fail anyway because libnx takes care of this and has guards against doubling it IIRC.
-        // Not going to return false. This might fail no matter what.
-        g_ErrorString = fslib::getFormattedString("Error 0x%X initializing FS.", fsError);
+        // Not going to return on this one mainly because LibNX protects against this IIRC...
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%0X initializing FS.", FsError);
     }
-    // Mount the sd card to sdmc. This only works internally with fslib. Libnx stdio is out of my control.
-    fsError = fsOpenSdCardFileSystem(&s_DeviceMap[SD_CARD_DEVICE_NAME]);
-    if (R_FAILED(fsError))
+
+    FsError = fsOpenSdCardFileSystem(&s_DeviceMap[SD_CARD_DEVICE_NAME]);
+    if (R_FAILED(FsError))
     {
-        g_ErrorString = fslib::getFormattedString("Error 0x%X mounting SD Card.", fsError);
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%0X mounting SD card.", FsError);
         return false;
     }
+
     return true;
 }
 
-void fslib::exit(void)
+void FsLib::Exit(void)
 {
-    // Loop through map and close all open handles.
-    for (auto &[deviceName, filesystemHandle] : s_DeviceMap)
+    for (auto &[DeviceName, FileSystemHandle] : s_DeviceMap)
     {
-        fsFsClose(&filesystemHandle);
+        // This is called directly instead of FsLib::CloseFileSystem since that guards against closing the SD.
+        fsFsClose(&FileSystemHandle);
     }
-    // Just in case
+    // JIC
     fsExit();
 }
 
-std::string fslib::getErrorString(void)
+std::string FsLib::GetErrorString(void)
 {
     return g_ErrorString;
 }
 
-bool fslib::openSystemSaveFileSystem(const std::string &deviceName, uint64_t systemSaveID)
+bool FsLib::OpenSystemSaveFileSystem(const std::string &DeviceName, uint64_t SystemSaveID)
 {
-    if (deviceNameIsInUse(deviceName))
+    // Reject altogether if sdmc is what is passed.
+    SDMC_DEVICE_GUARD(DeviceName);
+
+    if (DeviceNameIsInUse(DeviceName))
     {
-        g_ErrorString = fslib::getFormattedString("Error mounting system save data with device name \"%s\".", deviceName.c_str());
+        // Close the previously opened system using the same name before continuing.
+        FsLib::CloseFileSystem(DeviceName);
+    }
+
+    FsSaveDataAttribute SaveDataAttributes = {.application_id = 0,
+                                              .uid = {0},
+                                              .system_save_data_id = SystemSaveID,
+                                              .save_data_type = FsSaveDataType_System,
+                                              .save_data_rank = FsSaveDataRank_Primary,
+                                              .save_data_index = 0};
+
+    Result FsError = fsOpenSaveDataFileSystem(&s_DeviceMap[DeviceName], FsSaveDataSpaceId_User, &SaveDataAttributes);
+    if (R_FAILED(FsError))
+    {
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening system save data 0x%016lX.", FsError, SystemSaveID);
         return false;
     }
 
-    FsSaveDataAttribute saveAttributes = {.application_id = 0,
-                                          .uid = 0,
-                                          .system_save_data_id = systemSaveID,
-                                          .save_data_type = FsSaveDataType_System,
-                                          .save_data_rank = FsSaveDataRank_Primary,
-                                          .save_data_index = 0};
-
-    Result fsError = fsOpenSaveDataFileSystem(&s_DeviceMap[deviceName], FsSaveDataSpaceId_User, &saveAttributes);
-    if (R_FAILED(fsError))
-    {
-        g_ErrorString = fslib::getFormattedString("Error 0x%X opening system save data.", fsError);
-        return false;
-    }
     return true;
 }
 
-bool fslib::openAccountSaveFileSystem(const std::string &deviceName, uint64_t applicationID, AccountUid userID)
+bool FsLib::OpenAccountSaveFileSystem(const std::string &DeviceName, uint64_t ApplicationID, AccountUid UserID)
 {
-    if (deviceNameIsInUse(deviceName))
+    SDMC_DEVICE_GUARD(DeviceName);
+
+    if (DeviceNameIsInUse(DeviceName))
     {
-        g_ErrorString = fslib::getFormattedString("Error mounting account save with device name \"%s\".", deviceName.c_str());
+        FsLib::CloseFileSystem(DeviceName);
+    }
+
+    FsSaveDataAttribute SaveDataAttributes = {.application_id = ApplicationID,
+                                              .uid = UserID,
+                                              .system_save_data_id = 0,
+                                              .save_data_type = FsSaveDataType_System,
+                                              .save_data_rank = FsSaveDataRank_Primary,
+                                              .save_data_index = 0};
+
+    Result FsError = fsOpenSaveDataFileSystem(&s_DeviceMap[DeviceName], FsSaveDataSpaceId_User, &SaveDataAttributes);
+    if (R_FAILED(FsError))
+    {
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0xX opening account save data for 0x%016lX.", FsError, ApplicationID);
         return false;
     }
 
-    FsSaveDataAttribute saveAttributes = {.application_id = applicationID,
-                                          .uid = userID,
-                                          .system_save_data_id = 0,
-                                          .save_data_type = FsSaveDataType_Account,
-                                          .save_data_rank = FsSaveDataRank_Primary,
-                                          .save_data_index = 0};
-
-    Result fsError = fsOpenSaveDataFileSystem(&s_DeviceMap[deviceName], FsSaveDataSpaceId_User, &saveAttributes);
-    if (R_FAILED(fsError))
-    {
-        g_ErrorString = fslib::getFormattedString("Error 0x%X opening account save data.", fsError);
-        return false;
-    }
     return true;
 }
 
-bool fslib::openBCATSaveFileSystem(const std::string &deviceName, uint64_t applicationID)
+bool FsLib::OpenBCATSaveFileSystem(const std::string &DeviceName, uint64_t ApplicationID)
 {
-    if (deviceNameIsInUse(deviceName))
+    SDMC_DEVICE_GUARD(DeviceName);
+
+    if (DeviceNameIsInUse(DeviceName))
     {
-        g_ErrorString = fslib::getFormattedString("Error mounting BCAT with device name \"%s\".", deviceName.c_str());
+        FsLib::CloseFileSystem(DeviceName);
+    }
+
+    FsSaveDataAttribute SaveDataAttributes = {.application_id = ApplicationID,
+                                              .uid = {0},
+                                              .system_save_data_id = 0,
+                                              .save_data_type = FsSaveDataType_Bcat,
+                                              .save_data_rank = FsSaveDataRank_Primary,
+                                              .save_data_index = 0};
+
+    Result FsError = fsOpenSaveDataFileSystem(&s_DeviceMap[DeviceName], FsSaveDataSpaceId_User, &SaveDataAttributes);
+    if (R_FAILED(FsError))
+    {
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening BCAT for 0x%016lX.", FsError, ApplicationID);
         return false;
     }
 
-    FsSaveDataAttribute saveAttributes = {.application_id = applicationID,
-                                          .uid = {0},
-                                          .system_save_data_id = 0,
-                                          .save_data_type = FsSaveDataType_Bcat,
-                                          .save_data_rank = FsSaveDataRank_Primary,
-                                          .save_data_index = 0};
-
-    Result fsError = fsOpenSaveDataFileSystem(&s_DeviceMap[deviceName], FsSaveDataSpaceId_User, &saveAttributes);
-    if (R_FAILED(fsError))
-    {
-        g_ErrorString = fslib::getFormattedString("Error 0x%X opening BCAT save data.", fsError);
-        return false;
-    }
     return true;
 }
 
-bool fslib::openDeviceSaveFileSystem(const std::string &deviceName, uint64_t applicationID)
+bool FsLib::OpenDeviceSaveFileSystem(const std::string &DeviceName, uint64_t ApplicationID)
 {
-    if (deviceNameIsInUse(deviceName))
+    SDMC_DEVICE_GUARD(DeviceName);
+
+    if (DeviceNameIsInUse(DeviceName))
     {
-        g_ErrorString = fslib::getFormattedString("Error opening Device Save Data with device name \"%s\".", deviceName.c_str());
+        FsLib::CloseFileSystem(DeviceName);
+    }
+
+    FsSaveDataAttribute SaveDataAttributes = {.application_id = ApplicationID,
+                                              .uid = {0},
+                                              .system_save_data_id = 0,
+                                              .save_data_type = FsSaveDataType_Device,
+                                              .save_data_rank = FsSaveDataRank_Primary,
+                                              .save_data_index = 0};
+
+    Result FsError = fsOpenSaveDataFileSystem(&s_DeviceMap[DeviceName], FsSaveDataSpaceId_User, &SaveDataAttributes);
+    if (R_FAILED(FsError))
+    {
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening device save for 0x%016X", FsError, ApplicationID);
         return false;
     }
 
-    FsSaveDataAttribute saveAttributes = {.application_id = applicationID,
-                                          .uid = {0},
-                                          .system_save_data_id = 0,
-                                          .save_data_type = FsSaveDataType_Device,
-                                          .save_data_rank = FsSaveDataRank_Primary,
-                                          .save_data_index = 0};
-
-    Result fsError = fsOpenSaveDataFileSystem(&s_DeviceMap[deviceName], FsSaveDataSpaceId_User, &saveAttributes);
-    if (R_FAILED(fsError))
-    {
-        g_ErrorString = fslib::getFormattedString("Error 0x%X opening device save data.", fsError);
-        return false;
-    }
     return true;
 }
 
-bool fslib::openTemporarySaveFileSystem(const std::string &deviceName)
+bool FsLib::OpenTemporarySaveFileSystem(const std::string &DeviceName)
 {
-    if (deviceNameIsInUse(deviceName))
+    SDMC_DEVICE_GUARD(DeviceName);
+
+    if (DeviceNameIsInUse(DeviceName))
     {
-        g_ErrorString = fslib::getFormattedString("Error opening Temporary save data with device name \"%s\".", deviceName.c_str());
+        FsLib::CloseFileSystem(DeviceName);
+    }
+
+    FsSaveDataAttribute SaveDataAttributes = {.application_id = 0,
+                                              .uid = {0},
+                                              .system_save_data_id = 0,
+                                              .save_data_type = FsSaveDataType_Temporary,
+                                              .save_data_rank = FsSaveDataRank_Primary,
+                                              .save_data_index = 0};
+
+    Result FsError = fsOpenSaveDataFileSystem(&s_DeviceMap[DeviceName], FsSaveDataSpaceId_User, &SaveDataAttributes);
+    if (R_FAILED(FsError))
+    {
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening temporary save data.", FsError);
         return false;
     }
 
-    FsSaveDataAttribute saveAttributes = {.application_id = 0,
-                                          .uid = {0},
-                                          .system_save_data_id = 0,
-                                          .save_data_type = FsSaveDataType_Temporary,
-                                          .save_data_rank = FsSaveDataRank_Primary,
-                                          .save_data_index = 0};
-
-    Result fsError = fsOpenSaveDataFileSystem(&s_DeviceMap[deviceName], FsSaveDataSpaceId_User, &saveAttributes);
-    if (R_FAILED(fsError))
-    {
-        g_ErrorString = fslib::getFormattedString("Error 0x%X opening Temporary save filesystem.", fsError);
-        return false;
-    }
     return true;
 }
 
-bool fslib::openCacheSaveFileSystem(const std::string &deviceName, uint64_t applicationID, uint16_t cacheIndex)
+bool FsLib::OpenCacheSaveFileSystem(const std::string &DeviceName, uint64_t ApplicationID, uint16_t SaveIndex)
 {
-    if (deviceNameIsInUse(deviceName))
+    SDMC_DEVICE_GUARD(DeviceName);
+
+    if (DeviceNameIsInUse(DeviceName))
     {
-        g_ErrorString = fslib::getFormattedString("Error opening cache save filesystem with device name \"%s\".", deviceName.c_str());
+        FsLib::CloseFileSystem(DeviceName);
+    }
+
+    FsSaveDataAttribute SaveDataAttributes = {.application_id = ApplicationID,
+                                              .uid = {0},
+                                              .system_save_data_id = 0,
+                                              .save_data_type = FsSaveDataType_Cache,
+                                              .save_data_rank = FsSaveDataRank_Primary,
+                                              .save_data_index = SaveIndex};
+
+    Result FsError = fsOpenSaveDataFileSystem(&s_DeviceMap[DeviceName], FsSaveDataSpaceId_User, &SaveDataAttributes);
+    if (R_FAILED(FsError))
+    {
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening cache save for 0x%016X with index %02d.", FsError, ApplicationID, SaveIndex);
         return false;
     }
 
-    FsSaveDataAttribute saveAttributes = {.application_id = applicationID,
-                                          .uid = {0},
-                                          .system_save_data_id = 0,
-                                          .save_data_type = FsSaveDataType_Cache,
-                                          .save_data_rank = FsSaveDataRank_Primary,
-                                          .save_data_index = cacheIndex};
-
-    Result fsError = fsOpenSaveDataFileSystem(&s_DeviceMap[deviceName], FsSaveDataSpaceId_User, &saveAttributes);
-    if (R_FAILED(fsError))
-    {
-        g_ErrorString = fslib::getFormattedString("Error 0x%X opening cache save filesystem.", fsError);
-        return false;
-    }
     return true;
 }
 
-bool fslib::openSystemBCATSaveFileSystem(const std::string &deviceName, uint64_t systemSaveID)
+bool FsLib::OpenSystemBCATSaveFileSystem(const std::string &DeviceName, uint64_t SystemSaveID)
 {
-    if (deviceNameIsInUse(deviceName))
+    SDMC_DEVICE_GUARD(DeviceName);
+
+    if (DeviceNameIsInUse(DeviceName))
     {
-        g_ErrorString = fslib::getFormattedString("Error opening system bcat save with device name \"%s\".", deviceName.c_str());
+        FsLib::CloseFileSystem(DeviceName);
+    }
+
+    FsSaveDataAttribute SaveDataAttributes = {.application_id = 0,
+                                              .uid = {0},
+                                              .system_save_data_id = SystemSaveID,
+                                              .save_data_type = FsSaveDataType_SystemBcat,
+                                              .save_data_rank = FsSaveDataRank_Primary,
+                                              .save_data_index = 0};
+
+    Result FsError = fsOpenSaveDataFileSystem(&s_DeviceMap[DeviceName], FsSaveDataSpaceId_User, &SaveDataAttributes);
+    if (R_FAILED(FsError))
+    {
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening system BCAT for 0x%016X.", FsError, SystemSaveID);
         return false;
     }
 
-    FsSaveDataAttribute saveAttributes = {.application_id = 0,
-                                          .uid = {0},
-                                          .system_save_data_id = systemSaveID,
-                                          .save_data_type = FsSaveDataType_SystemBcat,
-                                          .save_data_rank = FsSaveDataRank_Primary,
-                                          .save_data_index = 0};
-
-    Result fsError = fsOpenSaveDataFileSystem(&s_DeviceMap[deviceName], FsSaveDataSpaceId_User, &saveAttributes);
-    if (R_FAILED(fsError))
-    {
-        g_ErrorString = fslib::getFormattedString("Error 0x%X opening system bcat save filesystem.", fsError);
-        return false;
-    }
     return true;
 }
 
-bool fslib::closeFileSystem(const std::string &deviceName)
+bool FsLib::CloseFileSystem(const std::string &DeviceName)
 {
-    if (deviceNameIsInUse(deviceName))
+    // Guard against closing sdmc. Only exiting FsLib will do that.
+    SDMC_DEVICE_GUARD(DeviceName);
+
+    if (DeviceNameIsInUse(DeviceName))
     {
-        fsFsClose(&s_DeviceMap[deviceName]);
+        // Close
+        fsFsClose(&s_DeviceMap[DeviceName]);
+        // Erase from map.
+        s_DeviceMap.erase(DeviceName);
         return true;
     }
     return false;
 }
 
-bool fslib::getFileSystemHandleByName(const std::string &deviceName, FsFileSystem &handleOut)
+bool FsLib::GetFileSystemHandleByDeviceName(const std::string &DeviceName, FsFileSystem &HandleOut)
 {
-    if (s_DeviceMap.find(deviceName) != s_DeviceMap.end())
+    if (DeviceNameIsInUse(DeviceName) == false)
     {
-        handleOut = s_DeviceMap.at(deviceName);
-        return true;
+        g_ErrorString = FsLib::String::GetFormattedString("Error: Device \"%s\" was not found in device map.", DeviceName.c_str());
+        return false;
     }
-    // Set error string and return false.
-    g_ErrorString = fslib::getFormattedString("\"%s\" was not found in device map!", deviceName.c_str());
-    return false;
+    // Set handle and return true.
+    HandleOut = s_DeviceMap[DeviceName];
+    return true;
 }
 
-bool fslib::createDirectoryRecursively(const std::string &directoryPath)
+bool FsLib::CreateDirectoryRecursively(const std::string &DirectoryPath)
 {
-    // Get stuff we need to start.
-    FsFileSystem targetFileSystem;
-    std::string deviceName = fslib::getDeviceFromPath(directoryPath);
-    std::string truePath = fslib::removeDeviceFromPath(directoryPath);
-    bool targetSystemFound = fslib::getFileSystemHandleByName(deviceName, targetFileSystem);
-    if (deviceName.empty() || truePath.empty() || targetSystemFound == false)
+    FsFileSystem TargetFileSystem;
+    std::string DeviceName = FsLib::String::GetDeviceNameFromPath(DirectoryPath);
+    std::string TruePath = FsLib::String::GetTruePathFromPath(DirectoryPath);
+    bool TargetSystemFound = FsLib::GetFileSystemHandleByDeviceName(DeviceName, TargetFileSystem);
+    if (DeviceName.empty() || TruePath.empty() || TargetSystemFound == false)
     {
-        g_ErrorString = fslib::getFormattedString("Error creating directories: Invalid path supplied.");
+        g_ErrorString = FsLib::String::GetFormattedString("Error creating directories: Invalid path supplied.");
         return false;
     }
 
-    // Skip the first slash. This is going to need work when I get my switch back. I feel like I'm missing something here.
-    size_t slashPosition = 1;
-    while ((slashPosition = truePath.find_first_of('/', slashPosition)) != truePath.npos)
+    // Skip the first slash in the path.
+    size_t SlashPosition = 1;
+    while ((SlashPosition = TruePath.find_first_of('/', SlashPosition)) != TruePath.npos)
     {
-        std::string currentDirectoryPath = truePath.substr(0, slashPosition);
-        Result fsError = fsFsCreateDirectory(&targetFileSystem, currentDirectoryPath.c_str());
-        if (R_FAILED(fsError))
+        Result FsError = fsFsCreateDirectory(&TargetFileSystem, TruePath.substr(0, SlashPosition).c_str());
+        if (R_FAILED(FsError))
         {
-            // Set the error string, but don't return. This can happen because of the directory already existing.
-            g_ErrorString = fslib::getFormattedString("Error 0x%X creating directory \"%s\".", fsError, currentDirectoryPath.c_str());
+            // This will fail if the directory already exists. I want to error check this better but adding calls to check will slow things down.
+            g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X creating directory \"%s\".", FsError, TruePath.substr(0, SlashPosition).c_str());
         }
     }
-    // I might rework this when I have time. Error checking this might be tricky.
     return true;
 }

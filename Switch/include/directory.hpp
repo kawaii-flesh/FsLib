@@ -1,29 +1,26 @@
 #pragma once
+#include <memory>
 #include <string>
 #include <switch.h>
-#include <vector>
 
-namespace fslib
+namespace FsLib
 {
-    class directory
+    class Directory
     {
         public:
-            directory(void) = default;
-            // Just constructs and calls open for you. isOpen will return whether operation was successful or not.
-            directory(const std::string &directoryPath);
-            ~directory();
-            // Opens directory. isOpen can be checked to see if operation succeeded.
-            void open(const std::string &directoryPath);
-            // Closes directory handle.
-            void close(void);
-            // Returns whether opening directory was successful
-            bool isOpen(void) const;
-            // Returns number of entries for directory.
-            int64_t getEntryCount(void) const;
-            // Returns name of entry at index.
-            std::string getEntryNameAt(int index) const;
-            // Returns if entry [index] is a directory or not.
-            bool entryAtIsDirectory(int index) const;
+            Directory(void) = default;
+            // This constructor just calls Open for you.
+            Directory(const std::string &DirectoryPath);
+            // Opens directory passed if possible.
+            void Open(const std::string &DirectoryPath);
+            // Returns whether opening was successful or not.
+            bool IsOpen(void) const;
+            // Returns number of entries in directory.
+            int64_t GetEntryCount(void) const;
+            // Returns full file name of entry at index.
+            std::string GetEntryNameAt(int index) const;
+            // Returns whether entry at index is a directory or not.
+            bool EntryAtIsDirectory(int index) const;
 
         private:
             // Directory Handle/service.
@@ -31,8 +28,10 @@ namespace fslib
             // Number of entries in directory
             int64_t m_EntryCount = 0;
             // Entries in directory.
-            std::vector<FsDirectoryEntry> m_DirectoryList;
-            // Whether or not directory is open
-            bool m_IsOpen = false;
+            std::unique_ptr<FsDirectoryEntry[]> m_DirectoryList;
+            // Whether or not directory was opened and read.
+            bool m_WasRead = false;
+            // Closes the directory handle. Not needed publically since directory handle is closed after reading entries.
+            void Close(void);
     };
-} // namespace fslib
+} // namespace FsLib

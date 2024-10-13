@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cstring>
 
-// Sorts by entry type->alphabetically.
+// Sorts by entry type, then alphabetically.
 static bool compareEntries(const FsDirectoryEntry &entryA, const FsDirectoryEntry &entryB)
 {
     if (entryA.type != entryB.type)
@@ -14,9 +14,9 @@ static bool compareEntries(const FsDirectoryEntry &entryA, const FsDirectoryEntr
 
     size_t entryALength = std::strlen(entryA.name);
     size_t entryBLength = std::strlen(entryB.name);
-    // So we don't try to compare out of bounds. JIC.
-    size_t shortest = entryALength < entryBLength ? entryALength : entryBLength;
-    for (size_t i = 0; i < shortest; i++)
+    // So we don't try to read out of bounds.
+    size_t shortestString = entryALength < entryBLength ? entryALength : entryBLength;
+    for (size_t i = 0; i < shortestString; i++)
     {
         // Might need to add utf-8 support here since filesystems themselves can handle it. Only the SD card gets weird with it.
         int charA = std::tolower(entryA.name[i]);
@@ -32,93 +32,88 @@ static bool compareEntries(const FsDirectoryEntry &entryA, const FsDirectoryEntr
 // fslib global error string.
 extern std::string g_ErrorString;
 
-fslib::directory::directory(const std::string &directoryPath)
+FsLib::Directory::Directory(const std::string &DirectoryPath)
 {
-    fslib::directory::open(directoryPath);
+    Directory::Open(DirectoryPath);
 }
 
-fslib::directory::~directory()
+void FsLib::Directory::Open(const std::string &DirectoryPath)
 {
-    fslib::directory::close();
-}
-
-void fslib::directory::open(const std::string &directoryPath)
-{
-    // Error being used and clear entry vector
-    Result fsError = 0;
-    m_DirectoryList.clear();
-    // Get filesystem and path without device in the beginning.
-    FsFileSystem targetFileSystem;
-    std::string deviceName = fslib::getDeviceFromPath(directoryPath);
-    std::string truePath = fslib::removeDeviceFromPath(directoryPath);
-    bool filesystemMounted = fslib::getFileSystemHandleByName(deviceName, targetFileSystem);
-    if (deviceName.empty() || truePath.empty() || filesystemMounted == false)
+    // Make sure this is set to false incase the directory is being reused.
+    m_WasRead = false;
+    // Dissect the path passed.
+    FsFileSystem TargetFileSystem;
+    std::string DeviceName = FsLib::String::GetDeviceNameFromPath(DirectoryPath);
+    std::string TruePath = FsLib::String::GetTruePathFromPath(DirectoryPath);
+    bool FileSystemFound = FsLib::GetFileSystemHandleByDeviceName(DeviceName, TargetFileSystem);
+    if (DeviceName.empty() || TruePath.empty() || FileSystemFound == false)
     {
-        // Set error string and bail.
-        g_ErrorString = fslib::getFormattedString("Error opening \"%s\". Invalid path or device provided.", directoryPath.c_str());
+        g_ErrorString = FsLib::String::GetFormattedString("Error opening directory: Invalid path supplied.");
         return;
     }
 
-    fsError = fsFsOpenDirectory(&targetFileSystem, truePath.c_str(), FsDirOpenMode_ReadDirs | FsDirOpenMode_ReadFiles, &m_DirectoryHandle);
-    if (R_FAILED(fsError))
+    Result FsError = fsFsOpenDirectory(&TargetFileSystem, TruePath.c_str(), FsDirOpenMode_ReadDirs | FsDirOpenMode_ReadFiles, &m_DirectoryHandle);
+    if (R_FAILED(FsError))
     {
-        g_ErrorString = fslib::getFormattedString("Error 0x%X opening \"%s\"", fsError, directoryPath.c_str());
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening directory.", FsError);
         return;
     }
 
-    // Get entry count.
-    fsError = fsDirGetEntryCount(&m_DirectoryHandle, &m_EntryCount);
-    if (R_FAILED(fsError))
+    FsError = fsDirGetEntryCount(&m_DirectoryHandle, &m_EntryCount);
+    if (R_FAILED(FsError))
     {
-        g_ErrorString = fslib::getFormattedString("Error 0x%X getting entry count for \"%s\".", fsError, directoryPath.c_str());
+        Directory::Close();
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X obtaining entry count.", FsError);
         return;
     }
-    // Resize vector to fit all entries and try to load them.
-    int64_t totalEntries = 0;
-    m_DirectoryList.resize(m_EntryCount);
-    fsError = fsDirRead(&m_DirectoryHandle, &totalEntries, static_cast<size_t>(m_EntryCount), m_DirectoryList.data());
-    if (R_FAILED(fsError) || totalEntries != m_EntryCount)
+
+    // Read entries.
+    int64_t TotalEntriesRead = 0;
+    m_DirectoryList = std::make_unique<FsDirectoryEntry[]>(m_EntryCount); // This should free the previous array on allocation.
+    FsError = fsDirRead(&m_DirectoryHandle, &TotalEntriesRead, m_EntryCount, m_DirectoryList.get());
+    if (R_FAILED(FsError) || TotalEntriesRead != m_EntryCount)
     {
-        g_ErrorString = fslib::getFormattedString("Error reading entries for \"%s\".", directoryPath.c_str());
+        Directory::Close();
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X reading entries: %02d/%02d read.", FsError, TotalEntriesRead, m_EntryCount);
         return;
     }
-    // To do: The directory handle/service isn't needed anymore after this. There's no reason to keep it open. Might need code restructure to do it cleanly.
-    std::sort(m_DirectoryList.begin(), m_DirectoryList.end(), compareEntries);
-    m_IsOpen = true;
+    // Sort the array.
+    std::sort(m_DirectoryList.get(), m_DirectoryList.get() + m_EntryCount, compareEntries);
+    // Close handle for sure
+    Directory::Close();
+    // We're good
+    m_WasRead = true;
 }
 
-void fslib::directory::close(void)
+bool FsLib::Directory::IsOpen(void) const
 {
-    if (m_IsOpen)
-    {
-        fsDirClose(&m_DirectoryHandle);
-    }
+    return m_WasRead;
 }
 
-bool fslib::directory::isOpen(void) const
-{
-    return m_IsOpen;
-}
-
-int64_t fslib::directory::getEntryCount(void) const
+int64_t FsLib::Directory::GetEntryCount(void) const
 {
     return m_EntryCount;
 }
 
-std::string fslib::directory::getEntryNameAt(int index) const
+std::string FsLib::Directory::GetEntryNameAt(int index) const
 {
-    if (index >= static_cast<int>(m_DirectoryList.size()))
+    if (index >= m_EntryCount)
     {
         return std::string("");
     }
-    return std::string(m_DirectoryList.at(index).name);
+    return std::string(m_DirectoryList[index].name);
 }
 
-bool fslib::directory::entryAtIsDirectory(int index) const
+bool FsLib::Directory::EntryAtIsDirectory(int index) const
 {
-    if (index >= static_cast<int>(m_DirectoryList.size()))
+    if (index >= m_EntryCount)
     {
         return false;
     }
-    return m_DirectoryList.at(index).type == FsDirEntryType_Dir;
+    return m_DirectoryList[index].type == FsDirEntryType_Dir;
+}
+
+void FsLib::Directory::Close(void)
+{
+    fsDirClose(&m_DirectoryHandle);
 }
