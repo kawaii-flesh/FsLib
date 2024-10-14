@@ -6,10 +6,8 @@ namespace FsLib
 {
     namespace String
     {
-        // Used to grab device name from incoming path strings. Will return empty string on failure.
-        std::string GetDeviceNameFromPath(const std::string &Path);
-        // Used to remove the device from incoming path strings. Will return empty string on failure.
-        std::string GetTruePathFromPath(const std::string &Path);
+        // Processes and splits path at colon and writes device string/path to respective strings passed.
+        bool ProcessPathString(const std::string &SourcePath, std::string &DeviceOut, std::string &PathOut);
         // This is for creating error messages.
         std::string GetFormattedString(const char *Format, ...);
     } // namespace String

@@ -262,25 +262,21 @@ bool FsLib::CloseFileSystem(const std::string &DeviceName)
     return false;
 }
 
-bool FsLib::GetFileSystemHandleByDeviceName(const std::string &DeviceName, FsFileSystem &HandleOut)
+FsFileSystem *FsLib::GetFileSystemHandleByDeviceName(const std::string &DeviceName)
 {
-    if (DeviceNameIsInUse(DeviceName) == false)
+    if (DeviceNameIsInUse(DeviceName))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error: Device \"%s\" was not found in device map.", DeviceName.c_str());
-        return false;
+        return &s_DeviceMap[DeviceName];
     }
-    // Set handle and return true.
-    HandleOut = s_DeviceMap[DeviceName];
-    return true;
+    return NULL;
 }
 
 bool FsLib::CreateDirectoryRecursively(const std::string &DirectoryPath)
 {
-    FsFileSystem TargetFileSystem;
-    std::string DeviceName = FsLib::String::GetDeviceNameFromPath(DirectoryPath);
-    std::string TruePath = FsLib::String::GetTruePathFromPath(DirectoryPath);
-    bool TargetSystemFound = FsLib::GetFileSystemHandleByDeviceName(DeviceName, TargetFileSystem);
-    if (DeviceName.empty() || TruePath.empty() || TargetSystemFound == false)
+    std::string DeviceName, TruePath;
+    bool PathProcessed = FsLib::String::ProcessPathString(DirectoryPath, DeviceName, TruePath);
+    FsFileSystem *TargetFileSystem = FsLib::GetFileSystemHandleByDeviceName(DeviceName);
+    if (PathProcessed == false || TargetFileSystem == NULL)
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error creating directories: Invalid path supplied.");
         return false;
@@ -290,12 +286,13 @@ bool FsLib::CreateDirectoryRecursively(const std::string &DirectoryPath)
     size_t SlashPosition = 1;
     while ((SlashPosition = TruePath.find_first_of('/', SlashPosition)) != TruePath.npos)
     {
-        Result FsError = fsFsCreateDirectory(&TargetFileSystem, TruePath.substr(0, SlashPosition).c_str());
+        Result FsError = fsFsCreateDirectory(TargetFileSystem, TruePath.substr(0, SlashPosition).c_str());
         if (R_FAILED(FsError))
         {
             // This will fail if the directory already exists. I want to error check this better but adding calls to check will slow things down.
             g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X creating directory \"%s\".", FsError, TruePath.substr(0, SlashPosition).c_str());
         }
+        ++SlashPosition;
     }
     return true;
 }

@@ -32,7 +32,7 @@ CFLAGS	:=	-g -Wall -Werror \
 
 CFLAGS	+=	$(INCLUDE)
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=c++23
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=c++20
 
 ASFLAGS	:=	-g $(ARCH)
 

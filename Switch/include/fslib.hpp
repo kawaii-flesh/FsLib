@@ -28,8 +28,8 @@ namespace FsLib
     bool OpenSystemBCATSaveFileSystem(const std::string &DeviceName, uint64_t SystemSaveID);
     // Closes filesystem handle associated with deviceName.
     bool CloseFileSystem(const std::string &DeviceName);
-    // Uses deviceName to search the map for the filesystem associated with it. Used by Directory and File. No need to use, but if you want...
-    bool GetFileSystemHandleByDeviceName(const std::string &DeviceName, FsFileSystem &HandleOut);
+    // Uses deviceName to search the map for the filesystem associated with it. Returns NULL on failure.
+    FsFileSystem *GetFileSystemHandleByDeviceName(const std::string &DeviceName);
     // Attempts to create directory recursively. Still trying to figure out how to error check this a good way.
     bool CreateDirectoryRecursively(const std::string &DirectoryPath);
 } // namespace FsLib

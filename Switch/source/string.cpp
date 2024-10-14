@@ -7,25 +7,16 @@ namespace
     constexpr int VA_BUFFER_SIZE = 0x1000;
 }
 
-std::string FsLib::String::GetDeviceNameFromPath(const std::string &Path)
+bool FsLib::String::ProcessPathString(const std::string &SourcePath, std::string &DeviceOut, std::string &PathOut)
 {
-    size_t ColonPosition = Path.find_first_of(':');
-    if (ColonPosition == Path.npos)
+    size_t ColonPosition = SourcePath.find_first_of(':');
+    if (ColonPosition == SourcePath.npos)
     {
-        // Just return an empty string.
-        return std::string("");
+        return false;
     }
-    return Path.substr(0, ColonPosition);
-}
-
-std::string FsLib::String::GetTruePathFromPath(const std::string &Path)
-{
-    size_t ColonPosition = Path.find_first_of(':');
-    if (ColonPosition == Path.npos)
-    {
-        return std::string("");
-    }
-    return Path.substr(ColonPosition + 1);
+    DeviceOut = SourcePath.substr(0, ColonPosition);
+    PathOut = SourcePath.substr(ColonPosition + 1);
+    return true;
 }
 
 std::string FsLib::String::GetFormattedString(const char *Format, ...)

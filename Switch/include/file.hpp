@@ -54,9 +54,9 @@ namespace FsLib
             int64_t m_Offset;
             int64_t m_FileSize;
             // These are the functions called to open files according to mode passed. To keep stuff more readable.
-            bool OpenForReading(FsFileSystem &FileSystem, const std::string &FilePath);
-            bool OpenForWriting(FsFileSystem &FileSystem, const std::string &FilePath);
-            bool OpenForAppending(FsFileSystem &FileSystem, const std::string &FilePath);
+            bool OpenForReading(FsFileSystem *FileSystem, const std::string &FilePath);
+            bool OpenForWriting(FsFileSystem *FileSystem, const std::string &FilePath);
+            bool OpenForAppending(FsFileSystem *FileSystem, const std::string &FilePath);
             // This function resizes the file according to the size passed. Not needed outside of class.
             bool ResizeIfNeeded(size_t BufferSize);
     };

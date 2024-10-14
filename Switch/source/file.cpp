@@ -21,11 +21,10 @@ void FsLib::File::Open(const std::string &FilePath, FsOpenMode OpenMode)
     // Make sure this is false incase file is reused.
     m_IsOpen = false;
     // Dissect path.
-    FsFileSystem TargetFileSystem;
-    std::string DeviceName = FsLib::String::GetDeviceNameFromPath(FilePath);
-    std::string TruePath = FsLib::String::GetTruePathFromPath(FilePath);
-    bool FileSystemFound = FsLib::GetFileSystemHandleByDeviceName(DeviceName, TargetFileSystem);
-    if (DeviceName.empty() || TruePath.empty() || FileSystemFound == false)
+    std::string DeviceName, TruePath;
+    bool PathProcessed = FsLib::String::ProcessPathString(FilePath, DeviceName, TruePath);
+    FsFileSystem *TargetFileSystem = FsLib::GetFileSystemHandleByDeviceName(DeviceName);
+    if (PathProcessed == false || TargetFileSystem == NULL)
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error opening file: Invalid Path Supplied.");
         return;
@@ -189,9 +188,9 @@ void FsLib::File::Flush(void)
     fsFileFlush(&m_FileHandle);
 }
 
-bool FsLib::File::OpenForReading(FsFileSystem &FileSystem, const std::string &FilePath)
+bool FsLib::File::OpenForReading(FsFileSystem *FileSystem, const std::string &FilePath)
 {
-    Result FsError = fsFsOpenFile(&FileSystem, FilePath.c_str(), FsOpenMode_Read, &m_FileHandle);
+    Result FsError = fsFsOpenFile(FileSystem, FilePath.c_str(), FsOpenMode_Read, &m_FileHandle);
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening file for reading.", FsError);
@@ -210,20 +209,20 @@ bool FsLib::File::OpenForReading(FsFileSystem &FileSystem, const std::string &Fi
     return true;
 }
 
-bool FsLib::File::OpenForWriting(FsFileSystem &FileSystem, const std::string &FilePath)
+bool FsLib::File::OpenForWriting(FsFileSystem *FileSystem, const std::string &FilePath)
 {
     // Start with deleting file if it already exists.
-    fsFsDeleteFile(&FileSystem, FilePath.c_str());
+    fsFsDeleteFile(FileSystem, FilePath.c_str());
 
     // Try to recreate it.
-    Result FsError = fsFsCreateFile(&FileSystem, FilePath.c_str(), 0, 0);
+    Result FsError = fsFsCreateFile(FileSystem, FilePath.c_str(), 0, 0);
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X creating file.", FsError);
         return false;
     }
 
-    FsError = fsFsOpenFile(&FileSystem, FilePath.c_str(), FsOpenMode_Write, &m_FileHandle);
+    FsError = fsFsOpenFile(FileSystem, FilePath.c_str(), FsOpenMode_Write, &m_FileHandle);
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening file for writing.", FsError);
@@ -236,9 +235,9 @@ bool FsLib::File::OpenForWriting(FsFileSystem &FileSystem, const std::string &Fi
     return true;
 }
 
-bool FsLib::File::OpenForAppending(FsFileSystem &FileSystem, const std::string &FilePath)
+bool FsLib::File::OpenForAppending(FsFileSystem *FileSystem, const std::string &FilePath)
 {
-    Result FsError = fsFsOpenFile(&FileSystem, FilePath.c_str(), FsOpenMode_Append, &m_FileHandle);
+    Result FsError = fsFsOpenFile(FileSystem, FilePath.c_str(), FsOpenMode_Append, &m_FileHandle);
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening file for appending.", FsError);
