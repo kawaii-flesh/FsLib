@@ -1,4 +1,2 @@
 # FSLIB
-WIP, minimally tested, seems to be working FS wrapper library for Switch and 3DS (Soon).
-### Notes
-Requires at least C++ Standard 20 to function correctly.
+WIP, minimally tested, seems to be working FS wrapper library for JKSM/JKSV on Switch and 3DS, but sharing is caring, right?
