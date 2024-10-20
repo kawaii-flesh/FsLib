@@ -29,7 +29,6 @@ static bool CompareEntries(const FsDirectoryEntry &EntryA, const FsDirectoryEntr
     }
     return false;
 }
-cd
 
 FsLib::Directory::Directory(const std::string &DirectoryPath)
 {

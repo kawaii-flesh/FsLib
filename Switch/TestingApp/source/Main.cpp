@@ -8,7 +8,7 @@
 #include <switch.h>
 
 static constexpr int FILE_BUFFER_SIZE = 0x100000;
-static constexpr int VA_BUFFER_SIZE = 0x1000;
+static constexpr int VA_BUFFER_SIZE = 0x80000;
 
 // Feels stupid but needed to get actual output in real time
 void Print(const char *Format, ...)
