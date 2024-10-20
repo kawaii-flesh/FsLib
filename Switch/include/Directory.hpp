@@ -17,10 +17,12 @@ namespace FsLib
             bool IsOpen(void) const;
             // Returns number of entries in directory.
             int64_t GetEntryCount(void) const;
+            // Returns file size of entry.
+            int64_t GetEntrySizeAt(int Index) const;
             // Returns full file name of entry at index.
-            std::string GetEntryNameAt(int index) const;
+            std::string GetEntryNameAt(int Index) const;
             // Returns whether entry at index is a directory or not.
-            bool EntryAtIsDirectory(int index) const;
+            bool EntryAtIsDirectory(int Index) const;
 
         private:
             // Directory Handle/service.

@@ -91,22 +91,31 @@ int64_t FsLib::Directory::GetEntryCount(void) const
     return m_EntryCount;
 }
 
-std::string FsLib::Directory::GetEntryNameAt(int index) const
+int64_t FsLib::Directory::GetEntrySizeAt(int Index) const
 {
-    if (index >= m_EntryCount)
+    if (Index >= m_EntryCount)
+    {
+        return 0;
+    }
+    return m_DirectoryList[Index].file_size;
+}
+
+std::string FsLib::Directory::GetEntryNameAt(int Index) const
+{
+    if (Index >= m_EntryCount)
     {
         return std::string("");
     }
-    return std::string(m_DirectoryList[index].name);
+    return std::string(m_DirectoryList[Index].name);
 }
 
-bool FsLib::Directory::EntryAtIsDirectory(int index) const
+bool FsLib::Directory::EntryAtIsDirectory(int Index) const
 {
-    if (index >= m_EntryCount)
+    if (Index >= m_EntryCount)
     {
         return false;
     }
-    return m_DirectoryList[index].type == FsDirEntryType_Dir;
+    return m_DirectoryList[Index].type == FsDirEntryType_Dir;
 }
 
 void FsLib::Directory::Close(void)
