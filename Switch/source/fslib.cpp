@@ -1,5 +1,6 @@
-#include "fslib.hpp"
-#include "string.hpp"
+#include "FsLib.hpp"
+#include "String.hpp"
+#include <cstring>
 #include <unordered_map>
 
 // This macro is so I can reject requests to mount with sdmc as device without having to repeat typing it over and over
@@ -28,21 +29,8 @@ static bool DeviceNameIsInUse(const std::string &DeviceName)
 
 bool FsLib::Initialize(void)
 {
-    // Just in case. I think LibNX takes care of this by default.
-    Result FsError = fsInitialize();
-    if (R_FAILED(FsError))
-    {
-        // Not going to return on this one mainly because LibNX protects against this IIRC...
-        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%0X initializing FS.", FsError);
-    }
-
-    FsError = fsOpenSdCardFileSystem(&s_DeviceMap[SD_CARD_DEVICE_NAME]);
-    if (R_FAILED(FsError))
-    {
-        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%0X mounting SD card.", FsError);
-        return false;
-    }
-
+    // We're just gonna steal this from LibNX. There's no point in opening it twice
+    std::memcpy(&s_DeviceMap[SD_CARD_DEVICE_NAME], fsdevGetDeviceFileSystem(SD_CARD_DEVICE_NAME.c_str()), sizeof(FsFileSystem));
     return true;
 }
 
@@ -60,6 +48,33 @@ void FsLib::Exit(void)
 std::string FsLib::GetErrorString(void)
 {
     return g_ErrorString;
+}
+
+bool FsLib::ProcessPath(const std::string &PathIn, FsFileSystem *FileSystemOut, char *PathOut, size_t PathOutMax)
+{
+    size_t ColonPosition = PathIn.find_first_of(':');
+    if (ColonPosition == PathIn.npos)
+    {
+        return false;
+    }
+    // Split string at :
+    std::string DeviceName = PathIn.substr(0, ColonPosition);
+    std::string Path = PathIn.substr(ColonPosition + 1, PathIn.length());
+    if (Path.length() >= PathOutMax || !DeviceNameIsInUse(DeviceName))
+    {
+        return false;
+    }
+    /*
+        This feels stupid but it's more reliable than trying to use c_str() with switch FS.
+        For some reason passing a short path with std::string.c_str() makes the switch throw 0xD401,
+        but it doesn't if you pass the same thing as a C string...
+    */
+    std::memset(PathOut, 0x00, PathOutMax);
+    std::memcpy(PathOut, Path.c_str(), Path.length());
+    // Pointer to File system
+    FileSystemOut = &s_DeviceMap.at(DeviceName);
+    // Should be good to go.
+    return true;
 }
 
 bool FsLib::OpenSystemSaveFileSystem(const std::string &DeviceName, uint64_t SystemSaveID)
@@ -260,39 +275,4 @@ bool FsLib::CloseFileSystem(const std::string &DeviceName)
         return true;
     }
     return false;
-}
-
-FsFileSystem *FsLib::GetFileSystemHandleByDeviceName(const std::string &DeviceName)
-{
-    if (DeviceNameIsInUse(DeviceName))
-    {
-        return &s_DeviceMap[DeviceName];
-    }
-    return NULL;
-}
-
-bool FsLib::CreateDirectoryRecursively(const std::string &DirectoryPath)
-{
-    std::string DeviceName, TruePath;
-    bool PathProcessed = FsLib::String::ProcessPathString(DirectoryPath, DeviceName, TruePath);
-    FsFileSystem *TargetFileSystem = FsLib::GetFileSystemHandleByDeviceName(DeviceName);
-    if (PathProcessed == false || TargetFileSystem == NULL)
-    {
-        g_ErrorString = FsLib::String::GetFormattedString("Error creating directories: Invalid path supplied.");
-        return false;
-    }
-
-    // Skip the first slash in the path.
-    size_t SlashPosition = 1;
-    while ((SlashPosition = TruePath.find_first_of('/', SlashPosition)) != TruePath.npos)
-    {
-        Result FsError = fsFsCreateDirectory(TargetFileSystem, TruePath.substr(0, SlashPosition).c_str());
-        if (R_FAILED(FsError))
-        {
-            // This will fail if the directory already exists. I want to error check this better but adding calls to check will slow things down.
-            g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X creating directory \"%s\".", FsError, TruePath.substr(0, SlashPosition).c_str());
-        }
-        ++SlashPosition;
-    }
-    return true;
 }

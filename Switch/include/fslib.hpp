@@ -1,6 +1,6 @@
 #pragma once
-#include "directory.hpp"
-#include "file.hpp"
+#include "Directory.hpp"
+#include "File.hpp"
 #include <string>
 #include <switch.h>
 
@@ -12,6 +12,11 @@ namespace FsLib
     void Exit(void);
     // Returns internal error string.
     std::string GetErrorString(void);
+    /*
+        Processes a path. Returns true on success. PathOut is a C string because Switch gives me grief with std::string.c_str().
+        This is mostly needed for Directory and File to work, but I'm not going to stop someone from using it for something else.
+    */
+    bool ProcessPath(const std::string &PathIn, FsFileSystem *FileSystemOut, char *PathOut, size_t PathOutMax);
     // Opens system save data and associates deviceName with it.
     bool OpenSystemSaveFileSystem(const std::string &DeviceName, uint64_t SystemSaveID);
     // Opens account save data and associates deviceName with it.
@@ -28,8 +33,4 @@ namespace FsLib
     bool OpenSystemBCATSaveFileSystem(const std::string &DeviceName, uint64_t SystemSaveID);
     // Closes filesystem handle associated with deviceName.
     bool CloseFileSystem(const std::string &DeviceName);
-    // Uses deviceName to search the map for the filesystem associated with it. Returns NULL on failure.
-    FsFileSystem *GetFileSystemHandleByDeviceName(const std::string &DeviceName);
-    // Attempts to create directory recursively. Still trying to figure out how to error check this a good way.
-    bool CreateDirectoryRecursively(const std::string &DirectoryPath);
 } // namespace FsLib

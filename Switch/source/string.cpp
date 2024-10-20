@@ -1,22 +1,10 @@
-#include "string.hpp"
+#include "String.hpp"
 #include <array>
 #include <cstdarg>
 
 namespace
 {
     constexpr int VA_BUFFER_SIZE = 0x1000;
-}
-
-bool FsLib::String::ProcessPathString(const std::string &SourcePath, std::string &DeviceOut, std::string &PathOut)
-{
-    size_t ColonPosition = SourcePath.find_first_of(':');
-    if (ColonPosition == SourcePath.npos)
-    {
-        return false;
-    }
-    DeviceOut = SourcePath.substr(0, ColonPosition);
-    PathOut = SourcePath.substr(ColonPosition + 1);
-    return true;
 }
 
 std::string FsLib::String::GetFormattedString(const char *Format, ...)

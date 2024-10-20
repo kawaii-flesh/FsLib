@@ -1,6 +1,6 @@
-#include "directory.hpp"
-#include "fslib.hpp"
-#include "string.hpp"
+#include "Directory.hpp"
+#include "FsLib.hpp"
+#include "String.hpp"
 #include <algorithm>
 #include <cstring>
 
@@ -40,16 +40,15 @@ void FsLib::Directory::Open(const std::string &DirectoryPath)
     // Make sure this is set to false incase the directory is being reused.
     m_WasRead = false;
     // Dissect the path passed.
-    std::string DeviceName, TruePath;
-    bool PathProcessed = FsLib::String::ProcessPathString(DirectoryPath, DeviceName, TruePath);
-    FsFileSystem *TargetFileSystem = FsLib::GetFileSystemHandleByDeviceName(DeviceName);
-    if (PathProcessed == false || TargetFileSystem == NULL)
+    FsFileSystem *FileSystem = NULL;
+    char Path[FS_MAX_PATH];
+    if (!FsLib::ProcessPath(DirectoryPath, FileSystem, Path, FS_MAX_PATH))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening directory: Invalid path supplied.");
+        g_ErrorString = FsLib::String::GetFormattedString("Error processing directory \"%s\": Invalid path supplied.", DirectoryPath.c_str());
         return;
     }
 
-    Result FsError = fsFsOpenDirectory(TargetFileSystem, TruePath.c_str(), FsDirOpenMode_ReadDirs | FsDirOpenMode_ReadFiles, &m_DirectoryHandle);
+    Result FsError = fsFsOpenDirectory(FileSystem, Path, FsDirOpenMode_ReadDirs | FsDirOpenMode_ReadFiles, &m_DirectoryHandle);
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening directory.", FsError);

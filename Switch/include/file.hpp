@@ -1,4 +1,5 @@
 #pragma once
+#include "Stream.hpp"
 #include <cstdint>
 #include <string>
 #include <switch.h>
@@ -6,7 +7,7 @@
 namespace FsLib
 {
     // To do: Child classes that separate reading/writing. Not super important, but down the line.
-    class File
+    class File : public FsLib::Stream
     {
         public:
             File(void) = default;
@@ -26,10 +27,6 @@ namespace FsLib
             void Open(const std::string &FilePath, FsOpenMode OpenMode);
             // Flushes and closes file handle.
             void Close(void);
-            // Returns whether file was opened successfully or not.
-            bool IsOpen(void) const;
-            // Returns whether the end of the file has been reached.
-            bool EndOfFile(void) const;
             // Reads ReadSize in bytes from file to buffer.
             size_t Read(void *Buffer, size_t ReadSize);
             // Write WriteSize in bytes to file from Buffer
@@ -46,17 +43,12 @@ namespace FsLib
         private:
             // The underlying switch file handle.
             FsFile m_FileHandle;
-            // Whether creation/opening succeeded.
-            bool m_IsOpen = false;
             // To save open mode to block operations that can't be performed in the current mode.
             uint32_t m_OpenMode;
-            // File size and current offset.
-            int64_t m_Offset;
-            int64_t m_FileSize;
             // These are the functions called to open files according to mode passed. To keep stuff more readable.
-            bool OpenForReading(FsFileSystem *FileSystem, const std::string &FilePath);
-            bool OpenForWriting(FsFileSystem *FileSystem, const std::string &FilePath);
-            bool OpenForAppending(FsFileSystem *FileSystem, const std::string &FilePath);
+            bool OpenForReading(FsFileSystem *FileSystem, const char *FilePath);
+            bool OpenForWriting(FsFileSystem *FileSystem, const char *FilePath);
+            bool OpenForAppending(FsFileSystem *FileSystem, const char *FilePath);
             // This function resizes the file according to the size passed. Not needed outside of class.
             bool ResizeIfNeeded(size_t BufferSize);
     };
