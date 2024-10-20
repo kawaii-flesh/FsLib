@@ -4,6 +4,9 @@
 #include <algorithm>
 #include <cstring>
 
+// fslib global error string.
+extern std::string g_ErrorString;
+
 // Sorts by entry type, then alphabetically.
 static bool CompareEntries(const FsDirectoryEntry &EntryA, const FsDirectoryEntry &EntryB)
 {
@@ -26,9 +29,7 @@ static bool CompareEntries(const FsDirectoryEntry &EntryA, const FsDirectoryEntr
     }
     return false;
 }
-
-// fslib global error string.
-extern std::string g_ErrorString;
+cd
 
 FsLib::Directory::Directory(const std::string &DirectoryPath)
 {
@@ -40,9 +41,9 @@ void FsLib::Directory::Open(const std::string &DirectoryPath)
     // Make sure this is set to false incase the directory is being reused.
     m_WasRead = false;
     // Dissect the path passed.
-    FsFileSystem *FileSystem = NULL;
     char Path[FS_MAX_PATH];
-    if (!FsLib::ProcessPath(DirectoryPath, FileSystem, Path, FS_MAX_PATH))
+    FsFileSystem *FileSystem = NULL;
+    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path, FS_MAX_PATH))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error processing directory \"%s\": Invalid path supplied.", DirectoryPath.c_str());
         return;

@@ -29,8 +29,8 @@ static bool DeviceNameIsInUse(const std::string &DeviceName)
 
 bool FsLib::Initialize(void)
 {
-    // We're just gonna steal this from LibNX. There's no point in opening it twice
-    std::memcpy(&s_DeviceMap[SD_CARD_DEVICE_NAME], fsdevGetDeviceFileSystem(SD_CARD_DEVICE_NAME.c_str()), sizeof(FsFileSystem));
+    std::memcpy(&s_DeviceMap[SD_CARD_DEVICE_NAME], fsdevGetDeviceFileSystem("sdmc"), sizeof(FsFileSystem));
+
     return true;
 }
 
@@ -50,7 +50,7 @@ std::string FsLib::GetErrorString(void)
     return g_ErrorString;
 }
 
-bool FsLib::ProcessPath(const std::string &PathIn, FsFileSystem *FileSystemOut, char *PathOut, size_t PathOutMax)
+bool FsLib::ProcessPath(const std::string &PathIn, FsFileSystem **FileSystemOut, char *PathOut, size_t PathOutMax)
 {
     size_t ColonPosition = PathIn.find_first_of(':');
     if (ColonPosition == PathIn.npos)
@@ -72,7 +72,7 @@ bool FsLib::ProcessPath(const std::string &PathIn, FsFileSystem *FileSystemOut, 
     std::memset(PathOut, 0x00, PathOutMax);
     std::memcpy(PathOut, Path.c_str(), Path.length());
     // Pointer to File system
-    FileSystemOut = &s_DeviceMap.at(DeviceName);
+    *FileSystemOut = &s_DeviceMap[DeviceName];
     // Should be good to go.
     return true;
 }
@@ -275,4 +275,21 @@ bool FsLib::CloseFileSystem(const std::string &DeviceName)
         return true;
     }
     return false;
+}
+
+bool FsLib::CommitDataToFileSystem(const std::string &DeviceName)
+{
+    if (!DeviceNameIsInUse(DeviceName))
+    {
+        g_ErrorString = FsLib::String::GetFormattedString("Error committing data to \"%s\": Device does not exist.", DeviceName.c_str());
+        return false;
+    }
+
+    Result FsError = fsFsCommit(&s_DeviceMap[DeviceName]);
+    if (R_FAILED(FsError))
+    {
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X committing data to \"%s\".", FsError, DeviceName.c_str());
+        return false;
+    }
+    return true;
 }

@@ -39,6 +39,8 @@ namespace FsLib
             bool ReadLine(std::string &LineOut);
             // Flushes file
             void Flush(void);
+            // Operator for lazy file writing.
+            void operator<<(const char *String);
 
         private:
             // The underlying switch file handle.

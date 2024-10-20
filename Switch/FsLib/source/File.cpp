@@ -23,7 +23,7 @@ void FsLib::File::Open(const std::string &FilePath, FsOpenMode OpenMode)
     // Dissect path.
     FsFileSystem *FileSystem = NULL;
     char Path[FS_MAX_PATH];
-    if (!FsLib::ProcessPath(FilePath, FileSystem, Path, FS_MAX_PATH))
+    if (!FsLib::ProcessPath(FilePath, &FileSystem, Path, FS_MAX_PATH))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error processing \"%s\": Invalid path supplied.", FilePath.c_str());
         return;
@@ -174,6 +174,12 @@ bool FsLib::File::ReadLine(std::string &LineOut)
 void FsLib::File::Flush(void)
 {
     fsFileFlush(&m_FileHandle);
+}
+
+void FsLib::File::operator<<(const char *String)
+{
+    size_t StringLength = std::strlen(String);
+    File::Write(String, StringLength);
 }
 
 bool FsLib::File::OpenForReading(FsFileSystem *FileSystem, const char *FilePath)
