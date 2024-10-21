@@ -14,8 +14,8 @@ namespace
 {
     // Filesystems paired with their mount point.
     std::unordered_map<std::string, FsFileSystem> s_DeviceMap;
-    // String for SD card device.
-    const std::string SD_CARD_DEVICE_NAME = "sdmc";
+    // String for SD card device. This only works as constexpr because the string is so short.
+    constexpr std::string SD_CARD_DEVICE_NAME = "sdmc";
 } // namespace
 
 // This error string is shared globally, but I didn't want it extern'd in the header.
