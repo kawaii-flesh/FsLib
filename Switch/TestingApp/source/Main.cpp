@@ -2,13 +2,14 @@
 #include <array>
 #include <cstdarg>
 #include <cstdio>
+#include <cstdlib>
 #include <fstream>
 #include <memory>
 #include <minizip/zip.h>
 #include <switch.h>
 
 static constexpr int FILE_BUFFER_SIZE = 0x100000;
-static constexpr int VA_BUFFER_SIZE = 0x80000;
+static constexpr int VA_BUFFER_SIZE = 0x1000;
 
 // Feels stupid but needed to get actual output in real time
 void Print(const char *Format, ...)
@@ -24,6 +25,8 @@ void Print(const char *Format, ...)
 
 int main(void)
 {
+    std::srand(time(NULL));
+
     consoleInit(NULL);
 
     PadState GamePad;
@@ -39,22 +42,71 @@ int main(void)
         return -1;
     }
 
-    // Scoped so directory is destructed afterward for testing.
+    // Don't know what else to check for that's always there.
+    Print("Checking if \"sdmc:/hbmenu.nro\" exists...");
+    if (FsLib::FileExists("sdmc:/hbmenu.nro"))
     {
-        Print("Opening switch Directory... ");
-        FsLib::Directory SDRoot("sdmc:/");
-        if (SDRoot.IsOpen())
+        Print("It does!\n");
+    }
+    else
+    {
+        Print("It doesn't. How are you even running this?\n");
+    }
+
+
+    Print("Checking if \"sdmc:/switch/\" exists... ");
+    if (FsLib::DirectoryExists("sdmc:/switch/"))
+    {
+        Print("It does!\n");
+    }
+    else
+    {
+        Print("It doesn't. How are you even running this?\n");
+    }
+
+    Print("Creating test directory... ");
+    if (FsLib::CreateDirectory("sdmc:/TestDirectory/"))
+    {
+        Print("Done!.\n");
+    }
+    else
+    {
+        Print("Failed.\n");
+    }
+
+    Print("Checking if that same directory exists cause who knows? Maybe I'm lying... ");
+    if (FsLib::DirectoryExists("sdmc:/TestDirectory/"))
+    {
+        Print("It does... or does it?\n");
+    }
+    else
+    {
+        Print("It doesn't. Definitely doesn't.\n");
+    }
+
+    Print("Deleting that same directory so you can't even find out if I'm a big, fat, liar grandpappy of all liars... ");
+    if (FsLib::DeleteDirectory("sdmc:/TestDirectory/"))
+    {
+        Print("Done.\n");
+    }
+    else
+    {
+        Print("Uh oh.\n");
+    }
+
+    Print("Opening switch Directory... ");
+    FsLib::Directory SDRoot("sdmc:/switch/");
+    if (SDRoot.IsOpen())
+    {
+        Print("\n\tEntries: %li\n", SDRoot.GetEntryCount());
+        for (int i = 0; i < SDRoot.GetEntryCount(); i++)
         {
-            Print("\n\tEntries: %li\n", SDRoot.GetEntryCount());
-            for (int i = 0; i < SDRoot.GetEntryCount(); i++)
-            {
-                Print("\t\t%s\n", SDRoot.GetEntryNameAt(i).c_str());
-            }
+            Print("\t\t%s\n", SDRoot.GetEntryNameAt(i).c_str());
         }
-        else
-        {
-            Print("Failed.\n");
-        }
+    }
+    else
+    {
+        Print("Failed.\n");
     }
 
     {
@@ -71,31 +123,14 @@ int main(void)
         }
     }
 
+    Print("Deleting that special message because you're not special enought to read it... ");
+    if (FsLib::DeleteFile("sdmc:/switch/SpecialMessage.txt"))
     {
-        Print("Testing Storage... ");
-        FsLib::Storage NAND(FsBisPartitionId_System);
-        if (NAND.IsOpen())
-        {
-            Print("Copying system partition to \"sdmc:/switch/SystemNAND.zip\".\nHope you have time to wait :)\n");
-            std::unique_ptr<unsigned char[]> NANDBuffer(new unsigned char[FILE_BUFFER_SIZE]);
-            zipFile NANDZip = zipOpen64("sdmc:/switch/SystemNAND.zip", 0);
-            int ZipError = zipOpenNewFileInZip64(NANDZip, "/System.bin", NULL, NULL, 0, NULL, 0, NULL, Z_DEFLATED, Z_DEFAULT_COMPRESSION, 1);
-            if (ZipError == ZIP_OK)
-            {
-                while (!NAND.EndOfStream())
-                {
-                    size_t BytesRead = NAND.Read(NANDBuffer.get(), FILE_BUFFER_SIZE);
-                    zipWriteInFileInZip(NANDZip, NANDBuffer.get(), BytesRead);
-                    Print("\tProgress: %liMB/%liMB.\n", NAND.Tell() / 1024 / 1024, NAND.GetSize() / 1024 / 1024);
-                }
-                zipCloseFileInZip(NANDZip);
-                zipClose(NANDZip, "");
-            }
-        }
-        else
-        {
-            Print("Failed.\n");
-        }
+        Print("HAHAHAHA TAKE THAT!\n");
+    }
+    else
+    {
+        Print("Your specialness has out maneuvered my deletion function. I'll get you next time.");
     }
 
     Print("Press + to exit.");

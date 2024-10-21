@@ -29,7 +29,7 @@ static bool DeviceNameIsInUse(const std::string &DeviceName)
 
 bool FsLib::Initialize(void)
 {
-    std::memcpy(&s_DeviceMap[SD_CARD_DEVICE_NAME], fsdevGetDeviceFileSystem("sdmc"), sizeof(FsFileSystem));
+    std::memcpy(&s_DeviceMap[SD_CARD_DEVICE_NAME], fsdevGetDeviceFileSystem(SD_CARD_DEVICE_NAME.c_str()), sizeof(FsFileSystem));
 
     return true;
 }
@@ -75,6 +75,144 @@ bool FsLib::ProcessPath(const std::string &PathIn, FsFileSystem **FileSystemOut,
     *FileSystemOut = &s_DeviceMap[DeviceName];
     // Should be good to go.
     return true;
+}
+
+bool FsLib::CreateDirectory(const std::string &DirectoryPath)
+{
+    char Path[FS_MAX_PATH];
+    FsFileSystem *FileSystem = NULL;
+    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path, FS_MAX_PATH))
+    {
+        return false;
+    }
+
+    Result FsError = fsFsCreateDirectory(FileSystem, Path);
+    if (R_FAILED(FsError))
+    {
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X creating directory \"%s\".", FsError, DirectoryPath.c_str());
+        return false;
+    }
+    return true;
+}
+
+bool FsLib::DeleteDirectory(const std::string &DirectoryPath)
+{
+    char Path[FS_MAX_PATH];
+    FsFileSystem *FileSystem = NULL;
+    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path, FS_MAX_PATH))
+    {
+        return false;
+    }
+
+    Result FsError = fsFsDeleteDirectory(FileSystem, Path);
+    if (R_FAILED(FsError))
+    {
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X deleting directory \"%s\".", FsError, DirectoryPath.c_str());
+        return false;
+    }
+    return true;
+}
+
+bool FsLib::DeleteDirectoryRecursively(const std::string &DirectoryPath)
+{
+    char Path[FS_MAX_PATH];
+    FsFileSystem *FileSystem;
+    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path, FS_MAX_PATH))
+    {
+        return false;
+    }
+
+    Result FsError = fsFsDeleteDirectoryRecursively(FileSystem, Path);
+    if (R_FAILED(FsError))
+    {
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X deleting directory \"%s\".", FsError, DirectoryPath.c_str());
+        return false;
+    }
+    return true;
+}
+
+bool FsLib::DirectoryExists(const std::string &DirectoryPath)
+{
+    char Path[FS_MAX_PATH];
+    FsFileSystem *FileSystem = NULL;
+    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path, FS_MAX_PATH))
+    {
+        return false;
+    }
+
+    FsDir DirectoryHandle;
+    Result FsError = fsFsOpenDirectory(FileSystem, Path, FsDirOpenMode_ReadDirs | FsDirOpenMode_ReadFiles, &DirectoryHandle);
+    if (R_FAILED(FsError))
+    {
+        // Directory probably doesn't exist. That was the point of the function, so no error string setting.
+        return false;
+    }
+    // Close handle and return
+    fsDirClose(&DirectoryHandle);
+    return true;
+}
+
+bool FsLib::FileExists(const std::string &FilePath)
+{
+    char Path[FS_MAX_PATH];
+    FsFileSystem *FileSystem = NULL;
+    if (!FsLib::ProcessPath(FilePath, &FileSystem, Path, FS_MAX_PATH))
+    {
+        return false;
+    }
+
+    FsFile FileHandle;
+    Result FsError = fsFsOpenFile(FileSystem, Path, FsOpenMode_Read, &FileHandle);
+    if (R_FAILED(FsError))
+    {
+        return false;
+    }
+    fsFileClose(&FileHandle);
+    return true;
+}
+
+bool FsLib::DeleteFile(const std::string &FilePath)
+{
+    char Path[FS_MAX_PATH];
+    FsFileSystem *FileSystem;
+    if (!FsLib::ProcessPath(FilePath, &FileSystem, Path, FS_MAX_PATH))
+    {
+        return false;
+    }
+
+    Result FsError = fsFsDeleteFile(FileSystem, Path);
+    if (R_FAILED(FsError))
+    {
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X deleting file \"%s\".", FsError, FilePath.c_str());
+        return false;
+    }
+    return true;
+}
+
+int64_t FsLib::GetFileSize(const std::string &FilePath)
+{
+    char Path[FS_MAX_PATH];
+    FsFileSystem *FileSystem = NULL;
+    if (!FsLib::ProcessPath(FilePath, &FileSystem, Path, FS_MAX_PATH))
+    {
+        return -1;
+    }
+
+    FsFile FileHandle;
+    Result FsError = fsFsOpenFile(FileSystem, Path, FsOpenMode_Read, &FileHandle);
+    if (R_FAILED(FsError))
+    {
+        return -1;
+    }
+
+    int64_t FileSize = 0;
+    FsError = fsFileGetSize(&FileHandle, &FileSize);
+    if (R_FAILED(FsError))
+    {
+        return -1;
+    }
+    fsFileClose(&FileHandle);
+    return FileSize;
 }
 
 bool FsLib::OpenSystemSaveFileSystem(const std::string &DeviceName, uint64_t SystemSaveID)
@@ -261,22 +399,6 @@ bool FsLib::OpenSystemBCATSaveFileSystem(const std::string &DeviceName, uint64_t
     return true;
 }
 
-bool FsLib::CloseFileSystem(const std::string &DeviceName)
-{
-    // Guard against closing sdmc. Only exiting FsLib will do that.
-    SDMC_DEVICE_GUARD(DeviceName);
-
-    if (DeviceNameIsInUse(DeviceName))
-    {
-        // Close
-        fsFsClose(&s_DeviceMap[DeviceName]);
-        // Erase from map.
-        s_DeviceMap.erase(DeviceName);
-        return true;
-    }
-    return false;
-}
-
 bool FsLib::CommitDataToFileSystem(const std::string &DeviceName)
 {
     if (!DeviceNameIsInUse(DeviceName))
@@ -292,4 +414,20 @@ bool FsLib::CommitDataToFileSystem(const std::string &DeviceName)
         return false;
     }
     return true;
+}
+
+bool FsLib::CloseFileSystem(const std::string &DeviceName)
+{
+    // Guard against closing sdmc. Only exiting FsLib will do that.
+    SDMC_DEVICE_GUARD(DeviceName);
+
+    if (DeviceNameIsInUse(DeviceName))
+    {
+        // Close
+        fsFsClose(&s_DeviceMap[DeviceName]);
+        // Erase from map.
+        s_DeviceMap.erase(DeviceName);
+        return true;
+    }
+    return false;
 }
