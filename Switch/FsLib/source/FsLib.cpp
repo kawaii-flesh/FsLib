@@ -1,5 +1,6 @@
 #include "FsLib.hpp"
 #include "String.hpp"
+#include <array>
 #include <cstring>
 #include <unordered_map>
 
@@ -79,14 +80,14 @@ bool FsLib::ProcessPath(const std::string &PathIn, FsFileSystem **FileSystemOut,
 
 bool FsLib::CreateDirectory(const std::string &DirectoryPath)
 {
-    char Path[FS_MAX_PATH];
     FsFileSystem *FileSystem = NULL;
-    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path, FS_MAX_PATH))
+    std::array<char, FS_MAX_PATH> Path;
+    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path.data(), FS_MAX_PATH))
     {
         return false;
     }
 
-    Result FsError = fsFsCreateDirectory(FileSystem, Path);
+    Result FsError = fsFsCreateDirectory(FileSystem, Path.data());
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X creating directory \"%s\".", FsError, DirectoryPath.c_str());
@@ -97,14 +98,14 @@ bool FsLib::CreateDirectory(const std::string &DirectoryPath)
 
 bool FsLib::DeleteDirectory(const std::string &DirectoryPath)
 {
-    char Path[FS_MAX_PATH];
     FsFileSystem *FileSystem = NULL;
-    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path, FS_MAX_PATH))
+    std::array<char, FS_MAX_PATH> Path;
+    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path.data(), FS_MAX_PATH))
     {
         return false;
     }
 
-    Result FsError = fsFsDeleteDirectory(FileSystem, Path);
+    Result FsError = fsFsDeleteDirectory(FileSystem, Path.data());
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X deleting directory \"%s\".", FsError, DirectoryPath.c_str());
@@ -115,14 +116,14 @@ bool FsLib::DeleteDirectory(const std::string &DirectoryPath)
 
 bool FsLib::DeleteDirectoryRecursively(const std::string &DirectoryPath)
 {
-    char Path[FS_MAX_PATH];
     FsFileSystem *FileSystem;
-    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path, FS_MAX_PATH))
+    std::array<char, FS_MAX_PATH> Path;
+    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path.data(), FS_MAX_PATH))
     {
         return false;
     }
 
-    Result FsError = fsFsDeleteDirectoryRecursively(FileSystem, Path);
+    Result FsError = fsFsDeleteDirectoryRecursively(FileSystem, Path.data());
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X deleting directory \"%s\".", FsError, DirectoryPath.c_str());
@@ -133,15 +134,15 @@ bool FsLib::DeleteDirectoryRecursively(const std::string &DirectoryPath)
 
 bool FsLib::DirectoryExists(const std::string &DirectoryPath)
 {
-    char Path[FS_MAX_PATH];
     FsFileSystem *FileSystem = NULL;
-    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path, FS_MAX_PATH))
+    std::array<char, FS_MAX_PATH> Path;
+    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path.data(), FS_MAX_PATH))
     {
         return false;
     }
 
     FsDir DirectoryHandle;
-    Result FsError = fsFsOpenDirectory(FileSystem, Path, FsDirOpenMode_ReadDirs | FsDirOpenMode_ReadFiles, &DirectoryHandle);
+    Result FsError = fsFsOpenDirectory(FileSystem, Path.data(), FsDirOpenMode_ReadDirs | FsDirOpenMode_ReadFiles, &DirectoryHandle);
     if (R_FAILED(FsError))
     {
         // Directory probably doesn't exist. That was the point of the function, so no error string setting.
@@ -154,15 +155,15 @@ bool FsLib::DirectoryExists(const std::string &DirectoryPath)
 
 bool FsLib::FileExists(const std::string &FilePath)
 {
-    char Path[FS_MAX_PATH];
     FsFileSystem *FileSystem = NULL;
-    if (!FsLib::ProcessPath(FilePath, &FileSystem, Path, FS_MAX_PATH))
+    std::array<char, FS_MAX_PATH> Path;
+    if (!FsLib::ProcessPath(FilePath, &FileSystem, Path.data(), FS_MAX_PATH))
     {
         return false;
     }
 
     FsFile FileHandle;
-    Result FsError = fsFsOpenFile(FileSystem, Path, FsOpenMode_Read, &FileHandle);
+    Result FsError = fsFsOpenFile(FileSystem, Path.data(), FsOpenMode_Read, &FileHandle);
     if (R_FAILED(FsError))
     {
         return false;
@@ -173,14 +174,14 @@ bool FsLib::FileExists(const std::string &FilePath)
 
 bool FsLib::DeleteFile(const std::string &FilePath)
 {
-    char Path[FS_MAX_PATH];
     FsFileSystem *FileSystem;
-    if (!FsLib::ProcessPath(FilePath, &FileSystem, Path, FS_MAX_PATH))
+    std::array<char, FS_MAX_PATH> Path;
+    if (!FsLib::ProcessPath(FilePath, &FileSystem, Path.data(), FS_MAX_PATH))
     {
         return false;
     }
 
-    Result FsError = fsFsDeleteFile(FileSystem, Path);
+    Result FsError = fsFsDeleteFile(FileSystem, Path.data());
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X deleting file \"%s\".", FsError, FilePath.c_str());
@@ -191,15 +192,15 @@ bool FsLib::DeleteFile(const std::string &FilePath)
 
 int64_t FsLib::GetFileSize(const std::string &FilePath)
 {
-    char Path[FS_MAX_PATH];
     FsFileSystem *FileSystem = NULL;
-    if (!FsLib::ProcessPath(FilePath, &FileSystem, Path, FS_MAX_PATH))
+    std::array<char, FS_MAX_PATH> Path;
+    if (!FsLib::ProcessPath(FilePath, &FileSystem, Path.data(), FS_MAX_PATH))
     {
         return -1;
     }
 
     FsFile FileHandle;
-    Result FsError = fsFsOpenFile(FileSystem, Path, FsOpenMode_Read, &FileHandle);
+    Result FsError = fsFsOpenFile(FileSystem, Path.data(), FsOpenMode_Read, &FileHandle);
     if (R_FAILED(FsError))
     {
         return -1;
@@ -211,6 +212,7 @@ int64_t FsLib::GetFileSize(const std::string &FilePath)
     {
         return -1;
     }
+
     fsFileClose(&FileHandle);
     return FileSize;
 }

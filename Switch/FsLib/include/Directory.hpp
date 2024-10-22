@@ -33,7 +33,7 @@ namespace FsLib
             std::unique_ptr<FsDirectoryEntry[]> m_DirectoryList;
             // Whether or not directory was opened and read.
             bool m_WasRead = false;
-            // Closes the directory handle. Not needed publically since directory handle is closed after reading entries.
+            // Closes the directory handle. Not needed publicly since directory handle is closed after reading entries.
             void Close(void);
     };
 } // namespace FsLib

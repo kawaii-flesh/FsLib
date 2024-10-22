@@ -1,6 +1,8 @@
 #include "File.hpp"
 #include "FsLib.hpp"
 #include "String.hpp"
+#include <array>
+#include <cstdarg>
 #include <cstring>
 
 // fslib's error string.
@@ -22,8 +24,8 @@ void FsLib::File::Open(const std::string &FilePath, FsOpenMode OpenMode)
     m_IsOpen = false;
     // Dissect path.
     FsFileSystem *FileSystem = NULL;
-    char Path[FS_MAX_PATH];
-    if (!FsLib::ProcessPath(FilePath, &FileSystem, Path, FS_MAX_PATH))
+    std::array<char, FS_MAX_PATH> Path;
+    if (!FsLib::ProcessPath(FilePath, &FileSystem, Path.data(), FS_MAX_PATH))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error processing \"%s\": Invalid path supplied.", FilePath.c_str());
         return;
@@ -33,25 +35,25 @@ void FsLib::File::Open(const std::string &FilePath, FsOpenMode OpenMode)
     {
         case FsOpenMode_Read:
         {
-            m_IsOpen = File::OpenForReading(FileSystem, Path);
+            m_IsOpen = File::OpenForReading(FileSystem, Path.data());
         }
         break;
 
         case FsOpenMode_Write:
         {
-            m_IsOpen = File::OpenForWriting(FileSystem, Path);
+            m_IsOpen = File::OpenForWriting(FileSystem, Path.data());
         }
         break;
 
         case FsOpenMode_Append:
         {
-            m_IsOpen = File::OpenForAppending(FileSystem, Path);
+            m_IsOpen = File::OpenForAppending(FileSystem, Path.data());
         }
         break;
 
         default:
         {
-            m_IsOpen = File::OpenForReading(FileSystem, Path);
+            m_IsOpen = File::OpenForReading(FileSystem, Path.data());
         }
         break;
     }
@@ -59,6 +61,7 @@ void FsLib::File::Open(const std::string &FilePath, FsOpenMode OpenMode)
 
 void FsLib::File::Close(void)
 {
+    File::Flush();
     fsFileClose(&m_FileHandle);
 }
 
@@ -83,6 +86,30 @@ size_t FsLib::File::Read(void *Buffer, size_t ReadSize)
     return BytesRead;
 }
 
+bool FsLib::File::ReadLine(std::string &LineOut)
+{
+    if (m_OpenMode != FsOpenMode_Read)
+    {
+        return false;
+    }
+
+    // Clear LineOut before beginning.
+    LineOut.clear();
+
+    while (m_Offset < m_StreamSize)
+    {
+        char CurrentCharacter = File::GetCharacter();
+        if (CurrentCharacter == '\n' || CurrentCharacter == '\r')
+        {
+            // Just assume the end of a line has been hit. Return true.
+            return true;
+        }
+        LineOut += CurrentCharacter;
+    }
+    // This means the end of the file was hit and no lines, I guess
+    return false;
+}
+
 size_t FsLib::File::Write(const void *Buffer, size_t WriteSize)
 {
     if (m_OpenMode == FsOpenMode_Read)
@@ -104,6 +131,26 @@ size_t FsLib::File::Write(const void *Buffer, size_t WriteSize)
     m_Offset += WriteSize;
     // There is no way to really check if this was 100% successful.
     return WriteSize;
+}
+
+bool FsLib::File::Writef(const char *Format, ...)
+{
+    std::array<char, 0x1000> VaBuffer;
+
+    std::va_list VaList;
+    va_start(VaList, Format);
+    vsnprintf(VaBuffer.data(), 0x1000, Format, VaList);
+    va_end(VaList);
+
+    size_t StringLength = std::strlen(VaBuffer.data());
+    return File::Write(VaBuffer.data(), StringLength) == StringLength;
+}
+
+void FsLib::File::operator<<(const char *String)
+{
+    size_t StringLength = std::strlen(String);
+    File::Write(String, StringLength);
+    File::Flush();
 }
 
 char FsLib::File::GetCharacter(void)
@@ -147,39 +194,9 @@ bool FsLib::File::PutCharacter(char C)
     return true;
 }
 
-bool FsLib::File::ReadLine(std::string &LineOut)
-{
-    if (m_OpenMode != FsOpenMode_Read)
-    {
-        return false;
-    }
-
-    // Clear LineOut before beginning.
-    LineOut.clear();
-
-    while (m_Offset < m_StreamSize)
-    {
-        char CurrentCharacter = File::GetCharacter();
-        if (CurrentCharacter == '\n' || CurrentCharacter == '\r')
-        {
-            // Just assume the end of a line has been hit. Return true.
-            return true;
-        }
-        LineOut += CurrentCharacter;
-    }
-    // This means the end of the file was hit and no lines, I guess
-    return false;
-}
-
 void FsLib::File::Flush(void)
 {
     fsFileFlush(&m_FileHandle);
-}
-
-void FsLib::File::operator<<(const char *String)
-{
-    size_t StringLength = std::strlen(String);
-    File::Write(String, StringLength);
 }
 
 bool FsLib::File::OpenForReading(FsFileSystem *FileSystem, const char *FilePath)

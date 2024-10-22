@@ -29,18 +29,20 @@ namespace FsLib
             void Close(void);
             // Reads ReadSize in bytes from file to buffer.
             size_t Read(void *Buffer, size_t ReadSize);
+            // Reads a line from the file. Returns true on success, false on failure or EOF
+            bool ReadLine(std::string &LineOut);
             // Write WriteSize in bytes to file from Buffer
             size_t Write(const void *Buffer, size_t WriteSize);
+            // Writes formatted string to file.
+            bool Writef(const char *Format, ...);
+            // Operator for lazy file writing.
+            void operator<<(const char *String);
             // Reads a byte from file
             char GetCharacter(void);
             // Writes a byte to file
             bool PutCharacter(char C);
-            // Reads a line from the file. Returns true on success, false on failure or EOF
-            bool ReadLine(std::string &LineOut);
             // Flushes file
             void Flush(void);
-            // Operator for lazy file writing.
-            void operator<<(const char *String);
 
         private:
             // The underlying switch file handle.

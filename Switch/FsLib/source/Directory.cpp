@@ -2,6 +2,7 @@
 #include "FsLib.hpp"
 #include "String.hpp"
 #include <algorithm>
+#include <array>
 #include <cstring>
 
 // fslib global error string.
@@ -40,15 +41,15 @@ void FsLib::Directory::Open(const std::string &DirectoryPath)
     // Make sure this is set to false incase the directory is being reused.
     m_WasRead = false;
     // Dissect the path passed.
-    char Path[FS_MAX_PATH];
+    std::array<char, FS_MAX_PATH> Path;
     FsFileSystem *FileSystem = NULL;
-    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path, FS_MAX_PATH))
+    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path.data(), FS_MAX_PATH))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error processing directory \"%s\": Invalid path supplied.", DirectoryPath.c_str());
         return;
     }
 
-    Result FsError = fsFsOpenDirectory(FileSystem, Path, FsDirOpenMode_ReadDirs | FsDirOpenMode_ReadFiles, &m_DirectoryHandle);
+    Result FsError = fsFsOpenDirectory(FileSystem, Path.data(), FsDirOpenMode_ReadDirs | FsDirOpenMode_ReadFiles, &m_DirectoryHandle);
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening directory.", FsError);
