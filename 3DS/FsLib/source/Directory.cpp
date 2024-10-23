@@ -12,7 +12,7 @@ static size_t UTF16StringLength(const uint16_t *String)
     {
         Length++;
     }
-    return Length;
+    return Length + 1; // Forgot null terminator... derp.
 }
 
 static bool CompareEntries(const FS_DirectoryEntry &EntryA, const FS_DirectoryEntry &EntryB)
