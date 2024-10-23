@@ -53,7 +53,12 @@ void FsLib::Exit(void)
     fsExit();
 }
 
-bool FsLib::ProcessPath(const std::u16string &PathIn, FS_Archive **ArchiveOut, std::u16string &PathOut)
+const char *FsLib::GetErrorString(void)
+{
+    return g_ErrorString.c_str();
+}
+
+bool FsLib::ProcessPath(const std::u16string &PathIn, FS_Archive *ArchiveOut, std::u16string &PathOut)
 {
     size_t ColonPosition = PathIn.find_first_of(L':');
     if (ColonPosition == PathIn.npos)
@@ -68,7 +73,7 @@ bool FsLib::ProcessPath(const std::u16string &PathIn, FS_Archive **ArchiveOut, s
     }
     // Should be safe now.
     PathOut = PathIn.substr(ColonPosition + 1, PathIn.length());
-    *ArchiveOut = &s_DeviceMap.at(DeviceName);
+    *ArchiveOut = s_DeviceMap.at(DeviceName);
     return true;
 }
 
@@ -154,6 +159,22 @@ bool FsLib::OpenUserSaveData(const std::u16string &DeviceName, FS_MediaType Medi
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error opening user save data %08X%08X: 0x%08X.", UpperID, LowerID, FsError);
+        return false;
+    }
+    return true;
+}
+
+bool FsLib::ControlDevice(const std::u16string &DeviceName)
+{
+    if (!DeviceNameIsInUse(DeviceName))
+    {
+        return false;
+    }
+
+    Result FsError = FSUSER_ControlArchive(s_DeviceMap[DeviceName], ARCHIVE_ACTION_COMMIT_SAVE_DATA, NULL, 0, NULL, 0);
+    if (R_FAILED(FsError))
+    {
+        g_ErrorString = FsLib::String::GetFormattedString("Error committing save to device: 0x%08X.", FsError);
         return false;
     }
     return true;

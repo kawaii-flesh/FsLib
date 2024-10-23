@@ -46,9 +46,9 @@ void FsLib::Exit(void)
     fsExit();
 }
 
-std::string FsLib::GetErrorString(void)
+const char *FsLib::GetErrorString(void)
 {
-    return g_ErrorString;
+    return g_ErrorString.c_str();
 }
 
 bool FsLib::ProcessPath(const std::string &PathIn, FsFileSystem **FileSystemOut, char *PathOut, size_t PathOutMax)
