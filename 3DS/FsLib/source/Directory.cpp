@@ -74,7 +74,7 @@ void FsLib::Directory::Open(const std::u16string &DirectoryPath)
         m_DirectoryList.push_back(CurrentEntry);
     }
     Directory::Close();
-    // This will sort Folder->Alphabetical
+    // This will sort Folder->Alphabetical. This spits tons of warnings from GCC about versions, but it works fine so I'm not going to worry about that.
     std::sort(m_DirectoryList.begin(), m_DirectoryList.end(), CompareEntries);
     m_WasOpened = true;
 }
@@ -99,8 +99,7 @@ std::string FsLib::Directory::GetEntryNameAtAsUTF8(int index) const
     // This one needs to be converted. CTRULib has code for this already, thankfully.
     // To do: This results in messed up filenames. Need to figure that out some time soon.
     size_t NameLength = UTF16StringLength(m_DirectoryList[index].name);
-    char UTF8Name[NameLength];
-    std::memset(UTF8Name, 0x00, NameLength);
+    char UTF8Name[NameLength] = {0};
     utf16_to_utf8(reinterpret_cast<uint8_t *>(UTF8Name), m_DirectoryList[index].name, NameLength);
 
     return std::string(UTF8Name);

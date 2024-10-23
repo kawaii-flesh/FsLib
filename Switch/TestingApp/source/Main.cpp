@@ -101,7 +101,14 @@ int main(void)
         Print("\n\tEntries: %li\n", SDRoot.GetEntryCount());
         for (int i = 0; i < SDRoot.GetEntryCount(); i++)
         {
-            Print("\t\t%s\n", SDRoot.GetEntryNameAt(i).c_str());
+            if (SDRoot.EntryAtIsDirectory(i))
+            {
+                Print("\t\tDIR %s\n", SDRoot.GetEntryNameAt(i).c_str());
+            }
+            else
+            {
+                Print("\t\tFIL %s\n", SDRoot.GetEntryNameAt(i).c_str());
+            }
         }
     }
     else
@@ -111,11 +118,26 @@ int main(void)
 
     {
         Print("Creating test file... ");
-        FsLib::File TestFile("sdmc:/switch/SpecialMessage.txt", FsOpenMode_Write);
+        FsLib::OutputFile TestFile("sdmc:/switch/SpecialMessage.txt", false);
         if (TestFile.IsOpen())
         {
             TestFile << "Hi, JK wrote this special message to your SD card for shits and giggles.";
             Print("Special message written to \"sdmc:/switch/SpecialMessage.txt\"!\n");
+        }
+        else
+        {
+            Print("Failed.\n");
+        }
+    }
+
+    {
+        Print("Opening that test file... ");
+        FsLib::InputFile TestFile("sdmc:/switch/SpecialMessage.txt");
+        if (TestFile.IsOpen())
+        {
+            std::array<char, 0x100> MessageBuffer;
+            TestFile.Read(MessageBuffer.data(), 0x100);
+            Print("\n\t%s\n", MessageBuffer.data());
         }
         else
         {

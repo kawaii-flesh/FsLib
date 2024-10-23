@@ -1,6 +1,7 @@
 #pragma once
 #include "Directory.hpp"
-#include "File.hpp"
+#include "InputFile.hpp"
+#include "OutputFile.hpp"
 #include "Storage.hpp"
 #include <string>
 #include <switch.h>
@@ -15,7 +16,7 @@ namespace FsLib
     const char *GetErrorString(void);
     /*
         Processes a path. Returns true on success. PathOut is a C string because Switch gives me grief with std::string.c_str().
-        This is mostly needed for Directory and File to work, but I'm not going to stop someone from using it for something else.
+        This is mostly needed for Directory and File classes to work, but I'm not going to stop someone from using it for something else.
     */
     bool ProcessPath(const std::string &PathIn, FsFileSystem **FileSystemOut, char *PathOut, size_t PathOutMax);
 

@@ -3,7 +3,7 @@
 
 namespace FsLib
 {
-    // This is a base class for File, Storage, and whatever else it can be used for down the line.
+    // This is a base class for Files, Storage, and whatever else it can be used for down the line.
     enum class SeekOrigin
     {
         Beginning,
