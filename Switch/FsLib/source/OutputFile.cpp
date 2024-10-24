@@ -47,7 +47,6 @@ size_t FsLib::OutputFile::Write(const void *Buffer, size_t WriteSize)
 {
     if (!OutputFile::ResizeIfNeeded(WriteSize))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error writing to file: Could not resize file to fit buffer length.");
         return 0;
     }
 
@@ -149,7 +148,7 @@ bool FsLib::OutputFile::ResizeIfNeeded(size_t BufferSize)
 
     if (WriteSizeRemaining < static_cast<int64_t>(BufferSize))
     {
-        int64_t NewFileSize = WriteSizeRemaining + BufferSize;
+        int64_t NewFileSize = (m_StreamSize - WriteSizeRemaining) + BufferSize;
 
         Result FsError = fsFileSetSize(&m_FileHandle, NewFileSize);
         if (R_FAILED(FsError))
