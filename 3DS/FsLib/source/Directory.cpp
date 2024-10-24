@@ -19,7 +19,7 @@ static bool CompareEntries(const FS_DirectoryEntry &EntryA, const FS_DirectoryEn
 {
     if ((EntryA.attributes & FS_ATTRIBUTE_DIRECTORY) != (EntryB.attributes & FS_ATTRIBUTE_DIRECTORY))
     {
-        return EntryA.attributes == FS_ATTRIBUTE_DIRECTORY;
+        return EntryA.attributes & FS_ATTRIBUTE_DIRECTORY;
     }
 
     size_t EntryALength = UTF16StringLength(EntryA.name);

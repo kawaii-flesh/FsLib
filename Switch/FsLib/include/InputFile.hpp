@@ -16,7 +16,7 @@ namespace FsLib
             size_t Read(void *Buffer, size_t ReadSize);
             // Attempts to read a line from file or until '\n' or '\r' is hit. Returns true on success or false on failure. Line is written to LineOut
             bool ReadLine(std::string &LineOut);
-            // Reads a single byte from file
+            // Reads a single byte from file. Returns -1 on failure.
             char GetCharacter(void);
     };
 } // namespace FsLib
