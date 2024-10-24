@@ -53,6 +53,7 @@ size_t FsLib::InputFile::Read(void *Buffer, size_t ReadSize)
         g_ErrorString = FsLib::String::GetFormattedString("Error reading from file: 0x%08X.", FsError);
         return 0;
     }
+    m_Offset += BytesRead;
     return BytesRead;
 }
 

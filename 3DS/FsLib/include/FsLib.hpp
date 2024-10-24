@@ -1,5 +1,7 @@
 #pragma once
 #include "Directory.hpp"
+#include "InputFile.hpp"
+#include "OutputFile.hpp"
 #include <3ds.h>
 #include <string>
 

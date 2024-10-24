@@ -38,12 +38,14 @@ FsLib::Directory::Directory(const std::string &DirectoryPath)
 
 void FsLib::Directory::Open(const std::string &DirectoryPath)
 {
+    // Save path
+    m_DirectoryPath = DirectoryPath;
     // Make sure this is set to false incase the directory is being reused.
     m_WasRead = false;
     // Dissect the path passed.
     std::array<char, FS_MAX_PATH> Path;
     FsFileSystem *FileSystem = NULL;
-    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path.data(), FS_MAX_PATH))
+    if (!FsLib::ProcessPath(m_DirectoryPath, &FileSystem, Path.data(), FS_MAX_PATH))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error processing directory \"%s\": Invalid path supplied.", DirectoryPath.c_str());
         return;
@@ -99,6 +101,11 @@ int64_t FsLib::Directory::GetEntrySizeAt(int Index) const
         return 0;
     }
     return m_DirectoryList[Index].file_size;
+}
+
+std::string FsLib::Directory::GetEntryPathAt(int Index) const
+{
+    return m_DirectoryPath + GetEntryNameAt(Index);
 }
 
 std::string FsLib::Directory::GetEntryNameAt(int Index) const

@@ -48,6 +48,7 @@ void FsLib::Directory::Open(const std::u16string &DirectoryPath)
 {
     // Just in case directory is reused.
     m_WasOpened = false;
+    m_DirectoryPath = DirectoryPath;
     // Same as above
     m_DirectoryList.clear();
 
@@ -94,11 +95,26 @@ bool FsLib::Directory::EntryAtIsDirectory(int index) const
     return m_DirectoryList[index].attributes == FS_ATTRIBUTE_DIRECTORY;
 }
 
+std::string FsLib::Directory::GetEntryPathAtAsUTF8(int Index) const
+{
+    // Just going to convert this to UTF8 using ctrulib's built in function.
+    std::u16string UTF16Path = Directory::GetEntryPathAtAsUTF16(Index);
+    // To do: This isn't safe, but ctrulib doesn't define a max path length as
+    char UTF8Path[UTF16Path.length() + 1] = {0};
+    utf16_to_utf8(reinterpret_cast<uint8_t *>(UTF8Path), reinterpret_cast<const uint16_t *>(UTF16Path.c_str()), UTF16Path.length());
+    return std::string(UTF8Path);
+}
+
+std::u16string FsLib::Directory::GetEntryPathAtAsUTF16(int Index) const
+{
+    return m_DirectoryPath + reinterpret_cast<const char16_t *>(m_DirectoryList[Index].name);
+}
+
 std::string FsLib::Directory::GetEntryNameAtAsUTF8(int index) const
 {
     // This one needs to be converted. CTRULib has code for this already, thankfully.
-    // To do: This results in messed up filenames. Need to figure that out some time soon.
     size_t NameLength = UTF16StringLength(m_DirectoryList[index].name);
+    // To do: This isn't actually safe...
     char UTF8Name[NameLength] = {0};
     utf16_to_utf8(reinterpret_cast<uint8_t *>(UTF8Name), m_DirectoryList[index].name, NameLength);
 

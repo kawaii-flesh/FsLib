@@ -19,6 +19,10 @@ namespace FsLib
             uint32_t GetEntryCount(void) const;
             // Returns whether or not the entry at index is a directory.
             bool EntryAtIsDirectory(int index) const;
+            // Returns entry path as a standard C++/UTF8 string. This is for display purposes.
+            std::string GetEntryPathAtAsUTF8(int index) const;
+            // Same as above, but as UTF16. For filesystem operations.
+            std::u16string GetEntryPathAtAsUTF16(int index) const;
             // Returns entry name as a standard C++/UTF8 string. This should be used for display purposes.
             std::string GetEntryNameAtAsUTF8(int index) const;
             // Returns Entry name as u16string. This should be used for building and reading file paths.
@@ -27,6 +31,8 @@ namespace FsLib
         private:
             // Directory handle.
             Handle m_DirectoryHande;
+            // Directory path
+            std::u16string m_DirectoryPath;
             // Whether Open was successful
             bool m_WasOpened = false;
             // Directory entry vector.

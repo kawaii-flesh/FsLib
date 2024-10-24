@@ -94,8 +94,9 @@ int main(void)
         Print("Uh oh.\n");
     }
 
-    Print("Opening switch Directory... ");
-    FsLib::Directory SDRoot("sdmc:/switch/");
+    // This is a better test because it's usually gigantic.
+    Print("Opening JKSV Directory... ");
+    FsLib::Directory SDRoot("sdmc:/JKSV/");
     if (SDRoot.IsOpen())
     {
         Print("\n\tEntries: %li\n", SDRoot.GetEntryCount());
@@ -103,11 +104,11 @@ int main(void)
         {
             if (SDRoot.EntryAtIsDirectory(i))
             {
-                Print("\t\tDIR %s\n", SDRoot.GetEntryNameAt(i).c_str());
+                Print("\t\tDIR %s\n", SDRoot.GetEntryPathAt(i).c_str());
             }
             else
             {
-                Print("\t\tFIL %s\n", SDRoot.GetEntryNameAt(i).c_str());
+                Print("\t\tFIL %s\n", SDRoot.GetEntryPathAt(i).c_str());
             }
         }
     }
