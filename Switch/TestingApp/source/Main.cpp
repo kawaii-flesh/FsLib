@@ -27,6 +27,7 @@ int main(void)
 {
     std::srand(time(NULL));
 
+    accountInitialize(AccountServiceType_Application);
     consoleInit(NULL);
 
     PadState GamePad;
@@ -42,122 +43,19 @@ int main(void)
         return -1;
     }
 
-    // Don't know what else to check for that's always there.
-    Print("Checking if \"sdmc:/hbmenu.nro\" exists...");
-    if (FsLib::FileExists("sdmc:/hbmenu.nro"))
+    Print("Creating a really long chain of directories... ");
+    if (FsLib::CreateDirectoryRecursively("sdmc:/this/is/a/long/ass/chain/of/folders/you/do/not/even/want/on/your/sd/card/but/I/need/to/test/this/function/"
+                                          "really/really/really/really/badly/"))
     {
-        Print("It does!\n");
+        Print("Did it?\n");
     }
     else
     {
-        Print("It doesn't. How are you even running this?\n");
+        Print("Failed: %s.", FsLib::GetErrorString());
     }
 
-
-    Print("Checking if \"sdmc:/switch/\" exists... ");
-    if (FsLib::DirectoryExists("sdmc:/switch/"))
-    {
-        Print("It does!\n");
-    }
-    else
-    {
-        Print("It doesn't. How are you even running this?\n");
-    }
-
-    Print("Creating test directory... ");
-    if (FsLib::CreateDirectory("sdmc:/TestDirectory/"))
-    {
-        Print("Done!.\n");
-    }
-    else
-    {
-        Print("Failed.\n");
-    }
-
-    Print("Checking if that same directory exists cause who knows? Maybe I'm lying... ");
-    if (FsLib::DirectoryExists("sdmc:/TestDirectory/"))
-    {
-        Print("It does... or does it?\n");
-    }
-    else
-    {
-        Print("It doesn't. Definitely doesn't.\n");
-    }
-
-    Print("Deleting that same directory so you can't even find out if I'm a big, fat, liar grandpappy of all liars... ");
-    if (FsLib::DeleteDirectory("sdmc:/TestDirectory/"))
-    {
-        Print("Done.\n");
-    }
-    else
-    {
-        Print("Uh oh.\n");
-    }
-
-    // This is a better test because it's usually gigantic.
-    Print("Opening JKSV Directory... ");
-    FsLib::Directory SDRoot("sdmc:/JKSV/");
-    if (SDRoot.IsOpen())
-    {
-        Print("\n\tEntries: %li\n", SDRoot.GetEntryCount());
-        for (int i = 0; i < SDRoot.GetEntryCount(); i++)
-        {
-            if (SDRoot.EntryAtIsDirectory(i))
-            {
-                Print("\t\tDIR %s\n", SDRoot.GetEntryPathAt(i).c_str());
-            }
-            else
-            {
-                Print("\t\tFIL %s\n", SDRoot.GetEntryPathAt(i).c_str());
-            }
-        }
-    }
-    else
-    {
-        Print("Failed.\n");
-    }
-
-    {
-        Print("Creating test file... ");
-        FsLib::OutputFile TestFile("sdmc:/switch/SpecialMessage.txt", false);
-        if (TestFile.IsOpen())
-        {
-            TestFile << "Hi, JK wrote this special message to your SD card for shits and giggles.";
-            Print("Special message written to \"sdmc:/switch/SpecialMessage.txt\"!\n");
-        }
-        else
-        {
-            Print("Failed.\n");
-        }
-    }
-
-    {
-        Print("Opening that test file... ");
-        FsLib::InputFile TestFile("sdmc:/switch/SpecialMessage.txt");
-        if (TestFile.IsOpen())
-        {
-            std::array<char, 0x100> MessageBuffer;
-            TestFile.Read(MessageBuffer.data(), 0x100);
-            Print("\n\t%s\n", MessageBuffer.data());
-        }
-        else
-        {
-            Print("Failed.\n");
-        }
-    }
-
-    Print("Deleting that special message because you're not special enought to read it... ");
-    if (FsLib::DeleteFile("sdmc:/switch/SpecialMessage.txt"))
-    {
-        Print("HAHAHAHA TAKE THAT!\n");
-    }
-    else
-    {
-        Print("Your specialness has out maneuvered my deletion function. I'll get you next time.");
-    }
 
     Print("Press + to exit.");
-
 
     while (true)
     {
@@ -170,5 +68,6 @@ int main(void)
     }
     FsLib::Exit();
     consoleExit(NULL);
+    accountExit();
     return 0;
 }

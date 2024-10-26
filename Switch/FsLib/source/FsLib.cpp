@@ -96,6 +96,28 @@ bool FsLib::CreateDirectory(const std::string &DirectoryPath)
     return true;
 }
 
+bool FsLib::CreateDirectoryRecursively(const std::string &DirectoryPath)
+{
+    // Get the position of the first slash and skip it.
+    size_t FolderPosition = DirectoryPath.find_first_of('/', 0) + 1;
+    while ((FolderPosition = DirectoryPath.find_first_of('/', FolderPosition)) != DirectoryPath.npos)
+    {
+        if (FsLib::DirectoryExists(DirectoryPath.substr(0, FolderPosition)))
+        {
+            ++FolderPosition;
+            continue;
+        }
+        // Just call create directory with a substring.
+        bool DirectoryCreated = FsLib::CreateDirectory(DirectoryPath.substr(0, FolderPosition));
+        if (!DirectoryCreated)
+        {
+            return false;
+        }
+        ++FolderPosition;
+    }
+    return true;
+}
+
 bool FsLib::DeleteDirectory(const std::string &DirectoryPath)
 {
     FsFileSystem *FileSystem = NULL;
@@ -257,14 +279,14 @@ bool FsLib::OpenAccountSaveFileSystem(const std::string &DeviceName, uint64_t Ap
     FsSaveDataAttribute SaveDataAttributes = {.application_id = ApplicationID,
                                               .uid = UserID,
                                               .system_save_data_id = 0,
-                                              .save_data_type = FsSaveDataType_System,
+                                              .save_data_type = FsSaveDataType_Account,
                                               .save_data_rank = FsSaveDataRank_Primary,
                                               .save_data_index = 0};
 
     Result FsError = fsOpenSaveDataFileSystem(&s_DeviceMap[DeviceName], FsSaveDataSpaceId_User, &SaveDataAttributes);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error 0xX opening account save data for 0x%016lX.", FsError, ApplicationID);
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening account save data for 0x%016lX.", FsError, ApplicationID);
         return false;
     }
 

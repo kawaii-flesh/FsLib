@@ -23,6 +23,7 @@ namespace FsLib
     // These funcions are sort of shortcuts to be used instead of allocating a new instance of Directory or File to check things.
     // Directory functions.
     bool CreateDirectory(const std::string &DirectoryPath);
+    bool CreateDirectoryRecursively(const std::string &DirectoryPath);
     bool DeleteDirectory(const std::string &DirectoryPath);
     bool DeleteDirectoryRecursively(const std::string &DirectoryPath);
     bool DirectoryExists(const std::string &DirectoryPath);
