@@ -17,6 +17,12 @@ FsLib::Storage::~Storage()
 
 void FsLib::Storage::Open(FsBisPartitionId PartitionID)
 {
+    if (m_IsOpen)
+    {
+        Storage::Close();
+        m_IsOpen = false;
+    }
+
     Result FsError = fsOpenBisStorage(&m_StorageHandle, PartitionID);
     if (R_FAILED(FsError))
     {

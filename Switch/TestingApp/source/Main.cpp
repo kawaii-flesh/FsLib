@@ -11,6 +11,7 @@
 
 static constexpr int FILE_BUFFER_SIZE = 0x100000;
 static constexpr int VA_BUFFER_SIZE = 0x1000;
+static const std::string SELFLOSS_TEST_DIR = "sdmc:/switch/SelfLoss Test Dir/";
 
 // Feels stupid but needed to get actual output in real time
 void Print(const char *Format, ...)
@@ -44,34 +45,54 @@ int main(void)
         return -1;
     }
 
-    Print("Opening ProdInfo... ");
-    FsLib::Storage Cal0(FsBisPartitionId_CalibrationBinary);
-    if (Cal0.IsOpen())
+    AccountUid AccountID = {0};
+    if (R_FAILED(accountGetPreselectedUser(&AccountID)))
     {
-        Print("Succeeded.\nDumping to SD card... ");
-        std::vector<unsigned char> ProdInfoBuffer(Cal0.GetSize());
-        if (Cal0.Read(ProdInfoBuffer.data(), Cal0.GetSize()) != Cal0.GetSize())
+        Print("Error getting AccountID for selected user.");
+    }
+    else
+    {
+        Print("Opening Selfloss for the selected user: ");
+        if (!FsLib::OpenAccountSaveFileSystem("selfloss", 0x010036C01E244000, AccountID))
         {
             Print("Failed.");
         }
         else
         {
-            FsLib::OutputFile ProdInfoFile("sdmc:/ProdInfo.bin", false);
-            if (ProdInfoFile.Write(ProdInfoBuffer.data(), Cal0.GetSize()) == Cal0.GetSize())
+            Print("Succeeded.\n");
+            FsLib::Directory SelfLoss("selfloss:/"); // Should probably check this, but fuck it.
+            for (int64_t i = 0; i < SelfLoss.GetEntryCount(); i++)
             {
-                Print("Succeeded!\n");
+                Print("\t%s\n", SelfLoss.GetEntryPathAt(i).c_str());
             }
-            else
+
+            if (FsLib::DirectoryExists(SELFLOSS_TEST_DIR))
             {
-                Print("Failed.\n");
+                Print("Deleting test directory.\n");
+                FsLib::DeleteDirectoryRecursively(SELFLOSS_TEST_DIR);
+            }
+
+            Print("Creating folder style backup...\n");
+            FsLib::CreateDirectoryRecursively(SELFLOSS_TEST_DIR);
+            for (int64_t i = 0; i < SelfLoss.GetEntryCount(); i++)
+            {
+                std::string SDMCPath = SELFLOSS_TEST_DIR + SelfLoss.GetEntryNameAt(i);
+                Print("Copying \"%s\" to \"%s\"...\n", SelfLoss.GetEntryPathAt(i).c_str(), SDMCPath.c_str());
+                if (FsLib::FileExists(SDMCPath))
+                {
+                    Print("File \"%s\" exists already even though it shouldn't.\n", SDMCPath.c_str());
+                }
+                else
+                {
+                    FsLib::InputFile SourceFile(SelfLoss.GetEntryPathAt(i));
+                    FsLib::OutputFile DestinationFile(SDMCPath, false);
+                    std::vector<unsigned char> FileBuffer(SourceFile.GetSize());
+                    size_t BytesRead = SourceFile.Read(FileBuffer.data(), SourceFile.GetSize());
+                    DestinationFile.Write(FileBuffer.data(), BytesRead);
+                }
             }
         }
     }
-    else
-    {
-        Print("Failed.\n");
-    }
-
 
     Print("Press + to exit.");
 
