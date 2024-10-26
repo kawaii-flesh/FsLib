@@ -7,6 +7,7 @@
 #include <memory>
 #include <minizip/zip.h>
 #include <switch.h>
+#include <vector>
 
 static constexpr int FILE_BUFFER_SIZE = 0x100000;
 static constexpr int VA_BUFFER_SIZE = 0x1000;
@@ -43,15 +44,32 @@ int main(void)
         return -1;
     }
 
-    Print("Creating a really long chain of directories... ");
-    if (FsLib::CreateDirectoryRecursively("sdmc:/this/is/a/long/ass/chain/of/folders/you/do/not/even/want/on/your/sd/card/but/I/need/to/test/this/function/"
-                                          "really/really/really/really/badly/"))
+    Print("Opening ProdInfo... ");
+    FsLib::Storage Cal0(FsBisPartitionId_CalibrationBinary);
+    if (Cal0.IsOpen())
     {
-        Print("Did it?\n");
+        Print("Succeeded.\nDumping to SD card... ");
+        std::vector<unsigned char> ProdInfoBuffer(Cal0.GetSize());
+        if (Cal0.Read(ProdInfoBuffer.data(), Cal0.GetSize()) != Cal0.GetSize())
+        {
+            Print("Failed.");
+        }
+        else
+        {
+            FsLib::OutputFile ProdInfoFile("sdmc:/ProdInfo.bin", false);
+            if (ProdInfoFile.Write(ProdInfoBuffer.data(), Cal0.GetSize()) == Cal0.GetSize())
+            {
+                Print("Succeeded!\n");
+            }
+            else
+            {
+                Print("Failed.\n");
+            }
+        }
     }
     else
     {
-        Print("Failed: %s.", FsLib::GetErrorString());
+        Print("Failed.\n");
     }
 
 

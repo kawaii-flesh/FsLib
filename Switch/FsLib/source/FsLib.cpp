@@ -30,6 +30,7 @@ static bool DeviceNameIsInUse(const std::string &DeviceName)
 
 bool FsLib::Initialize(void)
 {
+    // If you don't want me to call the function directly... I'll just steal the handle.
     std::memcpy(&s_DeviceMap[SD_CARD_DEVICE_NAME], fsdevGetDeviceFileSystem(SD_CARD_DEVICE_NAME.c_str()), sizeof(FsFileSystem));
 
     return true;
@@ -42,8 +43,6 @@ void FsLib::Exit(void)
         // This is called directly instead of FsLib::CloseFileSystem since that guards against closing the SD.
         fsFsClose(&FileSystemHandle);
     }
-    // JIC
-    fsExit();
 }
 
 const char *FsLib::GetErrorString(void)
@@ -390,7 +389,7 @@ bool FsLib::OpenCacheSaveFileSystem(const std::string &DeviceName, uint64_t Appl
     Result FsError = fsOpenSaveDataFileSystem(&s_DeviceMap[DeviceName], FsSaveDataSpaceId_User, &SaveDataAttributes);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening cache save for 0x%016X with index %02d.", FsError, ApplicationID, SaveIndex);
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening cache save for %016X with index %02d.", FsError, ApplicationID, SaveIndex);
         return false;
     }
 
@@ -416,7 +415,7 @@ bool FsLib::OpenSystemBCATSaveFileSystem(const std::string &DeviceName, uint64_t
     Result FsError = fsOpenSaveDataFileSystem(&s_DeviceMap[DeviceName], FsSaveDataSpaceId_User, &SaveDataAttributes);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening system BCAT for 0x%016X.", FsError, SystemSaveID);
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening system BCAT for %016X.", FsError, SystemSaveID);
         return false;
     }
 
