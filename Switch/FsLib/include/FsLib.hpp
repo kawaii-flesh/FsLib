@@ -8,8 +8,8 @@
 
 namespace FsLib
 {
-    // Initializes fslib and mounts sd card.
-    bool Initialize(void);
+    // Initializes fslib. Basically steals LibNX's SDMC handle and does nothing else.
+    void Initialize(void);
     // Exits
     void Exit(void);
     // Returns internal error string.
@@ -23,6 +23,7 @@ namespace FsLib
     // These funcions are sort of shortcuts to be used instead of allocating a new instance of Directory or File to check things.
     // Directory functions.
     bool CreateDirectory(const std::string &DirectoryPath);
+    // The path for this should have a trailing slash to work properly. If not, the last directory in the path will get skipped.
     bool CreateDirectoryRecursively(const std::string &DirectoryPath);
     bool DeleteDirectory(const std::string &DirectoryPath);
     bool DeleteDirectoryRecursively(const std::string &DirectoryPath);

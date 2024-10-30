@@ -28,12 +28,10 @@ static bool DeviceNameIsInUse(const std::string &DeviceName)
     return s_DeviceMap.find(DeviceName) != s_DeviceMap.end();
 }
 
-bool FsLib::Initialize(void)
+void FsLib::Initialize(void)
 {
     // If you don't want me to call the function directly... I'll just steal the handle.
     std::memcpy(&s_DeviceMap[SD_CARD_DEVICE_NAME], fsdevGetDeviceFileSystem(SD_CARD_DEVICE_NAME.c_str()), sizeof(FsFileSystem));
-
-    return true;
 }
 
 void FsLib::Exit(void)
@@ -107,8 +105,7 @@ bool FsLib::CreateDirectoryRecursively(const std::string &DirectoryPath)
             continue;
         }
         // Just call create directory with a substring.
-        bool DirectoryCreated = FsLib::CreateDirectory(DirectoryPath.substr(0, FolderPosition));
-        if (!DirectoryCreated)
+        if (!FsLib::CreateDirectory(DirectoryPath.substr(0, FolderPosition)))
         {
             return false;
         }

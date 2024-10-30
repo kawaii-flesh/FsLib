@@ -3,14 +3,14 @@
 
 namespace FsLib
 {
-    // This is a base class for Files, Storage, and whatever else it can be used for down the line.
+
     enum class SeekOrigin
     {
         Beginning,
         Current,
         End
     };
-
+    // This is a base class for Files, Storage, and whatever else it can be used for down the line.
     class Stream
     {
         public:

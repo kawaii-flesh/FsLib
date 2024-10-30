@@ -105,6 +105,10 @@ int64_t FsLib::Directory::GetEntrySizeAt(int Index) const
 
 std::string FsLib::Directory::GetEntryPathAt(int Index) const
 {
+    if (Index >= m_EntryCount)
+    {
+        return std::string("");
+    }
     return m_DirectoryPath + GetEntryNameAt(Index);
 }
 
