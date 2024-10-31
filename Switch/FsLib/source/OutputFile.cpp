@@ -123,7 +123,7 @@ bool FsLib::OutputFile::OpenForWriting(FsFileSystem *FileSystem, const char *Fil
 
 bool FsLib::OutputFile::OpenForAppending(FsFileSystem *FileSystem, const char *FilePath)
 {
-    Result FsError = fsFsOpenFile(FileSystem, FilePath, FsOpenMode_Append, &m_FileHandle);
+    Result FsError = fsFsOpenFile(FileSystem, FilePath, FsOpenMode_Write | FsOpenMode_Append, &m_FileHandle);
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening file for appending.", FsError);

@@ -28,6 +28,10 @@ int main(void)
 
     FsLib::Initialize();
 
+    // Just testing this to make sure I got it right this time.
+    FsLib::OutputFile JKSVLog("sdmc:/switch/JKSV_log.txt", true);
+    JKSVLog.Writef("Debug message here to test appending.");
+
     Print("Press + to exit.");
 
     while (true)
