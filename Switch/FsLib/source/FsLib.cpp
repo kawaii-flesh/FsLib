@@ -14,16 +14,16 @@
 namespace
 {
     // Filesystems paired with their mount point.
-    std::unordered_map<std::string, FsFileSystem> s_DeviceMap;
+    std::unordered_map<std::string_view, FsFileSystem> s_DeviceMap;
     // String for SD card device. This only works as constexpr because the string is so short.
-    constexpr std::string SD_CARD_DEVICE_NAME = "sdmc";
+    constexpr std::string_view SD_CARD_DEVICE_NAME = "sdmc";
 } // namespace
 
 // This error string is shared globally, but I didn't want it extern'd in the header.
-std::string g_ErrorString = "No Errors to report, sir.";
+std::string g_ErrorString = "No errors encountered.";
 
 // This is for opening functions to search and make sure there are no duplicate uses of the same device name.
-static bool DeviceNameIsInUse(const std::string &DeviceName)
+static bool DeviceNameIsInUse(std::string_view &DeviceName)
 {
     return s_DeviceMap.find(DeviceName) != s_DeviceMap.end();
 }
@@ -31,7 +31,7 @@ static bool DeviceNameIsInUse(const std::string &DeviceName)
 void FsLib::Initialize(void)
 {
     // If you don't want me to call the function directly... I'll just steal the handle.
-    std::memcpy(&s_DeviceMap[SD_CARD_DEVICE_NAME], fsdevGetDeviceFileSystem(SD_CARD_DEVICE_NAME.c_str()), sizeof(FsFileSystem));
+    std::memcpy(&s_DeviceMap[SD_CARD_DEVICE_NAME], fsdevGetDeviceFileSystem(SD_CARD_DEVICE_NAME.data()), sizeof(FsFileSystem));
 }
 
 void FsLib::Exit(void)
@@ -48,7 +48,7 @@ const char *FsLib::GetErrorString(void)
     return g_ErrorString.c_str();
 }
 
-bool FsLib::ProcessPath(const std::string &PathIn, FsFileSystem **FileSystemOut, char *PathOut, size_t PathOutMax)
+bool FsLib::ProcessPath(std::string_view PathIn, FsFileSystem **FileSystemOut, char *PathOut, size_t PathOutMax)
 {
     size_t ColonPosition = PathIn.find_first_of(':');
     if (ColonPosition == PathIn.npos)
@@ -56,8 +56,8 @@ bool FsLib::ProcessPath(const std::string &PathIn, FsFileSystem **FileSystemOut,
         return false;
     }
     // Split string at :
-    std::string DeviceName = PathIn.substr(0, ColonPosition);
-    std::string Path = PathIn.substr(ColonPosition + 1, PathIn.length());
+    std::string_view DeviceName = PathIn.substr(0, ColonPosition);
+    std::string_view Path = PathIn.substr(ColonPosition + 1, PathIn.length());
     if (Path.length() >= PathOutMax || !DeviceNameIsInUse(DeviceName))
     {
         return false;
@@ -68,14 +68,14 @@ bool FsLib::ProcessPath(const std::string &PathIn, FsFileSystem **FileSystemOut,
         but it doesn't if you pass the same thing as a C string...
     */
     std::memset(PathOut, 0x00, PathOutMax);
-    std::memcpy(PathOut, Path.c_str(), Path.length());
+    std::memcpy(PathOut, Path.data(), Path.length());
     // Pointer to File system
     *FileSystemOut = &s_DeviceMap[DeviceName];
     // Should be good to go.
     return true;
 }
 
-bool FsLib::CreateDirectory(const std::string &DirectoryPath)
+bool FsLib::CreateDirectory(std::string_view DirectoryPath)
 {
     FsFileSystem *FileSystem = NULL;
     std::array<char, FS_MAX_PATH> Path;
@@ -87,13 +87,13 @@ bool FsLib::CreateDirectory(const std::string &DirectoryPath)
     Result FsError = fsFsCreateDirectory(FileSystem, Path.data());
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X creating directory \"%s\".", FsError, DirectoryPath.c_str());
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X creating directory \"%s\".", FsError, DirectoryPath.data());
         return false;
     }
     return true;
 }
 
-bool FsLib::CreateDirectoryRecursively(const std::string &DirectoryPath)
+bool FsLib::CreateDirectoryRecursively(std::string_view DirectoryPath)
 {
     // Get the position of the first slash and skip it.
     size_t FolderPosition = DirectoryPath.find_first_of('/', 0) + 1;
@@ -114,7 +114,7 @@ bool FsLib::CreateDirectoryRecursively(const std::string &DirectoryPath)
     return true;
 }
 
-bool FsLib::DeleteDirectory(const std::string &DirectoryPath)
+bool FsLib::DeleteDirectory(std::string_view DirectoryPath)
 {
     FsFileSystem *FileSystem = NULL;
     std::array<char, FS_MAX_PATH> Path;
@@ -126,13 +126,13 @@ bool FsLib::DeleteDirectory(const std::string &DirectoryPath)
     Result FsError = fsFsDeleteDirectory(FileSystem, Path.data());
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X deleting directory \"%s\".", FsError, DirectoryPath.c_str());
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X deleting directory \"%s\".", FsError, DirectoryPath.data());
         return false;
     }
     return true;
 }
 
-bool FsLib::DeleteDirectoryRecursively(const std::string &DirectoryPath)
+bool FsLib::DeleteDirectoryRecursively(std::string_view DirectoryPath)
 {
     FsFileSystem *FileSystem;
     std::array<char, FS_MAX_PATH> Path;
@@ -144,13 +144,13 @@ bool FsLib::DeleteDirectoryRecursively(const std::string &DirectoryPath)
     Result FsError = fsFsDeleteDirectoryRecursively(FileSystem, Path.data());
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X deleting directory \"%s\".", FsError, DirectoryPath.c_str());
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X deleting directory \"%s\".", FsError, DirectoryPath.data());
         return false;
     }
     return true;
 }
 
-bool FsLib::DirectoryExists(const std::string &DirectoryPath)
+bool FsLib::DirectoryExists(std::string_view DirectoryPath)
 {
     FsFileSystem *FileSystem = NULL;
     std::array<char, FS_MAX_PATH> Path;
@@ -171,7 +171,7 @@ bool FsLib::DirectoryExists(const std::string &DirectoryPath)
     return true;
 }
 
-bool FsLib::RenameDirectory(const std::string &Old, const std::string &New)
+bool FsLib::RenameDirectory(std::string_view Old, std::string_view New)
 {
     FsFileSystem *FileSystem;
     std::array<char, FS_MAX_PATH> OldPath, NewPath;
@@ -190,7 +190,7 @@ bool FsLib::RenameDirectory(const std::string &Old, const std::string &New)
     return true;
 }
 
-bool FsLib::FileExists(const std::string &FilePath)
+bool FsLib::FileExists(std::string_view FilePath)
 {
     FsFileSystem *FileSystem = NULL;
     std::array<char, FS_MAX_PATH> Path;
@@ -209,7 +209,7 @@ bool FsLib::FileExists(const std::string &FilePath)
     return true;
 }
 
-bool FsLib::DeleteFile(const std::string &FilePath)
+bool FsLib::DeleteFile(std::string_view FilePath)
 {
     FsFileSystem *FileSystem;
     std::array<char, FS_MAX_PATH> Path;
@@ -221,13 +221,13 @@ bool FsLib::DeleteFile(const std::string &FilePath)
     Result FsError = fsFsDeleteFile(FileSystem, Path.data());
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X deleting file \"%s\".", FsError, FilePath.c_str());
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X deleting file \"%s\".", FsError, FilePath.data());
         return false;
     }
     return true;
 }
 
-int64_t FsLib::GetFileSize(const std::string &FilePath)
+int64_t FsLib::GetFileSize(std::string_view FilePath)
 {
     FsFileSystem *FileSystem = NULL;
     std::array<char, FS_MAX_PATH> Path;
@@ -254,7 +254,7 @@ int64_t FsLib::GetFileSize(const std::string &FilePath)
     return FileSize;
 }
 
-bool FsLib::RenameFile(const std::string &Old, const std::string &New)
+bool FsLib::RenameFile(std::string_view Old, std::string_view New)
 {
     FsFileSystem *FileSystem;
     std::array<char, FS_MAX_PATH> OldPath, NewPath;
@@ -273,7 +273,7 @@ bool FsLib::RenameFile(const std::string &Old, const std::string &New)
     return true;
 }
 
-bool FsLib::OpenSystemSaveFileSystem(const std::string &DeviceName, uint64_t SystemSaveID)
+bool FsLib::OpenSystemSaveFileSystem(std::string_view DeviceName, uint64_t SystemSaveID)
 {
     // Reject altogether if sdmc is what is passed.
     SDMC_DEVICE_GUARD(DeviceName);
@@ -301,7 +301,7 @@ bool FsLib::OpenSystemSaveFileSystem(const std::string &DeviceName, uint64_t Sys
     return true;
 }
 
-bool FsLib::OpenAccountSaveFileSystem(const std::string &DeviceName, uint64_t ApplicationID, AccountUid UserID)
+bool FsLib::OpenAccountSaveFileSystem(std::string_view DeviceName, uint64_t ApplicationID, AccountUid UserID)
 {
     SDMC_DEVICE_GUARD(DeviceName);
 
@@ -327,7 +327,7 @@ bool FsLib::OpenAccountSaveFileSystem(const std::string &DeviceName, uint64_t Ap
     return true;
 }
 
-bool FsLib::OpenBCATSaveFileSystem(const std::string &DeviceName, uint64_t ApplicationID)
+bool FsLib::OpenBCATSaveFileSystem(std::string_view DeviceName, uint64_t ApplicationID)
 {
     SDMC_DEVICE_GUARD(DeviceName);
 
@@ -353,7 +353,7 @@ bool FsLib::OpenBCATSaveFileSystem(const std::string &DeviceName, uint64_t Appli
     return true;
 }
 
-bool FsLib::OpenDeviceSaveFileSystem(const std::string &DeviceName, uint64_t ApplicationID)
+bool FsLib::OpenDeviceSaveFileSystem(std::string_view DeviceName, uint64_t ApplicationID)
 {
     SDMC_DEVICE_GUARD(DeviceName);
 
@@ -379,7 +379,7 @@ bool FsLib::OpenDeviceSaveFileSystem(const std::string &DeviceName, uint64_t App
     return true;
 }
 
-bool FsLib::OpenTemporarySaveFileSystem(const std::string &DeviceName)
+bool FsLib::OpenTemporarySaveFileSystem(std::string_view DeviceName)
 {
     SDMC_DEVICE_GUARD(DeviceName);
 
@@ -405,7 +405,7 @@ bool FsLib::OpenTemporarySaveFileSystem(const std::string &DeviceName)
     return true;
 }
 
-bool FsLib::OpenCacheSaveFileSystem(const std::string &DeviceName, uint64_t ApplicationID, uint16_t SaveIndex)
+bool FsLib::OpenCacheSaveFileSystem(std::string_view DeviceName, uint64_t ApplicationID, uint16_t SaveIndex)
 {
     SDMC_DEVICE_GUARD(DeviceName);
 
@@ -431,7 +431,7 @@ bool FsLib::OpenCacheSaveFileSystem(const std::string &DeviceName, uint64_t Appl
     return true;
 }
 
-bool FsLib::OpenSystemBCATSaveFileSystem(const std::string &DeviceName, uint64_t SystemSaveID)
+bool FsLib::OpenSystemBCATSaveFileSystem(std::string_view DeviceName, uint64_t SystemSaveID)
 {
     SDMC_DEVICE_GUARD(DeviceName);
 
@@ -457,24 +457,24 @@ bool FsLib::OpenSystemBCATSaveFileSystem(const std::string &DeviceName, uint64_t
     return true;
 }
 
-bool FsLib::CommitDataToFileSystem(const std::string &DeviceName)
+bool FsLib::CommitDataToFileSystem(std::string_view DeviceName)
 {
     if (!DeviceNameIsInUse(DeviceName))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error committing data to \"%s\": Device does not exist.", DeviceName.c_str());
+        g_ErrorString = FsLib::String::GetFormattedString("Error committing data to \"%s\": Device does not exist.", DeviceName.data());
         return false;
     }
 
     Result FsError = fsFsCommit(&s_DeviceMap[DeviceName]);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X committing data to \"%s\".", FsError, DeviceName.c_str());
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X committing data to \"%s\".", FsError, DeviceName.data());
         return false;
     }
     return true;
 }
 
-bool FsLib::CloseFileSystem(const std::string &DeviceName)
+bool FsLib::CloseFileSystem(std::string_view DeviceName)
 {
     // Guard against closing sdmc. Only exiting FsLib will do that.
     SDMC_DEVICE_GUARD(DeviceName);

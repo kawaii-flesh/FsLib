@@ -6,12 +6,12 @@
 
 extern std::string g_ErrorString;
 
-FsLib::InputFile::InputFile(const std::string &FilePath)
+FsLib::InputFile::InputFile(std::string_view FilePath)
 {
     InputFile::Open(FilePath);
 }
 
-void FsLib::InputFile::Open(const std::string &FilePath)
+void FsLib::InputFile::Open(std::string_view FilePath)
 {
     // Just in case this is reused.
     if (m_IsOpen)
@@ -24,14 +24,14 @@ void FsLib::InputFile::Open(const std::string &FilePath)
     std::array<char, FS_MAX_PATH> Path;
     if (!FsLib::ProcessPath(FilePath, &FileSystem, Path.data(), FS_MAX_PATH))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening \"%s\" for reading: Invalid path supplied.", FilePath.c_str());
+        g_ErrorString = FsLib::String::GetFormattedString("Error opening \"%s\" for reading: Invalid path supplied.", FilePath.data());
         return;
     }
 
     Result FsError = fsFsOpenFile(FileSystem, Path.data(), FsOpenMode_Read, &m_FileHandle);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening \"%s\" for reading: 0x%X.", FilePath.c_str(), FsError);
+        g_ErrorString = FsLib::String::GetFormattedString("Error opening \"%s\" for reading: 0x%X.", FilePath.data(), FsError);
         return;
     }
 

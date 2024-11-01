@@ -10,12 +10,12 @@ namespace FsLib
         public:
             Directory(void) = default;
             // This constructor just calls Open for you. See that for more information.
-            Directory(const std::string &DirectoryPath);
+            Directory(std::string_view DirectoryPath);
             /*
                 Opens directory passed if possible. Entries are sorted Directories -> Files and pseudo-alphabetically.
                 Path needs a trailing slash to work correctly. I'll change that later if I feel like it.
             */
-            void Open(const std::string &DirectoryPath);
+            void Open(std::string_view DirectoryPath);
             // Returns whether opening was successful or not.
             bool IsOpen(void) const;
             // Returns number of entries in directory.

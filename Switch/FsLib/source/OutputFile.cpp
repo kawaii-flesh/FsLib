@@ -12,12 +12,12 @@ namespace
 
 extern std::string g_ErrorString;
 
-FsLib::OutputFile::OutputFile(const std::string &FilePath, bool Append)
+FsLib::OutputFile::OutputFile(std::string_view FilePath, bool Append)
 {
     OutputFile::Open(FilePath, Append);
 }
 
-void FsLib::OutputFile::Open(const std::string &FilePath, bool Append)
+void FsLib::OutputFile::Open(std::string_view FilePath, bool Append)
 {
     if (m_IsOpen)
     {
@@ -29,7 +29,7 @@ void FsLib::OutputFile::Open(const std::string &FilePath, bool Append)
     std::array<char, FS_MAX_PATH> Path;
     if (!FsLib::ProcessPath(FilePath, &FileSystem, Path.data(), FS_MAX_PATH))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening \"%s\" for writing: Invalid path supplied.", FilePath.c_str());
+        g_ErrorString = FsLib::String::GetFormattedString("Error opening \"%s\" for writing: Invalid path supplied.", FilePath.data());
         return;
     }
 

@@ -9,12 +9,12 @@ namespace FsLib
         public:
             OutputFile(void) = default;
             // Constructor calls Open. IsOpen can be checked to see if operation succeeded.
-            OutputFile(const std::string &FilePath, bool Append);
+            OutputFile(std::string_view FilePath, bool Append);
             /*
                 Opens file for writing, creating it if it doesn't exist. Append is whether to open for appending.
                 IsOpen can be checked to see if operation succeeded.
             */
-            void Open(const std::string &FilePath, bool Append);
+            void Open(std::string_view FilePath, bool Append);
             // Attempts to write Buffer of WriteSize to file. Returns WriteSize on success, 0 on failure.
             size_t Write(const void *Buffer, size_t WriteSize);
             // Writes formatted string to file.

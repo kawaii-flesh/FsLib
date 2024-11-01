@@ -31,12 +31,12 @@ static bool CompareEntries(const FsDirectoryEntry &EntryA, const FsDirectoryEntr
     return false;
 }
 
-FsLib::Directory::Directory(const std::string &DirectoryPath)
+FsLib::Directory::Directory(std::string_view DirectoryPath)
 {
     Directory::Open(DirectoryPath);
 }
 
-void FsLib::Directory::Open(const std::string &DirectoryPath)
+void FsLib::Directory::Open(std::string_view DirectoryPath)
 {
     // Save path
     m_DirectoryPath = DirectoryPath;
@@ -47,7 +47,7 @@ void FsLib::Directory::Open(const std::string &DirectoryPath)
     FsFileSystem *FileSystem = NULL;
     if (!FsLib::ProcessPath(m_DirectoryPath, &FileSystem, Path.data(), FS_MAX_PATH))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error processing directory \"%s\": Invalid path supplied.", DirectoryPath.c_str());
+        g_ErrorString = FsLib::String::GetFormattedString("Error processing directory \"%s\": Invalid path supplied.", DirectoryPath.data());
         return;
     }
 
