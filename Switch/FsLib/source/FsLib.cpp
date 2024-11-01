@@ -171,6 +171,25 @@ bool FsLib::DirectoryExists(const std::string &DirectoryPath)
     return true;
 }
 
+bool FsLib::RenameDirectory(const std::string &Old, const std::string &New)
+{
+    FsFileSystem *FileSystem;
+    std::array<char, FS_MAX_PATH> OldPath, NewPath;
+    if (!FsLib::ProcessPath(Old, &FileSystem, OldPath.data(), FS_MAX_PATH) || !FsLib::ProcessPath(New, &FileSystem, NewPath.data(), FS_MAX_PATH))
+    {
+        g_ErrorString = FsLib::String::GetFormattedString("Error renaming directory: Invalid path(s) supplied.");
+        return false;
+    }
+
+    Result FsError = fsFsRenameDirectory(FileSystem, OldPath.data(), NewPath.data());
+    if (R_FAILED(FsError))
+    {
+        g_ErrorString = FsLib::String::GetFormattedString("Error renaming directory: 0x%X.", FsError);
+        return false;
+    }
+    return true;
+}
+
 bool FsLib::FileExists(const std::string &FilePath)
 {
     FsFileSystem *FileSystem = NULL;
@@ -233,6 +252,25 @@ int64_t FsLib::GetFileSize(const std::string &FilePath)
 
     fsFileClose(&FileHandle);
     return FileSize;
+}
+
+bool FsLib::RenameFile(const std::string &Old, const std::string &New)
+{
+    FsFileSystem *FileSystem;
+    std::array<char, FS_MAX_PATH> OldPath, NewPath;
+    if (!ProcessPath(Old, &FileSystem, OldPath.data(), FS_MAX_PATH) || !ProcessPath(New, &FileSystem, NewPath.data(), FS_MAX_PATH))
+    {
+        g_ErrorString = FsLib::String::GetFormattedString("Error renaming file: Invalid path(s) supplied.");
+        return false;
+    }
+
+    Result FsError = fsFsRenameFile(FileSystem, OldPath.data(), NewPath.data());
+    if (R_FAILED(FsError))
+    {
+        g_ErrorString = FsLib::String::GetFormattedString("Error renaming file: 0x%X.", FsError);
+        return false;
+    }
+    return true;
 }
 
 bool FsLib::OpenSystemSaveFileSystem(const std::string &DeviceName, uint64_t SystemSaveID)

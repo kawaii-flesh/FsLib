@@ -23,15 +23,18 @@ namespace FsLib
     // These funcions are sort of shortcuts to be used instead of allocating a new instance of Directory or File to check things.
     // Directory functions.
     bool CreateDirectory(const std::string &DirectoryPath);
-    // The path for this should have a trailing slash to work properly. If not, the last directory in the path will get skipped.
+    // The path for this should have a trailing slash to work properly. If not, the last directory in the path will get skipped. Should probably do something about that.
     bool CreateDirectoryRecursively(const std::string &DirectoryPath);
     bool DeleteDirectory(const std::string &DirectoryPath);
     bool DeleteDirectoryRecursively(const std::string &DirectoryPath);
     bool DirectoryExists(const std::string &DirectoryPath);
+    bool RenameDirectory(const std::string &Old, const std::string &New);
+
     // File functions.
     bool FileExists(const std::string &FilePath);
     bool DeleteFile(const std::string &FilePath);
     int64_t GetFileSize(const std::string &FilePath);
+    bool RenameFile(const std::string &Old, const std::string &New);
 
     // Opens save data type and associates it with DeviceName
     bool OpenSystemSaveFileSystem(const std::string &DeviceName, uint64_t SystemSaveID);
