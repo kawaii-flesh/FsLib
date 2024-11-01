@@ -25,7 +25,7 @@ namespace FsLib
             // Returns the full path to the entry. Returns an empty string if Index is out of bounds.
             std::string GetEntryPathAt(int Index) const;
             // Returns full file name of entry at index. Returns an empty string if Index is out of bounds.
-            std::string GetEntryNameAt(int Index) const;
+            std::string_view GetEntryNameAt(int index) const;
             // Returns whether entry at index is a directory or not. Returns false if Index is out of bounds.
             bool EntryAtIsDirectory(int Index) const;
 

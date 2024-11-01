@@ -2,8 +2,9 @@
 #include "FsLib.hpp"
 #include "String.hpp"
 #include <algorithm>
-#include <array>
 #include <cstring>
+
+#include <fstream>
 
 // fslib global error string.
 extern std::string g_ErrorString;
@@ -43,9 +44,9 @@ void FsLib::Directory::Open(std::string_view DirectoryPath)
     // Make sure this is set to false incase the directory is being reused.
     m_WasRead = false;
     // Dissect the path passed.
-    std::array<char, FS_MAX_PATH> Path;
+    std::string_view Path;
     FsFileSystem *FileSystem = NULL;
-    if (!FsLib::ProcessPath(m_DirectoryPath, &FileSystem, Path.data(), FS_MAX_PATH))
+    if (!FsLib::ProcessPath(m_DirectoryPath, &FileSystem, Path))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error processing directory \"%s\": Invalid path supplied.", DirectoryPath.data());
         return;
@@ -109,16 +110,16 @@ std::string FsLib::Directory::GetEntryPathAt(int Index) const
     {
         return std::string("");
     }
-    return m_DirectoryPath + GetEntryNameAt(Index);
+    return m_DirectoryPath + GetEntryNameAt(Index).data();
 }
 
-std::string FsLib::Directory::GetEntryNameAt(int Index) const
+std::string_view FsLib::Directory::GetEntryNameAt(int Index) const
 {
     if (Index >= m_EntryCount)
     {
-        return std::string("");
+        return std::string_view("");
     }
-    return std::string(m_DirectoryList[Index].name);
+    return std::string_view(m_DirectoryList[Index].name);
 }
 
 bool FsLib::Directory::EntryAtIsDirectory(int Index) const

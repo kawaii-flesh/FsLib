@@ -2,11 +2,10 @@
 #include <array>
 #include <cstdarg>
 #include <switch.h>
-#include <vector>
 
 static constexpr unsigned int VA_BUFFER_SIZE = 0x1000;
 static constexpr std::string_view TEST_MESSAGE_PATH = "sdmc:/switch/TestMessage.txt";
-static constexpr std::string_view REALLY_STUPID_LONG_DIR_PATH =
+static const std::string REALLY_STUPID_LONG_DIR_PATH =
     "sdmc:/This/is/a/really/long/chain/of/folders/that/you/do/not/even/want/on/your/sd/card/lol/The/End/Or/is/it/";
 
 // Feels stupid but needed to get actual output in real time
@@ -47,11 +46,11 @@ int main(void)
         FsLib::InputFile HBMenu("sdmc:/hbmenu.nro");
         if (HBMenu.IsOpen())
         {
-            Print("It does.");
+            Print("I can.\n");
         }
         else
         {
-            Print("Nope. %s", FsLib::GetErrorString());
+            Print("Nope. %s\n", FsLib::GetErrorString());
         }
     }
 
@@ -79,11 +78,11 @@ int main(void)
             {
                 if (SwitchDir.EntryAtIsDirectory(i))
                 {
-                    Print("\tDIR %s\n", SwitchDir.GetEntryNameAt(i).c_str());
+                    Print("\tDIR %s\n", SwitchDir.GetEntryNameAt(i).data());
                 }
                 else
                 {
-                    Print("\tFIL %s\n", SwitchDir.GetEntryNameAt(i).c_str());
+                    Print("\tFIL %s\n", SwitchDir.GetEntryNameAt(i).data());
                 }
             }
         }
@@ -130,7 +129,7 @@ int main(void)
         Print("Nope. %s\n", FsLib::GetErrorString());
     }
 
-    Print("Testing is I can create a stupid long chain of folders... ");
+    Print("Testing if I can create a stupid long chain of folders... ");
     if (FsLib::CreateDirectoryRecursively(REALLY_STUPID_LONG_DIR_PATH))
     {
         Print("Yep.\n");
@@ -138,6 +137,16 @@ int main(void)
     else
     {
         Print("Nope. %s\n", FsLib::GetErrorString());
+    }
+
+    Print("Testing if I can delete a directory all all of its contents... ");
+    if (FsLib::DeleteDirectoryRecursively(REALLY_STUPID_LONG_DIR_PATH))
+    {
+        Print("I can.\n");
+    }
+    else
+    {
+        Print("Nope.\n");
     }
 
     Print("Press + to exit.");

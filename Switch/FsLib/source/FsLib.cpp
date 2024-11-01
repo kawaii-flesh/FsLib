@@ -1,6 +1,5 @@
 #include "FsLib.hpp"
 #include "String.hpp"
-#include <array>
 #include <cstring>
 #include <unordered_map>
 
@@ -15,7 +14,7 @@ namespace
 {
     // Filesystems paired with their mount point.
     std::unordered_map<std::string_view, FsFileSystem> s_DeviceMap;
-    // String for SD card device. This only works as constexpr because the string is so short.
+    // String for SD card device.
     constexpr std::string_view SD_CARD_DEVICE_NAME = "sdmc";
 } // namespace
 
@@ -23,7 +22,7 @@ namespace
 std::string g_ErrorString = "No errors encountered.";
 
 // This is for opening functions to search and make sure there are no duplicate uses of the same device name.
-static bool DeviceNameIsInUse(std::string_view &DeviceName)
+static bool DeviceNameIsInUse(std::string_view DeviceName)
 {
     return s_DeviceMap.find(DeviceName) != s_DeviceMap.end();
 }
@@ -48,7 +47,7 @@ const char *FsLib::GetErrorString(void)
     return g_ErrorString.c_str();
 }
 
-bool FsLib::ProcessPath(std::string_view PathIn, FsFileSystem **FileSystemOut, char *PathOut, size_t PathOutMax)
+bool FsLib::ProcessPath(std::string_view PathIn, FsFileSystem **FileSystemOut, std::string_view &PathOut)
 {
     size_t ColonPosition = PathIn.find_first_of(':');
     if (ColonPosition == PathIn.npos)
@@ -57,20 +56,14 @@ bool FsLib::ProcessPath(std::string_view PathIn, FsFileSystem **FileSystemOut, c
     }
     // Split string at :
     std::string_view DeviceName = PathIn.substr(0, ColonPosition);
-    std::string_view Path = PathIn.substr(ColonPosition + 1, PathIn.length());
-    if (Path.length() >= PathOutMax || !DeviceNameIsInUse(DeviceName))
+    if (!DeviceNameIsInUse(DeviceName))
     {
         return false;
     }
-    /*
-        This feels stupid but it's more reliable than trying to use c_str() with switch FS.
-        For some reason passing a short path with std::string.c_str() makes the switch throw 0xD401,
-        but it doesn't if you pass the same thing as a C string...
-    */
-    std::memset(PathOut, 0x00, PathOutMax);
-    std::memcpy(PathOut, Path.data(), Path.length());
     // Pointer to File system
     *FileSystemOut = &s_DeviceMap[DeviceName];
+    // Sub-path for FS
+    PathOut = PathIn.substr(ColonPosition + 1, PathIn.length());
     // Should be good to go.
     return true;
 }
@@ -78,8 +71,8 @@ bool FsLib::ProcessPath(std::string_view PathIn, FsFileSystem **FileSystemOut, c
 bool FsLib::CreateDirectory(std::string_view DirectoryPath)
 {
     FsFileSystem *FileSystem = NULL;
-    std::array<char, FS_MAX_PATH> Path;
-    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path.data(), FS_MAX_PATH))
+    std::string_view Path;
+    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path))
     {
         return false;
     }
@@ -87,25 +80,26 @@ bool FsLib::CreateDirectory(std::string_view DirectoryPath)
     Result FsError = fsFsCreateDirectory(FileSystem, Path.data());
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X creating directory \"%s\".", FsError, DirectoryPath.data());
+        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X creating directory \"%s\".", FsError, Path.data());
         return false;
     }
     return true;
 }
 
-bool FsLib::CreateDirectoryRecursively(std::string_view DirectoryPath)
+bool FsLib::CreateDirectoryRecursively(const std::string &DirectoryPath)
 {
     // Get the position of the first slash and skip it.
     size_t FolderPosition = DirectoryPath.find_first_of('/', 0) + 1;
     while ((FolderPosition = DirectoryPath.find_first_of('/', FolderPosition)) != DirectoryPath.npos)
     {
-        if (FsLib::DirectoryExists(DirectoryPath.substr(0, FolderPosition)))
+        std::string SubPath = DirectoryPath.substr(0, FolderPosition);
+
+        if (FsLib::DirectoryExists(SubPath.c_str()))
         {
             ++FolderPosition;
             continue;
         }
-        // Just call create directory with a substring.
-        if (!FsLib::CreateDirectory(DirectoryPath.substr(0, FolderPosition)))
+        if (!FsLib::CreateDirectory(SubPath.c_str()))
         {
             return false;
         }
@@ -117,8 +111,8 @@ bool FsLib::CreateDirectoryRecursively(std::string_view DirectoryPath)
 bool FsLib::DeleteDirectory(std::string_view DirectoryPath)
 {
     FsFileSystem *FileSystem = NULL;
-    std::array<char, FS_MAX_PATH> Path;
-    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path.data(), FS_MAX_PATH))
+    std::string_view Path;
+    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path))
     {
         return false;
     }
@@ -135,8 +129,8 @@ bool FsLib::DeleteDirectory(std::string_view DirectoryPath)
 bool FsLib::DeleteDirectoryRecursively(std::string_view DirectoryPath)
 {
     FsFileSystem *FileSystem;
-    std::array<char, FS_MAX_PATH> Path;
-    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path.data(), FS_MAX_PATH))
+    std::string_view Path;
+    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path))
     {
         return false;
     }
@@ -153,8 +147,8 @@ bool FsLib::DeleteDirectoryRecursively(std::string_view DirectoryPath)
 bool FsLib::DirectoryExists(std::string_view DirectoryPath)
 {
     FsFileSystem *FileSystem = NULL;
-    std::array<char, FS_MAX_PATH> Path;
-    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path.data(), FS_MAX_PATH))
+    std::string_view Path;
+    if (!FsLib::ProcessPath(DirectoryPath, &FileSystem, Path))
     {
         return false;
     }
@@ -174,8 +168,8 @@ bool FsLib::DirectoryExists(std::string_view DirectoryPath)
 bool FsLib::RenameDirectory(std::string_view Old, std::string_view New)
 {
     FsFileSystem *FileSystem;
-    std::array<char, FS_MAX_PATH> OldPath, NewPath;
-    if (!FsLib::ProcessPath(Old, &FileSystem, OldPath.data(), FS_MAX_PATH) || !FsLib::ProcessPath(New, &FileSystem, NewPath.data(), FS_MAX_PATH))
+    std::string_view OldPath, NewPath;
+    if (!FsLib::ProcessPath(Old, &FileSystem, OldPath) || !FsLib::ProcessPath(New, &FileSystem, NewPath))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error renaming directory: Invalid path(s) supplied.");
         return false;
@@ -193,8 +187,8 @@ bool FsLib::RenameDirectory(std::string_view Old, std::string_view New)
 bool FsLib::FileExists(std::string_view FilePath)
 {
     FsFileSystem *FileSystem = NULL;
-    std::array<char, FS_MAX_PATH> Path;
-    if (!FsLib::ProcessPath(FilePath, &FileSystem, Path.data(), FS_MAX_PATH))
+    std::string_view Path;
+    if (!FsLib::ProcessPath(FilePath, &FileSystem, Path))
     {
         return false;
     }
@@ -212,8 +206,8 @@ bool FsLib::FileExists(std::string_view FilePath)
 bool FsLib::DeleteFile(std::string_view FilePath)
 {
     FsFileSystem *FileSystem;
-    std::array<char, FS_MAX_PATH> Path;
-    if (!FsLib::ProcessPath(FilePath, &FileSystem, Path.data(), FS_MAX_PATH))
+    std::string_view Path;
+    if (!FsLib::ProcessPath(FilePath, &FileSystem, Path))
     {
         return false;
     }
@@ -230,8 +224,8 @@ bool FsLib::DeleteFile(std::string_view FilePath)
 int64_t FsLib::GetFileSize(std::string_view FilePath)
 {
     FsFileSystem *FileSystem = NULL;
-    std::array<char, FS_MAX_PATH> Path;
-    if (!FsLib::ProcessPath(FilePath, &FileSystem, Path.data(), FS_MAX_PATH))
+    std::string_view Path;
+    if (!FsLib::ProcessPath(FilePath, &FileSystem, Path))
     {
         return -1;
     }
@@ -257,8 +251,8 @@ int64_t FsLib::GetFileSize(std::string_view FilePath)
 bool FsLib::RenameFile(std::string_view Old, std::string_view New)
 {
     FsFileSystem *FileSystem;
-    std::array<char, FS_MAX_PATH> OldPath, NewPath;
-    if (!ProcessPath(Old, &FileSystem, OldPath.data(), FS_MAX_PATH) || !ProcessPath(New, &FileSystem, NewPath.data(), FS_MAX_PATH))
+    std::string_view OldPath, NewPath;
+    if (!ProcessPath(Old, &FileSystem, OldPath) || !ProcessPath(New, &FileSystem, NewPath))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error renaming file: Invalid path(s) supplied.");
         return false;

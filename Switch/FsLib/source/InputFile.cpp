@@ -1,7 +1,6 @@
 #include "InputFile.hpp"
 #include "FsLib.hpp"
 #include "String.hpp"
-#include <array>
 #include <string>
 
 extern std::string g_ErrorString;
@@ -21,8 +20,8 @@ void FsLib::InputFile::Open(std::string_view FilePath)
     }
 
     FsFileSystem *FileSystem;
-    std::array<char, FS_MAX_PATH> Path;
-    if (!FsLib::ProcessPath(FilePath, &FileSystem, Path.data(), FS_MAX_PATH))
+    std::string_view Path;
+    if (!FsLib::ProcessPath(FilePath, &FileSystem, Path))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error opening \"%s\" for reading: Invalid path supplied.", FilePath.data());
         return;

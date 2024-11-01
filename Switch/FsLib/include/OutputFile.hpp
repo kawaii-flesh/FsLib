@@ -28,8 +28,8 @@ namespace FsLib
 
         private:
             // These functions open the file for whatever mode and return if it was successful
-            bool OpenForWriting(FsFileSystem *FileSystem, const char *FilePath);
-            bool OpenForAppending(FsFileSystem *FileSystem, const char *FilePath);
+            bool OpenForWriting(FsFileSystem *FileSystem, std::string_view FilePath);
+            bool OpenForAppending(FsFileSystem *FileSystem, std::string_view FilePath);
             // This functions resizes the file if need be.
             bool ResizeIfNeeded(size_t BufferSize);
     };

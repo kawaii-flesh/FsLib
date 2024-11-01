@@ -18,20 +18,23 @@ namespace FsLib
         Processes a path. Returns true on success. PathOut is a C string because Switch gives me grief with std::string.c_str().
         This is mostly needed for Directory and File classes to work, but I'm not going to stop someone from using it for something else.
     */
-    bool ProcessPath(std::string_view PathIn, FsFileSystem **FileSystemOut, char *PathOut, size_t PathOutMax);
+    bool ProcessPath(std::string_view PathIn, FsFileSystem **FileSystemOut, std::string_view &PathOut);
 
     // These funcions are sort of shortcuts to be used instead of allocating a new instance of Directory or File to check things.
     // Directory functions.
     bool CreateDirectory(std::string_view DirectoryPath);
-    // The path for this should have a trailing slash to work properly. If not, the last directory in the path will get skipped. Should probably do something about that.
-    bool CreateDirectoryRecursively(std::string_view DirectoryPath);
+    /*
+        The path for this needs to have a trailing slash to work properly. If not, the last directory in the path will get skipped.
+        This function still relies on std::string instead of string_view to reliably create substrings.
+    */
+    bool CreateDirectoryRecursively(const std::string &DirectoryPath);
     bool DeleteDirectory(std::string_view DirectoryPath);
     bool DeleteDirectoryRecursively(std::string_view DirectoryPath);
     bool DirectoryExists(std::string_view DirectoryPath);
     bool RenameDirectory(std::string_view Old, std::string_view New);
 
     // File functions.
-    bool FileExists(std::string_view sFilePath);
+    bool FileExists(std::string_view FilePath);
     bool DeleteFile(std::string_view FilePath);
     int64_t GetFileSize(std::string_view FilePath);
     bool RenameFile(std::string_view Old, std::string_view New);
