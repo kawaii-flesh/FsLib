@@ -64,3 +64,19 @@ size_t FsLib::Storage::Read(void *Buffer, size_t BufferSize)
     m_Offset += BufferSize;
     return BufferSize;
 }
+
+char FsLib::Storage::ReadByte(void)
+{
+    if(m_Offset >= m_StreamSize)
+    {
+        return -1;
+    }
+
+    char ByteRead = 0x00;
+    Result FsError = fsStorageRead(&m_StorageHandle, m_Offset++, &ByteRead, 1);
+    if(R_FAILED(FsError))
+    {
+        return -1;
+    }
+    return ByteRead;
+}

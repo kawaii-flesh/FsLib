@@ -1,16 +1,17 @@
 #include "InputFile.hpp"
+#include "ErrorCommon.h"
 #include "FsLib.hpp"
 #include "String.hpp"
 #include <string>
 
 extern std::string g_ErrorString;
 
-FsLib::InputFile::InputFile(std::string_view FilePath)
+FsLib::InputFile::InputFile(const FsLib::Path &FilePath)
 {
     InputFile::Open(FilePath);
 }
 
-void FsLib::InputFile::Open(std::string_view FilePath)
+void FsLib::InputFile::Open(const FsLib::Path &FilePath)
 {
     // Just in case this is reused.
     if (m_IsOpen)
@@ -19,18 +20,23 @@ void FsLib::InputFile::Open(std::string_view FilePath)
         m_IsOpen = false;
     }
 
-    FsFileSystem *FileSystem;
-    std::string_view Path;
-    if (!FsLib::ProcessPath(FilePath, &FileSystem, Path))
+    if (!FilePath.IsValid())
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening \"%s\" for reading: Invalid path supplied.", FilePath.data());
+        g_ErrorString = ERROR_INVALID_PATH;
         return;
     }
 
-    Result FsError = fsFsOpenFile(FileSystem, Path.data(), FsOpenMode_Read, &m_FileHandle);
+    FsFileSystem *FileSystem;
+    if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDeviceName(), &FileSystem))
+    {
+        g_ErrorString = ERROR_DEVICE_NOT_FOUND;
+        return;
+    }
+
+    Result FsError = fsFsOpenFile(FileSystem, FilePath.GetPathData(), FsOpenMode_Read, &m_FileHandle);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening \"%s\" for reading: 0x%X.", FilePath.data(), FsError);
+        g_ErrorString = FsLib::String::GetFormattedString("Error opening file for reading: 0x%X.", FsError);
         return;
     }
 

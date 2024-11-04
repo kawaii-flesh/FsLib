@@ -1,10 +1,10 @@
 #include "Directory.hpp"
+#include "ErrorCommon.h"
 #include "FsLib.hpp"
 #include "String.hpp"
 #include <algorithm>
 #include <cstring>
 
-#include <fstream>
 
 // fslib global error string.
 extern std::string g_ErrorString;
@@ -32,30 +32,34 @@ static bool CompareEntries(const FsDirectoryEntry &EntryA, const FsDirectoryEntr
     return false;
 }
 
-FsLib::Directory::Directory(std::string_view DirectoryPath)
+FsLib::Directory::Directory(const FsLib::Path &DirectoryPath)
 {
     Directory::Open(DirectoryPath);
 }
 
-void FsLib::Directory::Open(std::string_view DirectoryPath)
+void FsLib::Directory::Open(const FsLib::Path &DirectoryPath)
 {
-    // Save path
-    m_DirectoryPath = DirectoryPath;
-    // Make sure this is set to false incase the directory is being reused.
+    // Make sure this is false just in case directory is reused.
     m_WasRead = false;
-    // Dissect the path passed.
-    std::string_view Path;
-    FsFileSystem *FileSystem = NULL;
-    if (!FsLib::ProcessPath(m_DirectoryPath, &FileSystem, Path))
+
+    if (!DirectoryPath.IsValid())
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error processing directory \"%s\": Invalid path supplied.", DirectoryPath.data());
+        g_ErrorString = ERROR_INVALID_PATH;
         return;
     }
 
-    Result FsError = fsFsOpenDirectory(FileSystem, Path.data(), FsDirOpenMode_ReadDirs | FsDirOpenMode_ReadFiles, &m_DirectoryHandle);
+    FsFileSystem *FileSystem;
+    if (!FsLib::GetFileSystemByDeviceName(DirectoryPath.GetDeviceName(), &FileSystem))
+    {
+        g_ErrorString = ERROR_DEVICE_NOT_FOUND;
+        return;
+    }
+
+    Result FsError =
+        fsFsOpenDirectory(FileSystem, DirectoryPath.GetPathData(), FsDirOpenMode_ReadDirs | FsDirOpenMode_ReadFiles, &m_DirectoryHandle);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening directory.", FsError);
+        g_ErrorString = FsLib::String::GetFormattedString("Error opening directory: 0x%X.", FsError);
         return;
     }
 
@@ -63,7 +67,7 @@ void FsLib::Directory::Open(std::string_view DirectoryPath)
     if (R_FAILED(FsError))
     {
         Directory::Close();
-        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X obtaining entry count.", FsError);
+        g_ErrorString = FsLib::String::GetFormattedString("Error getting directory entry count: 0x%X.", FsError);
         return;
     }
 
@@ -74,7 +78,8 @@ void FsLib::Directory::Open(std::string_view DirectoryPath)
     if (R_FAILED(FsError) || TotalEntriesRead != m_EntryCount)
     {
         Directory::Close();
-        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X reading entries: %02d/%02d read.", FsError, TotalEntriesRead, m_EntryCount);
+        g_ErrorString =
+            FsLib::String::GetFormattedString("Error reading entries: 0x%X. %02d/%02d entries read.", FsError, TotalEntriesRead, m_EntryCount);
         return;
     }
     // Sort the array.
@@ -104,16 +109,7 @@ int64_t FsLib::Directory::GetEntrySizeAt(int Index) const
     return m_DirectoryList[Index].file_size;
 }
 
-std::string FsLib::Directory::GetEntryPathAt(int Index) const
-{
-    if (Index >= m_EntryCount)
-    {
-        return std::string("");
-    }
-    return m_DirectoryPath + GetEntryNameAt(Index).data();
-}
-
-std::string_view FsLib::Directory::GetEntryNameAt(int Index) const
+std::string_view FsLib::Directory::GetEntryAt(int Index) const
 {
     if (Index >= m_EntryCount)
     {

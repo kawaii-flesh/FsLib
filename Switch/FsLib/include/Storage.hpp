@@ -20,6 +20,8 @@ namespace FsLib
             void Close(void);
             // Reads from storage. Returns size read on success, 0 on failure.
             size_t Read(void *Buffer, size_t BufferSize);
+            // Reads a single byte from storage. Returns -1 on failure.
+            char ReadByte(void);
 
         private:
             // Storage handle.

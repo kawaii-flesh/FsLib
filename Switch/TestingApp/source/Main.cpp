@@ -4,9 +4,6 @@
 #include <switch.h>
 
 static constexpr unsigned int VA_BUFFER_SIZE = 0x1000;
-static constexpr std::string_view TEST_MESSAGE_PATH = "sdmc:/switch/TestMessage.txt";
-static const std::string REALLY_STUPID_LONG_DIR_PATH =
-    "sdmc:/This/is/a/really/long/chain/of/folders/that/you/do/not/even/want/on/your/sd/card/lol/The/End/Or/is/it/";
 
 // Feels stupid but needed to get actual output in real time
 void Print(const char *Format, ...)
@@ -20,6 +17,33 @@ void Print(const char *Format, ...)
     consoleUpdate(NULL);
 }
 
+void PrintDir(const FsLib::Path &DirectoryPath)
+{
+    FsLib::Directory Dir(DirectoryPath);
+    if (!Dir.IsOpen())
+    {
+        return;
+    }
+
+    for (int64_t i = 0; i < Dir.GetEntryCount(); i++)
+    {
+        if (Dir.EntryAtIsDirectory(i))
+        {
+            Print("DIR %s\n", Dir.GetEntryAt(i).data());
+            // To do: Get this sorted so + works the way I want it to. I don't do operators too often.
+            FsLib::Path NewDirPath = DirectoryPath;
+            NewDirPath += Dir.GetEntryAt(i);
+            NewDirPath += "/";
+
+            PrintDir(NewDirPath);
+        }
+        else
+        {
+            Print("FIL %s\n", Dir.GetEntryAt(i).data());
+        }
+    }
+}
+
 int main(void)
 {
     consoleInit(NULL);
@@ -30,124 +54,12 @@ int main(void)
 
     FsLib::Initialize();
 
-    // Test run of functions.
-    Print("Testing if homebrew menu exists... ");
-    if (FsLib::FileExists("sdmc:/hbmenu.nro"))
-    {
-        Print("It does.\n");
-    }
-    else
-    {
-        Print("Nope. %s\n", FsLib::GetErrorString());
-    }
+    FsLib::OutputFile PathTestFile("sdmc:/switch/PathTest.txt", false);
+    PathTestFile << "Hello there. Testing FsLib path class." << "\n"
+                 << "LOL IT WORKS.\n"
+                 << "Sorry I printed your entire SD card to your screen...\n";
 
-    {
-        Print("Checking if I can open it for reading... ");
-        FsLib::InputFile HBMenu("sdmc:/hbmenu.nro");
-        if (HBMenu.IsOpen())
-        {
-            Print("I can.\n");
-        }
-        else
-        {
-            Print("Nope. %s\n", FsLib::GetErrorString());
-        }
-    }
-
-    Print("Checking if Switch directory exists... ");
-    if (FsLib::DirectoryExists("sdmc:/switch/"))
-    {
-        Print("It does.\n");
-    }
-    else
-    {
-        Print("Nope. %s\n", FsLib::GetErrorString());
-    }
-
-    {
-        Print("Checking if I can list everything in the Switch folder... ");
-        FsLib::Directory SwitchDir("sdmc:/switch/");
-        if (!SwitchDir.IsOpen())
-        {
-            Print("Nope. %s\n", FsLib::GetErrorString());
-        }
-        else
-        {
-            Print("I did it:\n");
-            for (int64_t i = 0; i < SwitchDir.GetEntryCount(); i++)
-            {
-                if (SwitchDir.EntryAtIsDirectory(i))
-                {
-                    Print("\tDIR %s\n", SwitchDir.GetEntryNameAt(i).data());
-                }
-                else
-                {
-                    Print("\tFIL %s\n", SwitchDir.GetEntryNameAt(i).data());
-                }
-            }
-        }
-    }
-
-    {
-        Print("Testing if I can write something to the SD card... ");
-        FsLib::OutputFile TestMessage("sdmc:/switch/TestMessage.txt", false);
-        if (!TestMessage.IsOpen())
-        {
-            Print("Nope. %s\n", FsLib::GetErrorString());
-        }
-        else
-        {
-            TestMessage.Writef("Test message inside this file super secret don't read.");
-            Print("I guess it worked.\n");
-        }
-    }
-
-    {
-        Print("Testing if I can open and read that file... ");
-        FsLib::InputFile TestMessage(TEST_MESSAGE_PATH);
-        if (TestMessage.IsOpen())
-        {
-            Print("\nDid it: ");
-            std::array<char, 0x1000> MessageBuffer;
-            // I should check this, but I'm not going to bother.
-            TestMessage.Read(MessageBuffer.data(), 0x1000);
-            Print("%s\n", MessageBuffer.data());
-        }
-        else
-        {
-            Print("Nope. %s\n", FsLib::GetErrorString());
-        }
-    }
-
-    Print("Testing if I can delete that file... ");
-    if (FsLib::DeleteFile(TEST_MESSAGE_PATH))
-    {
-        Print("Yep.\n");
-    }
-    else
-    {
-        Print("Nope. %s\n", FsLib::GetErrorString());
-    }
-
-    Print("Testing if I can create a stupid long chain of folders... ");
-    if (FsLib::CreateDirectoryRecursively(REALLY_STUPID_LONG_DIR_PATH))
-    {
-        Print("Yep.\n");
-    }
-    else
-    {
-        Print("Nope. %s\n", FsLib::GetErrorString());
-    }
-
-    Print("Testing if I can delete a directory all all of its contents... ");
-    if (FsLib::DeleteDirectoryRecursively(REALLY_STUPID_LONG_DIR_PATH))
-    {
-        Print("I can.\n");
-    }
-    else
-    {
-        Print("Nope.\n");
-    }
+    PrintDir("sdmc:/");
 
     Print("Press + to exit.");
 
