@@ -18,10 +18,7 @@ static void PrintDirectory(const FsLib::Path &DirectoryPath)
         if (Dir.EntryAtIsDirectory(i))
         {
             printf("\tDIR %s\n", UTF16ToUTF8(Dir.GetEntryAt(i)).c_str());
-            // I need to fix/learn how to operator+ when I have time.
-            FsLib::Path NewPath = DirectoryPath;
-            NewPath += Dir.GetEntryAt(i);
-            NewPath += u"/";
+            FsLib::Path NewPath = DirectoryPath + Dir.GetEntryAt(i) + u"/";
             PrintDirectory(NewPath);
         }
         else

@@ -153,41 +153,6 @@ FsLib::Path &FsLib::Path::operator=(const std::filesystem::path &P)
     return *this = P.string().c_str();
 }
 
-FsLib::Path FsLib::Path::operator+(const FsLib::Path &P)
-{
-    FsLib::Path NewPath = *this;
-    NewPath += P.GetPathData();
-    return NewPath;
-}
-
-FsLib::Path FsLib::Path::operator+(const char *P)
-{
-    FsLib::Path NewPath = *this;
-    NewPath += P;
-    return NewPath;
-}
-
-FsLib::Path FsLib::Path::operator+(const std::string &P)
-{
-    FsLib::Path NewPath = *this;
-    NewPath += P.c_str();
-    return NewPath;
-}
-
-FsLib::Path FsLib::Path::operator+(std::string_view P)
-{
-    FsLib::Path NewPath = *this;
-    NewPath += P.data();
-    return NewPath;
-}
-
-FsLib::Path FsLib::Path::operator+(const std::filesystem::path &P)
-{
-    FsLib::Path NewPath = *this;
-    NewPath += P.string().c_str();
-    return NewPath;
-}
-
 FsLib::Path &FsLib::Path::operator+=(const FsLib::Path &P)
 {
     *this += P.GetPathData();
@@ -224,4 +189,35 @@ FsLib::Path &FsLib::Path::operator+=(const std::filesystem::path &P)
 {
     *this += P.string().c_str();
     return *this;
+}
+
+FsLib::Path FsLib::operator+(const FsLib::Path &P, const FsLib::Path &P2)
+{
+    FsLib::Path NewPath = P + P2.GetPathData();
+    return NewPath;
+}
+
+FsLib::Path FsLib::operator+(const FsLib::Path &P, const char *P2)
+{
+    FsLib::Path NewPath = P;
+    NewPath += P2;
+    return NewPath;
+}
+
+FsLib::Path FsLib::operator+(const FsLib::Path &P, const std::string &P2)
+{
+    FsLib::Path NewPath = P + P2.c_str();
+    return NewPath;
+}
+
+FsLib::Path FsLib::operator+(const FsLib::Path &P, std::string_view P2)
+{
+    FsLib::Path NewPath = P + P2.data();
+    return NewPath;
+}
+
+FsLib::Path FsLib::operator+(const FsLib::Path &P, const std::filesystem::path &P2)
+{
+    FsLib::Path NewPath = P + P2.string().c_str();
+    return NewPath;
 }

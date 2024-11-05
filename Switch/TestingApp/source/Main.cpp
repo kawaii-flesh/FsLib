@@ -30,11 +30,7 @@ void PrintDir(const FsLib::Path &DirectoryPath)
         if (Dir.EntryAtIsDirectory(i))
         {
             Print("DIR %s\n", Dir.GetEntryAt(i).data());
-            // To do: Get this sorted so + works the way I want it to. I don't do operators too often.
-            FsLib::Path NewDirPath = DirectoryPath;
-            NewDirPath += Dir.GetEntryAt(i);
-            NewDirPath += "/";
-
+            FsLib::Path NewDirPath = DirectoryPath + Dir.GetEntryAt(i) + "/";
             PrintDir(NewDirPath);
         }
         else

@@ -104,41 +104,6 @@ FsLib::Path &FsLib::Path::operator=(std::u16string_view P)
     return *this = P.data();
 }
 
-FsLib::Path FsLib::Path::operator+(const FsLib::Path &P)
-{
-    FsLib::Path NewPath = *this;
-    NewPath += P.m_PathData;
-    return NewPath;
-}
-
-FsLib::Path FsLib::Path::operator+(const char16_t *P)
-{
-    FsLib::Path NewPath = *this;
-    NewPath += P;
-    return NewPath;
-}
-
-FsLib::Path FsLib::Path::operator+(const uint16_t *P)
-{
-    FsLib::Path NewPath = *this;
-    NewPath += reinterpret_cast<const char16_t *>(P);
-    return NewPath;
-}
-
-FsLib::Path FsLib::Path::operator+(const std::u16string &P)
-{
-    FsLib::Path NewPath = *this;
-    NewPath += P.c_str();
-    return NewPath;
-}
-
-FsLib::Path FsLib::Path::operator+(std::u16string_view P)
-{
-    FsLib::Path NewPath = *this;
-    NewPath += P.data();
-    return NewPath;
-}
-
 FsLib::Path &FsLib::Path::operator+=(const FsLib::Path &P)
 {
     return *this += P.m_PathData;
@@ -171,28 +136,27 @@ FsLib::Path &FsLib::Path::operator+=(std::u16string_view P)
     return *this += P.data();
 }
 
-FsLib::Path &FsLib::Path::operator/(const FsLib::Path &P)
+FsLib::Path FsLib::operator+(const FsLib::Path &P, const char16_t *P2)
 {
-    return *this / P.m_PathData;
+    FsLib::Path NewPath = P;
+    NewPath += P2;
+    return NewPath;
 }
 
-FsLib::Path &FsLib::Path::operator/(const char16_t *P)
+FsLib::Path FsLib::operator+(const FsLib::Path &P, const uint16_t *P2)
 {
-    *this += u"/";
-    return *this += P;
+    FsLib::Path NewPath = P + reinterpret_cast<const char16_t *>(P2);
+    return NewPath;
 }
 
-FsLib::Path &FsLib::Path::operator/(const uint16_t *P)
+FsLib::Path FsLib::operator+(const FsLib::Path &P, const std::u16string &P2)
 {
-    return *this / reinterpret_cast<const char16_t *>(P);
+    FsLib::Path NewPath = P + P2.c_str();
+    return NewPath;
 }
 
-FsLib::Path &FsLib::Path::operator/(const std::u16string &P)
+FsLib::Path FsLib::operator+(const FsLib::Path &P, std::u16string_view P2)
 {
-    return *this / P.c_str();
-}
-
-FsLib::Path &FsLib::Path::operator/(std::u16string_view P)
-{
-    return *this / P.data();
+    FsLib::Path NewPath = P + P2.data();
+    return NewPath;
 }

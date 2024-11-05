@@ -43,13 +43,6 @@ namespace FsLib
             Path &operator=(std::string_view P);
             Path &operator=(const std::filesystem::path &P);
 
-            // To do: These right. Next time, I guess.
-            Path operator+(const Path &P, const char *P2);
-            Path operator+(const char *P);
-            Path operator+(const std::string &P);
-            Path operator+(std::string_view P);
-            Path operator+(const std::filesystem::path &p);
-
             Path &operator+=(const Path &P);
             Path &operator+=(const char *P);
             Path &operator+=(const std::string &P);
@@ -69,4 +62,10 @@ namespace FsLib
             // Length/current offset in m_PathData.
             size_t m_PathLength = 0;
     };
+
+    Path operator+(const FsLib::Path &P, const FsLib::Path &P2);
+    Path operator+(const FsLib::Path &P, const char *P2);
+    Path operator+(const FsLib::Path &P, const std::string &P2);
+    Path operator+(const FsLib::Path &P, std::string_view P2);
+    Path operator+(const FsLib::Path &P, const std::filesystem::path &P2);
 } // namespace FsLib
