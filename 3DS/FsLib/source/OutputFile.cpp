@@ -1,4 +1,5 @@
 #include "OutputFile.hpp"
+#include "ErrorCommon.h"
 #include "FsLib.hpp"
 #include "String.hpp"
 #include <array>
@@ -12,12 +13,12 @@ namespace
 
 extern std::string g_ErrorString;
 
-FsLib::OutputFile::OutputFile(const std::u16string &FilePath, bool Append)
+FsLib::OutputFile::OutputFile(const FsLib::Path &FilePath, bool Append)
 {
     OutputFile::Open(FilePath, Append);
 }
 
-void FsLib::OutputFile::Open(const std::u16string &FilePath, bool Append)
+void FsLib::OutputFile::Open(const FsLib::Path &FilePath, bool Append)
 {
     if (m_IsOpen)
     {
@@ -25,21 +26,26 @@ void FsLib::OutputFile::Open(const std::u16string &FilePath, bool Append)
         m_IsOpen = false;
     }
 
-    FS_Archive Archive;
-    std::u16string Path;
-    if (!FsLib::ProcessPath(FilePath, &Archive, Path))
+    if (!FilePath.IsValid())
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening file for writing/appending: Invalid path supplied.");
+        g_ErrorString = ERROR_INVALID_PATH;
+        return;
+    }
+
+    FS_Archive Archive;
+    if (!FsLib::GetArchiveByDeviceName(FilePath.GetDeviceName(), &Archive))
+    {
+        g_ErrorString = ERROR_DEVICE_NOT_FOUND;
         return;
     }
 
     if (Append)
     {
-        m_IsOpen = OutputFile::OpenForAppending(Archive, Path.c_str());
+        m_IsOpen = OutputFile::OpenForAppending(Archive, FilePath.GetPathData());
     }
     else
     {
-        m_IsOpen = OutputFile::OpenForWriting(Archive, Path.c_str());
+        m_IsOpen = OutputFile::OpenForWriting(Archive, FilePath.GetPathData());
     }
 }
 

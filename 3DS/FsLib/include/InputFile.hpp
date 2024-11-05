@@ -1,5 +1,6 @@
 #pragma once
 #include "FileBase.hpp"
+#include "Path.hpp"
 #include <string>
 
 namespace FsLib
@@ -9,9 +10,9 @@ namespace FsLib
         public:
             InputFile(void) = default;
             // Constructor that calls open.
-            InputFile(const std::u16string &FilePath);
+            InputFile(const FsLib::Path &FilePath);
             // Opens file for reading. IsOpen can be used to see if this was successful.
-            void Open(const std::u16string &FilePath);
+            void Open(const FsLib::Path &FilePath);
             // Attempts to read ReadSize into Buffer. Returns number of bytes read on success, 0 on failure.
             size_t Read(void *Buffer, size_t ReadSize);
             // Attempts to read a line from the file. Returns true on success, false on failure. Line is written to LineOut.

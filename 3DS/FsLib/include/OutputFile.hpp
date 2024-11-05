@@ -1,5 +1,6 @@
 #pragma once
 #include "FileBase.hpp"
+#include "Path.hpp"
 #include <string>
 
 namespace FsLib
@@ -9,13 +10,13 @@ namespace FsLib
         public:
             OutputFile(void) = default;
             // This constructor calls Open for you.
-            OutputFile(const std::u16string &FilePath, bool Append);
+            OutputFile(const FsLib::Path &FilePath, bool Append);
             /*
                 Opens and file for writing. Append is whether the file is being appended to.
                 If false is passed to Append, the file is deleted before being created and opened.
                 IsOpen can be used to tell if the operation was successful.
             */
-            void Open(const std::u16string &FilePath, bool Append);
+            void Open(const FsLib::Path &FilePath, bool Append);
             // Attempts to write Buffer of WriteSize bytes to file. Returns number of bytes written on success, zero on failure.
             size_t Write(const void *Buffer, size_t WriteSize);
             // Attempts to write a formatted string to file. Returns true on success.

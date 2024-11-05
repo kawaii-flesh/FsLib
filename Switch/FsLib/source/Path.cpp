@@ -44,7 +44,7 @@ FsLib::Path FsLib::Path::SubPath(size_t Begin, size_t Length) const
 
     FsLib::Path Sub;
     // Just memcpy the device name.
-    std::memcpy(Sub.m_DeviceName, m_DeviceName, FS_MAX_PATH);
+    std::memcpy(Sub.m_DeviceName, m_DeviceName, FS_MAX_PATH + 1);
     // Memcpy just the chunk of the path we want
     std::memcpy(Sub.m_PathData, &m_PathData[Begin], Length);
     // This should still be true.
@@ -114,8 +114,8 @@ size_t FsLib::Path::FindLastOf(size_t Begin, char Character) const
 FsLib::Path &FsLib::Path::operator=(const Path &P)
 {
     m_PathLength = P.m_PathLength;
-    std::memcpy(m_DeviceName, P.m_DeviceName, FS_MAX_PATH);
-    std::memcpy(m_PathData, P.m_PathData, FS_MAX_PATH);
+    std::memcpy(m_DeviceName, P.m_DeviceName, FS_MAX_PATH + 1);
+    std::memcpy(m_PathData, P.m_PathData, FS_MAX_PATH + 1);
     return *this;
 }
 
@@ -128,10 +128,10 @@ FsLib::Path &FsLib::Path::operator=(const char *P)
     // If there is a device, copy it. If not, just treat this as an absolute path.
     if (DeviceEnd)
     {
-        std::memset(m_DeviceName, 0x00, FS_MAX_PATH);
+        std::memset(m_DeviceName, 0x00, FS_MAX_PATH + 1);
         std::memcpy(m_DeviceName, P, DeviceEnd - P);
     }
-    std::memset(m_PathData, 0x00, FS_MAX_PATH);
+    std::memset(m_PathData, 0x00, FS_MAX_PATH + 1);
     std::memcpy(m_PathData, DeviceEnd + 1, PathLength - ((DeviceEnd - P) + 1));
 
     m_PathLength = std::strlen(m_PathData);

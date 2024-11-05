@@ -1,15 +1,16 @@
 #include "InputFile.hpp"
+#include "ErrorCommon.h"
 #include "FsLib.hpp"
 #include "String.hpp"
 
 extern std::string g_ErrorString;
 
-FsLib::InputFile::InputFile(const std::u16string &FilePath)
+FsLib::InputFile::InputFile(const FsLib::Path &FilePath)
 {
     InputFile::Open(FilePath);
 }
 
-void FsLib::InputFile::Open(const std::u16string &FilePath)
+void FsLib::InputFile::Open(const FsLib::Path &FilePath)
 {
     if (m_IsOpen)
     {
@@ -17,15 +18,20 @@ void FsLib::InputFile::Open(const std::u16string &FilePath)
         m_IsOpen = false;
     }
 
-    FS_Archive Archive;
-    std::u16string Path;
-    if (!FsLib::ProcessPath(FilePath, &Archive, Path))
+    if (!FilePath.IsValid())
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening file for reading: Invalid path supplied.");
+        g_ErrorString = ERROR_INVALID_PATH;
         return;
     }
 
-    Result FsError = FSUSER_OpenFile(&m_FileHandle, Archive, fsMakePath(PATH_UTF16, Path.c_str()), FS_OPEN_READ, 0);
+    FS_Archive Archive;
+    if (!FsLib::GetArchiveByDeviceName(FilePath.GetDeviceName(), &Archive))
+    {
+        g_ErrorString = ERROR_DEVICE_NOT_FOUND;
+        return;
+    }
+
+    Result FsError = FSUSER_OpenFile(&m_FileHandle, Archive, fsMakePath(PATH_UTF16, FilePath.GetPathData()), FS_OPEN_READ, 0);
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error opening file for reading: 0x%08X", FsError);

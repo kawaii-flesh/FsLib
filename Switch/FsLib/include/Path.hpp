@@ -44,7 +44,7 @@ namespace FsLib
             Path &operator=(const std::filesystem::path &P);
 
             // To do: These right. Next time, I guess.
-            Path operator+(const Path &P);
+            Path operator+(const Path &P, const char *P2);
             Path operator+(const char *P);
             Path operator+(const std::string &P);
             Path operator+(std::string_view P);
@@ -64,8 +64,8 @@ namespace FsLib
                 To do: Decide whether to keep these both on stack or not.
                 I can't really predict the size of either besides one needs the be FS_MAX_PATH for sure.
             */
-            char m_DeviceName[FS_MAX_PATH];
-            char m_PathData[FS_MAX_PATH];
+            char m_DeviceName[FS_MAX_PATH + 1];
+            char m_PathData[FS_MAX_PATH + 1];
             // Length/current offset in m_PathData.
             size_t m_PathLength = 0;
     };
