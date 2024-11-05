@@ -51,16 +51,8 @@ int main(void)
         return -2;
     }
 
-    FsLib::Directory CardSaveRoot(u"GameCard:/");
-    if (!CardSaveRoot.IsOpen())
-    {
-        printf("%s\n", FsLib::GetErrorString());
-    }
-    else
-    {
-        printf("Game card save data:\n");
-        PrintDirectory(u"GameCard:/");
-    }
+    printf("Game card save data:\n");
+    PrintDirectory(u"GameCard:/");
 
     printf("Press Start to exit.");
     while (aptMainLoop())
