@@ -170,3 +170,29 @@ FsLib::Path &FsLib::Path::operator+=(std::u16string_view P)
 {
     return *this += P.data();
 }
+
+FsLib::Path &FsLib::Path::operator/(const FsLib::Path &P)
+{
+    return *this / P.m_PathData;
+}
+
+FsLib::Path &FsLib::Path::operator/(const char16_t *P)
+{
+    *this += u"/";
+    return *this += P;
+}
+
+FsLib::Path &FsLib::Path::operator/(const uint16_t *P)
+{
+    return *this / reinterpret_cast<const char16_t *>(P);
+}
+
+FsLib::Path &FsLib::Path::operator/(const std::u16string &P)
+{
+    return *this / P.c_str();
+}
+
+FsLib::Path &FsLib::Path::operator/(std::u16string_view P)
+{
+    return *this / P.data();
+}

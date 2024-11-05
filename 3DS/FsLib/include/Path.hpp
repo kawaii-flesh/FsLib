@@ -52,6 +52,13 @@ namespace FsLib
             Path &operator+=(const std::u16string &P);
             Path &operator+=(std::u16string_view P);
 
+            // This is the same as += except it adds a / in between the two items.
+            Path &operator/(const Path &P);
+            Path &operator/(const char16_t *P);
+            Path &operator/(const uint16_t *P);
+            Path &operator/(const std::u16string &P);
+            Path &operator/(std::u16string_view P);
+
         private:
             char16_t m_DeviceName[FSLIB_MAX_PATH];
             char16_t m_PathData[FSLIB_MAX_PATH];

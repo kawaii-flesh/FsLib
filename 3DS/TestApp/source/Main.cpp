@@ -10,6 +10,27 @@ static std::string UTF16ToUTF8(std::u16string_view Str)
     return std::string(reinterpret_cast<const char *>(UTF8Buffer));
 }
 
+static void PrintDirectory(const FsLib::Path &DirectoryPath)
+{
+    FsLib::Directory Dir(DirectoryPath);
+    for (unsigned int i = 0; i < Dir.GetEntryCount(); i++)
+    {
+        if (Dir.EntryAtIsDirectory(i))
+        {
+            printf("\tDIR %s\n", UTF16ToUTF8(Dir.GetEntryAt(i)).c_str());
+            // I need to fix/learn how to operator+ when I have time.
+            FsLib::Path NewPath = DirectoryPath;
+            NewPath += Dir.GetEntryAt(i);
+            NewPath += u"/";
+            PrintDirectory(NewPath);
+        }
+        else
+        {
+            printf("\tFIL %s\n", UTF16ToUTF8(Dir.GetEntryAt(i)).c_str());
+        }
+    }
+}
+
 int main(void)
 {
     hidInit();
@@ -37,18 +58,8 @@ int main(void)
     }
     else
     {
-        printf("Game card save data root:\n");
-        for (unsigned int i = 0; i < CardSaveRoot.GetEntryCount(); i++)
-        {
-            if (CardSaveRoot.EntryAtIsDirectory(i))
-            {
-                printf("\tDIR %s\n", UTF16ToUTF8(CardSaveRoot.GetEntryAt(i)).c_str());
-            }
-            else
-            {
-                printf("\tFIL %s\n", UTF16ToUTF8(CardSaveRoot.GetEntryAt(i)).c_str());
-            }
-        }
+        printf("Game card save data:\n");
+        PrintDirectory(u"GameCard:/");
     }
 
     printf("Press Start to exit.");
