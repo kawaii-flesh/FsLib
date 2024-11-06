@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <memory>
 #include <string>
 /*
     We're going to steal this from the Switch.
@@ -7,14 +8,12 @@
     I don't feel like allocating and reallocating on the heap for paths.
     This should be more than enough.
 */
-static constexpr unsigned int FSLIB_MAX_PATH = 0x301;
 
 namespace FsLib
 {
     class Path
     {
         public:
-            Path(void) = default;
             Path(const char16_t *P);
             Path(const uint16_t *P);
             Path(const std::u16string &P);
@@ -47,11 +46,10 @@ namespace FsLib
             Path &operator+=(std::u16string_view P);
 
         private:
-            char16_t m_DeviceName[FSLIB_MAX_PATH];
-            char16_t m_PathData[FSLIB_MAX_PATH];
-            size_t m_PathLength = 0;
+            // Normally I avoid new now but it's the only way I see doing this without constantly allocating memory.
+            std::u16string m_DeviceName;
+            std::u16string m_PathData;
     };
-
     FsLib::Path operator+(const FsLib::Path &P, const FsLib::Path &P2);
     FsLib::Path operator+(const FsLib::Path &P, const char16_t *P2);
     FsLib::Path operator+(const FsLib::Path &P, const uint16_t *P2);

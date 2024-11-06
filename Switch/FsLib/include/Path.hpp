@@ -62,7 +62,6 @@ namespace FsLib
             // Length/current offset in m_PathData.
             size_t m_PathLength = 0;
     };
-
     Path operator+(const FsLib::Path &P, const FsLib::Path &P2);
     Path operator+(const FsLib::Path &P, const char *P2);
     Path operator+(const FsLib::Path &P, const std::string &P2);
