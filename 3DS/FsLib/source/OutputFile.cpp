@@ -15,10 +15,16 @@ extern std::string g_ErrorString;
 
 FsLib::OutputFile::OutputFile(const FsLib::Path &FilePath, bool Append)
 {
-    OutputFile::Open(FilePath, Append);
+    OutputFile::Open(FilePath, 0, Append);
 }
 
-void FsLib::OutputFile::Open(const FsLib::Path &FilePath, bool Append)
+FsLib::OutputFile::OutputFile(const FsLib::Path &FilePath, uint64_t FileSize)
+{
+    // This can't be for appending so not going to bother with taking that argument.
+    OutputFile::Open(FilePath, FileSize, false);
+}
+
+void FsLib::OutputFile::Open(const FsLib::Path &FilePath, uint64_t FileSize, bool Append)
 {
     if (m_IsOpen)
     {
@@ -45,7 +51,7 @@ void FsLib::OutputFile::Open(const FsLib::Path &FilePath, bool Append)
     }
     else
     {
-        m_IsOpen = OutputFile::OpenForWriting(Archive, FilePath.GetPathData());
+        m_IsOpen = OutputFile::OpenForWriting(Archive, FilePath.GetPathData(), FileSize);
     }
 }
 
@@ -81,10 +87,17 @@ bool FsLib::OutputFile::Writef(const char *Format, ...)
     return OutputFile::Write(VaBuffer.data(), StringLength) == StringLength;
 }
 
-void FsLib::OutputFile::operator<<(const char *String)
+FsLib::OutputFile &FsLib::OutputFile::operator<<(const char *String)
 {
     size_t StringLength = std::strlen(String);
     OutputFile::Write(String, StringLength);
+    return *this;
+}
+
+FsLib::OutputFile &FsLib::OutputFile::operator<<(const std::string &String)
+{
+    OutputFile::Write(String.c_str(), String.length());
+    return *this;
 }
 
 bool FsLib::OutputFile::PutCharacter(char C)
@@ -103,7 +116,7 @@ bool FsLib::OutputFile::Flush(void)
     return true;
 }
 
-bool FsLib::OutputFile::OpenForWriting(FS_Archive Archive, const char16_t *FilePath)
+bool FsLib::OutputFile::OpenForWriting(FS_Archive Archive, const char16_t *FilePath, uint64_t FileSize)
 {
     // FS_Path we're working with.
     FS_Path FsPath = fsMakePath(PATH_UTF16, FilePath);
@@ -111,7 +124,7 @@ bool FsLib::OutputFile::OpenForWriting(FS_Archive Archive, const char16_t *FileP
     // This will fail if the file doesn't exist. Hence, no error checking unless it becomes a problem.
     FSUSER_DeleteFile(Archive, FsPath);
 
-    Result FsError = FSUSER_CreateFile(Archive, FsPath, 0, 0);
+    Result FsError = FSUSER_CreateFile(Archive, FsPath, 0, FileSize);
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error creating file: 0x%08X.", FsError);

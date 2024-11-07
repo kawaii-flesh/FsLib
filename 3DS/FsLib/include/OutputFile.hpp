@@ -9,28 +9,32 @@ namespace FsLib
     {
         public:
             OutputFile(void) = default;
-            // This constructor calls Open for you.
+            // This constructor calls Open for you. See that for more information.
             OutputFile(const FsLib::Path &FilePath, bool Append);
+            // Same as above, but creates the file with FileSize as starting size. Needed for creating and writing files in ExtData.
+            OutputFile(const FsLib::Path &FilePath, uint64_t FileSize);
             /*
                 Opens and file for writing. Append is whether the file is being appended to.
+                FileSize is the starting size of the file. This can be 0 unless creating and writing to ExtData is involved.
                 If false is passed to Append, the file is deleted before being created and opened.
                 IsOpen can be used to tell if the operation was successful.
             */
-            void Open(const FsLib::Path &FilePath, bool Append);
+            void Open(const FsLib::Path &FilePath, uint64_t FileSize, bool Append);
             // Attempts to write Buffer of WriteSize bytes to file. Returns number of bytes written on success, zero on failure.
             size_t Write(const void *Buffer, size_t WriteSize);
             // Attempts to write a formatted string to file. Returns true on success.
             bool Writef(const char *Format, ...);
-            // Operator for quick, lazy string writing
-            void operator<<(const char *String);
+            // Operators for quick, lazy string writing
+            OutputFile &operator<<(const char *String);
+            OutputFile &operator<<(const std::string &String);
             // Writes a single byte to file. Returns true on success.
             bool PutCharacter(char C);
             // Flushes file. Returns true on success.
             bool Flush(void);
 
         private:
-            // These functions attempt to open file for the respective. Return false on failure.
-            bool OpenForWriting(FS_Archive Archive, const char16_t *FilePath);
+            // These functions attempt to open file for the respective mode. Return false on failure.
+            bool OpenForWriting(FS_Archive Archive, const char16_t *FilePath, uint64_t FileSize);
             bool OpenForAppending(FS_Archive Archive, const char16_t *FilePath);
             // This function will resize the file if necessary to fit the incoming buffer.
             bool ResizeIfNeeded(size_t BufferSize);

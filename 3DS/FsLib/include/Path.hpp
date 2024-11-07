@@ -2,12 +2,6 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-/*
-    We're going to steal this from the Switch.
-    I don't really know if 3DS has a maximum path length.
-    I don't feel like allocating and reallocating on the heap for paths.
-    This should be more than enough.
-*/
 
 namespace FsLib
 {
