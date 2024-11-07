@@ -91,6 +91,7 @@ static void CopyFile(const FsLib::Path &Source, const FsLib::Path &Destination)
         size_t BytesRead = SourceFile.Read(FileBuffer.get(), FILE_BUFFER_SIZE);
         if (BytesRead == 0) // This will indicate an error occured reading.
         {
+            // To do: JKSM corrected for this instead of bailing. Need to figure out how I want to handle this.
             printf("%s\n", FsLib::GetErrorString());
             return;
         }
