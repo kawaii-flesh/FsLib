@@ -180,7 +180,7 @@ FsLib::Path &FsLib::Path::operator=(const std::filesystem::path &P)
 FsLib::Path &FsLib::Path::operator+=(const char *P)
 {
     size_t StringLength = std::strlen(P);
-    if (m_PathLength + StringLength >= FS_MAX_PATH)
+    if (m_PathLength + StringLength >= m_PathSize)
     {
         return *this;
     }
@@ -209,11 +209,7 @@ FsLib::Path &FsLib::Path::operator+=(const std::filesystem::path &P)
 
 bool FsLib::Path::AllocatePath(size_t PathSize)
 {
-    if (m_Path)
-    {
-        Path::FreePath();
-    }
-
+    Path::FreePath();
     m_Path = new (std::nothrow) char[PathSize];
     if (!m_Path)
     {

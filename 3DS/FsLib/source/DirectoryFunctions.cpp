@@ -15,14 +15,14 @@ bool FsLib::DirectoryExists(const FsLib::Path &DirectoryPath)
     }
 
     FS_Archive Archive;
-    if (!FsLib::GetArchiveByDeviceName(DirectoryPath.GetDeviceName(), &Archive))
+    if (!FsLib::GetArchiveByDeviceName(DirectoryPath.GetDevice(), &Archive))
     {
         g_ErrorString = ERROR_DEVICE_NOT_FOUND;
         return false;
     }
 
     Handle DirectoryHandle;
-    Result FsError = FSUSER_OpenDirectory(&DirectoryHandle, Archive, fsMakePath(PATH_UTF16, DirectoryPath.GetPathData()));
+    Result FsError = FSUSER_OpenDirectory(&DirectoryHandle, Archive, fsMakePath(PATH_UTF16, DirectoryPath.GetPath()));
     if (R_FAILED(FsError))
     {
         return false;
@@ -40,13 +40,13 @@ bool FsLib::CreateDirectory(const FsLib::Path &DirectoryPath)
     }
 
     FS_Archive Archive;
-    if (!FsLib::GetArchiveByDeviceName(DirectoryPath.GetDeviceName(), &Archive))
+    if (!FsLib::GetArchiveByDeviceName(DirectoryPath.GetDevice(), &Archive))
     {
         g_ErrorString = ERROR_DEVICE_NOT_FOUND;
         return false;
     }
 
-    Result FsError = FSUSER_CreateDirectory(Archive, fsMakePath(PATH_UTF16, DirectoryPath.GetPathData()), 0);
+    Result FsError = FSUSER_CreateDirectory(Archive, fsMakePath(PATH_UTF16, DirectoryPath.GetPath()), 0);
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error creating directory: 0x%08X.", FsError);

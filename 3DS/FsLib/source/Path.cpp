@@ -2,30 +2,9 @@
 #include "String.hpp"
 #include <cstring>
 
-extern std::string g_ErrorString;
-
-// I don't feel like writing overloads for uint16_t
-template <typename Type>
-static size_t StrLenUTF16(const Type *Str)
+FsLib::Path::Path(const FsLib::Path &P)
 {
-    size_t Length = 0;
-    while (*Str++)
-    {
-        Length++;
-    }
-    return Length;
-}
-
-static const char16_t *StrChrUTF16(const char16_t *Str, char16_t Character)
-{
-    while (*Str++ != 0x0000)
-    {
-        if (*Str == Character)
-        {
-            return Str;
-        }
-    }
-    return NULL;
+    *this = P;
 }
 
 FsLib::Path::Path(const char16_t *P)
@@ -35,60 +14,141 @@ FsLib::Path::Path(const char16_t *P)
 
 FsLib::Path::Path(const uint16_t *P)
 {
-    *this = reinterpret_cast<const char16_t *>(P);
+    *this = P;
 }
 
 FsLib::Path::Path(const std::u16string &P)
 {
-    *this = P.c_str();
+    *this = P;
 }
 
 FsLib::Path::Path(std::u16string_view P)
 {
-    *this = P.data();
+    *this = P;
+}
+
+FsLib::Path::~Path()
+{
+    Path::FreePath();
 }
 
 bool FsLib::Path::IsValid(void) const
 {
-    return m_DeviceName.length() > 0 && m_PathData.length() > 0;
+    return m_Path != nullptr && m_DeviceEnd != nullptr && std::char_traits<char16_t>::length(m_Path) > 0;
 }
 
-std::u16string_view FsLib::Path::GetDeviceName(void) const
+std::u16string_view FsLib::Path::GetDevice(void) const
 {
-    return std::u16string_view(m_DeviceName.c_str());
+    return std::u16string_view(m_Path, m_DeviceEnd - m_Path);
 }
 
-const char16_t *FsLib::Path::GetPathData(void) const
+const char16_t *FsLib::Path::GetPath(void) const
 {
-    return m_PathData.c_str();
+    return m_DeviceEnd + 1;
 }
 
-/*
-    INSERT MISSING FUNCTIONS HERE WHEN I CAN.
-*/
+FsLib::Path FsLib::Path::SubPath(size_t PathLength) const
+{
+    // To do tomorrow: This. It's already too late why am I still up?
+}
+
+size_t FsLib::Path::FindFirstOf(char16_t Character) const
+{
+    for (size_t i = 0; i < m_PathLength; i++)
+    {
+        if (m_Path[i] == Character)
+        {
+            return i;
+        }
+    }
+    return Path::npos;
+}
+
+size_t FsLib::Path::FindFirstOf(char16_t Character, size_t Begin) const
+{
+    if (Begin >= m_PathLength)
+    {
+        return Path::npos;
+    }
+
+    for (size_t i = Begin; i < m_PathLength; i++)
+    {
+        if (m_Path[i] == Character)
+        {
+            return i;
+        }
+    }
+    return Path::npos;
+}
+
+size_t FsLib::Path::FindLastOf(char16_t Character) const
+{
+    for (size_t i = m_PathLength; i > 0; i--)
+    {
+        if (m_Path[i] == Character)
+        {
+            return i;
+        }
+    }
+    return Path::npos;
+}
+
+size_t FsLib::Path::FindLastOf(char16_t Character, size_t Begin) const
+{
+    if (Begin > m_PathLength)
+    {
+        Begin = m_PathLength;
+    }
+
+    for (size_t i = Begin; i > m_PathLength; i--)
+    {
+        if (m_Path[i] == Character)
+        {
+            return i;
+        }
+    }
+    return Path::npos;
+}
 
 FsLib::Path &FsLib::Path::operator=(const FsLib::Path &P)
 {
-    // Get the lengths we need to continue.
-    m_DeviceName = P.GetDeviceName();
-    m_PathData = P.GetPathData();
+    if (!Path::AllocatePath(P.m_PathSize))
+    {
+        // To do: Something with errors.
+        return *this;
+    }
+
+    // Just copy the path.
+    std::memcpy(m_Path, P.m_Path, P.m_PathSize);
+    // These need to point to this path instead of the other.
+    m_PathLength = std::char_traits<char16_t>::length(m_Path);
+    m_DeviceEnd = std::char_traits<char16_t>::find(m_Path, P.m_PathSize, u':');
+    m_PathSize = P.m_PathSize;
+
     return *this;
 }
 
 FsLib::Path &FsLib::Path::operator=(const char16_t *P)
 {
-    size_t FullPathLength = StrLenUTF16(P);
-    const char16_t *DeviceEnd = StrChrUTF16(P, u':');
-    if (!DeviceEnd)
+    // Gotta calculate how much memory to allocate for path.
+    size_t PathLength = std::char_traits<char16_t>::length(P);
+    m_DeviceEnd = std::char_traits<char16_t>::find(P, PathLength, u':');
+    if (!m_DeviceEnd)
     {
-        g_ErrorString = "Path either has no device.";
+        // Should do something here.
         return *this;
     }
 
-    // Calc length of device name, allocate space for strings.
-    size_t DeviceLength = DeviceEnd - P;
-    m_DeviceName.assign(P, DeviceLength);
-    m_PathData.assign(DeviceEnd + 1, FullPathLength - (DeviceLength + 1));
+    m_PathSize = FsLib::MAX_PATH + ((m_DeviceEnd - P) + 1);
+    if (!Path::AllocatePath(m_PathSize))
+    {
+        return *this;
+    }
+    // Copy path.
+    std::memcpy(m_Path, P, std::char_traits<char16_t>::length(P) * sizeof(char16_t));
+    // Need to make sure this all points to this class's stuff now.
+    m_DeviceEnd = std::char_traits<char16_t>::find(m_Path, PathLength, u':');
+    m_PathLength = std::char_traits<char16_t>::length(m_Path);
 
     return *this;
 }
@@ -108,14 +168,18 @@ FsLib::Path &FsLib::Path::operator=(std::u16string_view P)
     return *this = P.data();
 }
 
-FsLib::Path &FsLib::Path::operator+=(const FsLib::Path &P)
-{
-    return *this += P.m_PathData;
-}
-
 FsLib::Path &FsLib::Path::operator+=(const char16_t *P)
 {
-    m_PathData += P;
+    size_t PathLength = std::char_traits<char16_t>::length(P);
+    if (m_PathLength + PathLength >= m_PathSize)
+    {
+        return *this;
+    }
+
+    std::memcpy(&m_Path[m_PathLength], P, PathLength * sizeof(char16_t));
+
+    m_PathLength += PathLength;
+
     return *this;
 }
 
@@ -134,27 +198,50 @@ FsLib::Path &FsLib::Path::operator+=(std::u16string_view P)
     return *this += P.data();
 }
 
-FsLib::Path FsLib::operator+(const FsLib::Path &P, const char16_t *P2)
+bool FsLib::Path::AllocatePath(size_t PathSize)
 {
-    FsLib::Path NewPath = P;
-    NewPath += P2;
+    Path::FreePath();
+    m_Path = new (std::nothrow) char16_t[PathSize];
+    if (!m_Path)
+    {
+        return false;
+    }
+    std::memset(m_Path, 0x00, PathSize * sizeof(char16_t));
+    return true;
+}
+
+void FsLib::Path::FreePath(void)
+{
+    if (m_Path)
+    {
+        delete[] m_Path;
+    }
+}
+
+FsLib::Path FsLib::operator+(const FsLib::Path &Path1, const char16_t *Path2)
+{
+    FsLib::Path NewPath = Path1;
+    NewPath += Path2;
     return NewPath;
 }
 
-FsLib::Path FsLib::operator+(const FsLib::Path &P, const uint16_t *P2)
+FsLib::Path FsLib::operator+(const FsLib::Path &Path1, const uint16_t *Path2)
 {
-    FsLib::Path NewPath = P + reinterpret_cast<const char16_t *>(P2);
+    FsLib::Path NewPath = Path1;
+    NewPath += Path2;
     return NewPath;
 }
 
-FsLib::Path FsLib::operator+(const FsLib::Path &P, const std::u16string &P2)
+FsLib::Path FsLib::operator+(const FsLib::Path &Path1, const std::u16string &Path2)
 {
-    FsLib::Path NewPath = P + P2.c_str();
+    FsLib::Path NewPath = Path1;
+    NewPath += Path2;
     return NewPath;
 }
 
-FsLib::Path FsLib::operator+(const FsLib::Path &P, std::u16string_view P2)
+FsLib::Path FsLib::operator+(const FsLib::Path &Path1, std::u16string_view Path2)
 {
-    FsLib::Path NewPath = P + P2.data();
+    FsLib::Path NewPath = Path1;
+    NewPath += Path2;
     return NewPath;
 }

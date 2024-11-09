@@ -58,13 +58,13 @@ void FsLib::Directory::Open(const FsLib::Path &DirectoryPath)
     }
 
     FS_Archive Archive;
-    if (!FsLib::GetArchiveByDeviceName(DirectoryPath.GetDeviceName(), &Archive))
+    if (!FsLib::GetArchiveByDeviceName(DirectoryPath.GetDevice(), &Archive))
     {
         g_ErrorString = ERROR_DEVICE_NOT_FOUND;
         return;
     }
 
-    Result FsError = FSUSER_OpenDirectory(&m_DirectoryHande, Archive, fsMakePath(PATH_UTF16, DirectoryPath.GetPathData()));
+    Result FsError = FSUSER_OpenDirectory(&m_DirectoryHande, Archive, fsMakePath(PATH_UTF16, DirectoryPath.GetPath()));
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error opening directory: 0x%08X.", FsError);

@@ -39,7 +39,7 @@ void FsLib::OutputFile::Open(const FsLib::Path &FilePath, uint64_t FileSize, boo
     }
 
     FS_Archive Archive;
-    if (!FsLib::GetArchiveByDeviceName(FilePath.GetDeviceName(), &Archive))
+    if (!FsLib::GetArchiveByDeviceName(FilePath.GetDevice(), &Archive))
     {
         g_ErrorString = ERROR_DEVICE_NOT_FOUND;
         return;
@@ -47,11 +47,11 @@ void FsLib::OutputFile::Open(const FsLib::Path &FilePath, uint64_t FileSize, boo
 
     if (Append)
     {
-        m_IsOpen = OutputFile::OpenForAppending(Archive, FilePath.GetPathData());
+        m_IsOpen = OutputFile::OpenForAppending(Archive, FilePath.GetPath());
     }
     else
     {
-        m_IsOpen = OutputFile::OpenForWriting(Archive, FilePath.GetPathData(), FileSize);
+        m_IsOpen = OutputFile::OpenForWriting(Archive, FilePath.GetPath(), FileSize);
     }
 }
 

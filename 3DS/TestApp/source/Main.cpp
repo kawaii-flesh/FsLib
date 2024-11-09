@@ -41,15 +41,20 @@ int main(void)
         return -1;
     }
 
-    if (!FsLib::OpenGameCardSaveData(u"GameCard"))
+    FsLib::Path TestPath = u"sdmc:/TestFile.txt";
+    FsLib::Path SDMCRoot = u"sdmc:/";
+    FsLib::OutputFile TestFile(TestPath, false);
+    if (!TestFile.IsOpen())
     {
-        // This is kinda pointless cause of returning right away.
         printf("%s\n", FsLib::GetErrorString());
-        return -2;
     }
 
-    printf("Game card save data:\n");
-    PrintDirectory(u"GameCard:/");
+    FsLib::Directory SDMC(SDMCRoot);
+    if (!TestFile.IsOpen())
+    {
+        printf("%s\n", FsLib::GetErrorString());
+    }
+
 
     printf("Press Start to exit.");
     while (aptMainLoop())

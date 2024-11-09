@@ -2,6 +2,7 @@
 #include "ErrorCommon.h"
 #include "FsLib.hpp"
 #include "String.hpp"
+#include <cstring>
 
 extern std::string g_ErrorString;
 
@@ -25,13 +26,13 @@ void FsLib::InputFile::Open(const FsLib::Path &FilePath)
     }
 
     FS_Archive Archive;
-    if (!FsLib::GetArchiveByDeviceName(FilePath.GetDeviceName(), &Archive))
+    if (!FsLib::GetArchiveByDeviceName(FilePath.GetDevice(), &Archive))
     {
         g_ErrorString = ERROR_DEVICE_NOT_FOUND;
         return;
     }
 
-    Result FsError = FSUSER_OpenFile(&m_FileHandle, Archive, fsMakePath(PATH_UTF16, FilePath.GetPathData()), FS_OPEN_READ, 0);
+    Result FsError = FSUSER_OpenFile(&m_FileHandle, Archive, fsMakePath(PATH_UTF16, FilePath.GetPath()), FS_OPEN_READ, 0);
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error opening file for reading: 0x%08X", FsError);
@@ -56,8 +57,18 @@ size_t FsLib::InputFile::Read(void *Buffer, size_t ReadSize)
     Result FsError = FSFILE_Read(m_FileHandle, &BytesRead, static_cast<uint64_t>(m_Offset), Buffer, static_cast<uint32_t>(ReadSize));
     if (R_FAILED(FsError))
     {
+        // Setting error string and correcting for read errors.
         g_ErrorString = FsLib::String::GetFormattedString("Error reading from file: 0x%08X.", FsError);
-        return 0;
+        if (m_Offset + ReadSize > m_FileSize)
+        {
+            BytesRead = m_FileSize - m_Offset;
+        }
+        else
+        {
+            BytesRead = ReadSize;
+        }
+        // Just set the buffer to all 0x00 since we can't magically generate what we can't read.
+        std::memset(Buffer, 0x00, BytesRead);
     }
     m_Offset += BytesRead;
     return BytesRead;
@@ -92,7 +103,7 @@ char FsLib::InputFile::GetCharacter(void)
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error reading byte from file: 0x%08X.", FsError);
-        return -1;
+        return 0x00;
     }
     return CharacterRead;
 }
