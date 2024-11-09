@@ -40,7 +40,7 @@ const char *FsLib::GetErrorString(void)
     return g_ErrorString.c_str();
 }
 
-bool FsLib::RegisterFileSystem(std::string_view DeviceName, FsFileSystem *FileSystem)
+bool FsLib::MapFileSystem(std::string_view DeviceName, FsFileSystem *FileSystem)
 {
     if (DeviceName == SD_CARD_DEVICE_NAME)
     {

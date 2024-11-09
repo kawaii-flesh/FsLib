@@ -27,13 +27,13 @@ void FsLib::InputFile::Open(const FsLib::Path &FilePath)
     }
 
     FsFileSystem *FileSystem;
-    if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDeviceName(), &FileSystem))
+    if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDevice(), &FileSystem))
     {
         g_ErrorString = ERROR_DEVICE_NOT_FOUND;
         return;
     }
 
-    Result FsError = fsFsOpenFile(FileSystem, FilePath.GetPathData(), FsOpenMode_Read, &m_FileHandle);
+    Result FsError = fsFsOpenFile(FileSystem, FilePath.GetPath(), FsOpenMode_Read, &m_FileHandle);
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error opening file for reading: 0x%X.", FsError);

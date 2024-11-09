@@ -49,14 +49,14 @@ void FsLib::Directory::Open(const FsLib::Path &DirectoryPath)
     }
 
     FsFileSystem *FileSystem;
-    if (!FsLib::GetFileSystemByDeviceName(DirectoryPath.GetDeviceName(), &FileSystem))
+    if (!FsLib::GetFileSystemByDeviceName(DirectoryPath.GetDevice(), &FileSystem))
     {
         g_ErrorString = ERROR_DEVICE_NOT_FOUND;
         return;
     }
 
     Result FsError =
-        fsFsOpenDirectory(FileSystem, DirectoryPath.GetPathData(), FsDirOpenMode_ReadDirs | FsDirOpenMode_ReadFiles, &m_DirectoryHandle);
+        fsFsOpenDirectory(FileSystem, DirectoryPath.GetPath(), FsDirOpenMode_ReadDirs | FsDirOpenMode_ReadFiles, &m_DirectoryHandle);
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error opening directory: 0x%X.", FsError);

@@ -18,7 +18,7 @@ namespace FsLib
     // Returns internal error string.
     const char *GetErrorString(void);
     // Maps DeviceName to FileSystem. If device name is already in use, previous one is closed before continuing. Returns false if something failed.
-    bool RegisterFileSystem(std::string_view DeviceName, FsFileSystem *FileSystem);
+    bool MapFileSystem(std::string_view DeviceName, FsFileSystem *FileSystem);
     // Retrieves handle to FileSystem mapped to DeviceName. Returns false if DeviceName isn't found.
     bool GetFileSystemByDeviceName(std::string_view DeviceName, FsFileSystem **FileSystemOut);
     // Commits data to filesystem associated with DeviceName

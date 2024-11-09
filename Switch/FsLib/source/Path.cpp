@@ -1,140 +1,164 @@
 #include "Path.hpp"
 #include <cstring>
+#include <switch.h>
 
-extern std::string g_ErrorString;
+FsLib::Path::Path(const FsLib::Path &P)
+{
+    *this = P;
+}
 
 FsLib::Path::Path(const char *P)
 {
     *this = P;
 }
 
-FsLib::Path::Path(const std::string &P) : Path(P.c_str())
+FsLib::Path::Path(const std::string &P)
 {
+    *this = P;
 }
 
-FsLib::Path::Path(std::string_view P) : Path(P.data())
+FsLib::Path::Path(std::string_view P)
 {
+    *this = P;
 }
 
-FsLib::Path::Path(const std::filesystem::path &P) : Path(P.string().c_str())
+FsLib::Path::Path(const std::filesystem::path &P)
 {
+    *this = P;
+}
+
+FsLib::Path::~Path()
+{
+    Path::FreePath();
 }
 
 bool FsLib::Path::IsValid(void) const
 {
-    return std::strlen(m_DeviceName) > 0 && std::strlen(m_PathData) > 0;
+    return m_Path && m_DeviceEnd && std::strlen(m_DeviceEnd + 1) > 0;
 }
 
-std::string_view FsLib::Path::GetDeviceName(void) const
+FsLib::Path FsLib::Path::SubPath(size_t PathLength) const
 {
-    return std::string_view(m_DeviceName);
-}
-
-const char *FsLib::Path::GetPathData(void) const
-{
-    return m_PathData;
-}
-
-FsLib::Path FsLib::Path::SubPath(size_t Begin, size_t Length) const
-{
-    if (Begin + Length >= m_PathLength)
+    if (PathLength >= m_PathLength)
     {
-        Length = m_PathLength - Begin;
+        PathLength = m_PathLength;
     }
 
-    FsLib::Path Sub;
-    // Just memcpy the device name.
-    std::memcpy(Sub.m_DeviceName, m_DeviceName, FS_MAX_PATH + 1);
-    // Memcpy just the chunk of the path we want
-    std::memcpy(Sub.m_PathData, &m_PathData[Begin], Length);
-    // This should still be true.
-    Sub.m_PathLength = Length;
-    // Welp, let's hope it worked.
-    return Sub;
+    // Only doing this cause it should get us going quicker without as much work.
+    FsLib::Path NewPath = *this;
+    std::memset(NewPath.m_Path, 0x00, NewPath.m_PathSize);
+    std::memcpy(NewPath.m_Path, m_Path, PathLength);
+    NewPath.m_PathLength = std::strlen(NewPath.m_Path);
+    return NewPath;
 }
 
 size_t FsLib::Path::FindFirstOf(char Character) const
 {
     for (size_t i = 0; i < m_PathLength; i++)
     {
-        if (m_PathData[i] == Character)
+        if (m_Path[i] == Character)
         {
             return i;
         }
     }
-    return Path::EndPos;
+    return Path::npos;
 }
 
-size_t FsLib::Path::FindFirstOf(size_t Begin, char Character) const
+size_t FsLib::Path::FindFirstOf(char Character, size_t Begin) const
 {
     if (Begin >= m_PathLength)
     {
-        return Path::EndPos;
+        return Path::npos;
     }
 
     for (size_t i = Begin; i < m_PathLength; i++)
     {
-        if (m_PathData[i] == Character)
+        if (m_Path[i] == Character)
         {
             return i;
         }
     }
-    return Path::EndPos;
+    return Path::npos;
 }
 
 size_t FsLib::Path::FindLastOf(char Character) const
 {
     for (size_t i = m_PathLength; i > 0; i--)
     {
-        if (m_PathData[i] == Character)
+        if (m_Path[i] == Character)
         {
             return i;
         }
     }
-    return Path::EndPos;
+    return Path::npos;
 }
 
-size_t FsLib::Path::FindLastOf(size_t Begin, char Character) const
+size_t FsLib::Path::FindLastOf(char Character, size_t Begin) const
 {
-    if (Begin > m_PathLength)
+    if (Begin >= m_PathLength)
     {
         Begin = m_PathLength;
     }
 
     for (size_t i = Begin; i > 0; i--)
     {
-        if (m_PathData[i] == Character)
+        if (m_Path[i] == Character)
         {
             return i;
         }
     }
-    return Path::EndPos;
+    return Path::npos;
 }
 
-FsLib::Path &FsLib::Path::operator=(const Path &P)
+std::string_view FsLib::Path::GetDevice(void) const
 {
+    return std::string_view(m_Path, m_DeviceEnd - m_Path);
+}
+
+const char *FsLib::Path::GetPath(void) const
+{
+    return m_DeviceEnd + 1;
+}
+
+FsLib::Path &FsLib::Path::operator=(const FsLib::Path &P)
+{
+    if (!Path::AllocatePath(P.m_PathSize))
+    {
+        return *this;
+    }
+
+    m_PathSize = P.m_PathSize;
     m_PathLength = P.m_PathLength;
-    std::memcpy(m_DeviceName, P.m_DeviceName, FS_MAX_PATH + 1);
-    std::memcpy(m_PathData, P.m_PathData, FS_MAX_PATH + 1);
+    std::memcpy(m_Path, P.m_Path, m_PathSize);
+
+    m_DeviceEnd = std::strchr(m_Path, ':');
+
     return *this;
 }
 
 FsLib::Path &FsLib::Path::operator=(const char *P)
 {
-    // Get where the device ends.
-    size_t PathLength = std::strlen(P);
-    char *DeviceEnd = std::strchr(P, ':');
-
-    // If there is a device, copy it. If not, just treat this as an absolute path.
-    if (DeviceEnd)
+    /*
+        Need to calculate the path's full size since the Switch expects a string FS_MAX_PATH in length starting from the '/'.
+    */
+    m_DeviceEnd = std::strchr(P, ':');
+    if (!m_DeviceEnd)
     {
-        std::memset(m_DeviceName, 0x00, FS_MAX_PATH + 1);
-        std::memcpy(m_DeviceName, P, DeviceEnd - P);
+        // Should do something here...
+        return *this;
     }
-    std::memset(m_PathData, 0x00, FS_MAX_PATH + 1);
-    std::memcpy(m_PathData, DeviceEnd + 1, PathLength - ((DeviceEnd - P) + 1));
+    m_PathSize = FS_MAX_PATH + ((m_DeviceEnd - P) + 1);
 
-    m_PathLength = std::strlen(m_PathData);
+    if (!Path::AllocatePath(m_PathSize))
+    {
+        return *this;
+    }
+
+    std::memcpy(m_Path, P, std::strlen(P));
+
+    m_DeviceEnd = std::strchr(m_Path, ':');
+    m_PathLength = std::strlen(m_Path);
+
     return *this;
 }
 
@@ -153,71 +177,84 @@ FsLib::Path &FsLib::Path::operator=(const std::filesystem::path &P)
     return *this = P.string().c_str();
 }
 
-FsLib::Path &FsLib::Path::operator+=(const FsLib::Path &P)
-{
-    *this += P.GetPathData();
-    return *this;
-}
-
 FsLib::Path &FsLib::Path::operator+=(const char *P)
 {
-    size_t PLength = std::strlen(P);
-    if (m_PathLength + PLength >= FS_MAX_PATH)
+    size_t StringLength = std::strlen(P);
+    if (m_PathLength + StringLength >= FS_MAX_PATH)
     {
-        g_ErrorString = "Path too long to append.";
         return *this;
     }
 
-    std::memcpy(&m_PathData[m_PathLength], P, PLength);
-    m_PathLength += PLength;
+    std::memcpy(&m_Path[m_PathLength], P, StringLength);
+
+    m_PathLength += StringLength;
+
     return *this;
 }
 
 FsLib::Path &FsLib::Path::operator+=(const std::string &P)
 {
-    *this += P.c_str();
-    return *this;
+    return *this += P.c_str();
 }
 
 FsLib::Path &FsLib::Path::operator+=(std::string_view P)
 {
-    *this += P.data();
-    return *this;
+    return *this += P.data();
 }
 
 FsLib::Path &FsLib::Path::operator+=(const std::filesystem::path &P)
 {
-    *this += P.string().c_str();
-    return *this;
+    return *this += P.string().c_str();
 }
 
-FsLib::Path FsLib::operator+(const FsLib::Path &P, const FsLib::Path &P2)
+bool FsLib::Path::AllocatePath(size_t PathSize)
 {
-    FsLib::Path NewPath = P + P2.GetPathData();
+    if (m_Path)
+    {
+        Path::FreePath();
+    }
+
+    m_Path = new (std::nothrow) char[PathSize];
+    if (!m_Path)
+    {
+        return false;
+    }
+    std::memset(m_Path, 0x00, m_PathSize);
+    return true;
+}
+
+void FsLib::Path::FreePath(void)
+{
+    if (m_Path)
+    {
+        delete[] m_Path;
+    }
+}
+
+FsLib::Path FsLib::operator+(const FsLib::Path &Path1, const char *Path2)
+{
+    FsLib::Path NewPath = Path1;
+    NewPath += Path2;
     return NewPath;
 }
 
-FsLib::Path FsLib::operator+(const FsLib::Path &P, const char *P2)
+FsLib::Path FsLib::operator+(const FsLib::Path &Path1, const std::string &Path2)
 {
-    FsLib::Path NewPath = P;
-    NewPath += P2;
+    FsLib::Path NewPath = Path1;
+    NewPath += Path2;
     return NewPath;
 }
 
-FsLib::Path FsLib::operator+(const FsLib::Path &P, const std::string &P2)
+FsLib::Path FsLib::operator+(const FsLib::Path &Path1, std::string_view Path2)
 {
-    FsLib::Path NewPath = P + P2.c_str();
+    FsLib::Path NewPath = Path1;
+    NewPath += Path2;
     return NewPath;
 }
 
-FsLib::Path FsLib::operator+(const FsLib::Path &P, std::string_view P2)
+FsLib::Path FsLib::operator+(const FsLib::Path &Path1, const std::filesystem::path &Path2)
 {
-    FsLib::Path NewPath = P + P2.data();
-    return NewPath;
-}
-
-FsLib::Path FsLib::operator+(const FsLib::Path &P, const std::filesystem::path &P2)
-{
-    FsLib::Path NewPath = P + P2.string().c_str();
+    FsLib::Path NewPath = Path1;
+    NewPath += Path2;
     return NewPath;
 }

@@ -32,7 +32,7 @@ void FsLib::OutputFile::Open(const FsLib::Path &FilePath, bool Append)
     }
 
     FsFileSystem *FileSystem = NULL;
-    if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDeviceName(), &FileSystem))
+    if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDevice(), &FileSystem))
     {
         g_ErrorString = ERROR_DEVICE_NOT_FOUND;
         return;
@@ -105,17 +105,17 @@ bool FsLib::OutputFile::Flush(void)
 bool FsLib::OutputFile::OpenForWriting(FsFileSystem *FileSystem, const FsLib::Path &FilePath)
 {
     // Start with deleting file if it already exists. This will fail if it doesn't exist.
-    fsFsDeleteFile(FileSystem, FilePath.GetPathData());
+    fsFsDeleteFile(FileSystem, FilePath.GetPath());
 
     // Try to recreate it.
-    Result FsError = fsFsCreateFile(FileSystem, FilePath.GetPathData(), 0, 0);
+    Result FsError = fsFsCreateFile(FileSystem, FilePath.GetPath(), 0, 0);
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X creating file.", FsError);
         return false;
     }
 
-    FsError = fsFsOpenFile(FileSystem, FilePath.GetPathData(), FsOpenMode_Write, &m_FileHandle);
+    FsError = fsFsOpenFile(FileSystem, FilePath.GetPath(), FsOpenMode_Write, &m_FileHandle);
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening file for writing.", FsError);
@@ -129,7 +129,7 @@ bool FsLib::OutputFile::OpenForWriting(FsFileSystem *FileSystem, const FsLib::Pa
 
 bool FsLib::OutputFile::OpenForAppending(FsFileSystem *FileSystem, const FsLib::Path &FilePath)
 {
-    Result FsError = fsFsOpenFile(FileSystem, FilePath.GetPathData(), FsOpenMode_Write | FsOpenMode_Append, &m_FileHandle);
+    Result FsError = fsFsOpenFile(FileSystem, FilePath.GetPath(), FsOpenMode_Write | FsOpenMode_Append, &m_FileHandle);
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening file for appending.", FsError);

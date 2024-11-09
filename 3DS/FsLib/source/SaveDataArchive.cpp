@@ -36,6 +36,7 @@ bool FsLib::OpenExtData(std::u16string_view DeviceName, uint32_t ExtDataID)
 
     if (!FsLib::MapArchiveToDevice(DeviceName, Archive))
     {
+        FSUSER_CloseArchive(Archive);
         return false;
     }
 
@@ -56,6 +57,7 @@ bool FsLib::OpenSharedExtData(std::u16string_view DeviceName, uint32_t SharedExt
 
     if (!FsLib::MapArchiveToDevice(DeviceName, Archive))
     {
+        FSUSER_CloseArchive(Archive);
         return false;
     }
 
@@ -76,6 +78,7 @@ bool FsLib::OpenSystemSaveData(std::u16string_view DeviceName, uint32_t UniqueID
 
     if (!FsLib::MapArchiveToDevice(DeviceName, Archive))
     {
+        FSUSER_CloseArchive(Archive);
         return false;
     }
 
@@ -94,6 +97,7 @@ bool FsLib::OpenGameCardSaveData(std::u16string_view DeviceName)
 
     if (!FsLib::MapArchiveToDevice(DeviceName, Archive))
     {
+        FSUSER_CloseArchive(Archive);
         return false;
     }
     return true;
@@ -113,6 +117,7 @@ bool FsLib::OpenUserSaveData(std::u16string_view DeviceName, FS_MediaType MediaT
 
     if (!FsLib::MapArchiveToDevice(DeviceName, Archive))
     {
+        FSUSER_CloseArchive(Archive);
         return false;
     }
 

@@ -15,14 +15,14 @@ bool FsLib::FileExists(const FsLib::Path &FilePath)
     }
 
     FsFileSystem *FileSystem;
-    if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDeviceName(), &FileSystem))
+    if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDevice(), &FileSystem))
     {
         g_ErrorString = ERROR_DEVICE_NOT_FOUND;
         return false;
     }
 
     FsFile FileHandle;
-    Result FsError = fsFsOpenFile(FileSystem, FilePath.GetPathData(), FsOpenMode_Read, &FileHandle);
+    Result FsError = fsFsOpenFile(FileSystem, FilePath.GetPath(), FsOpenMode_Read, &FileHandle);
     if (R_FAILED(FsError))
     {
         return false;
@@ -40,13 +40,13 @@ bool FsLib::DeleteFile(const FsLib::Path &FilePath)
     }
 
     FsFileSystem *FileSystem;
-    if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDeviceName(), &FileSystem))
+    if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDevice(), &FileSystem))
     {
         g_ErrorString = ERROR_DEVICE_NOT_FOUND;
         return false;
     }
 
-    Result FsError = fsFsDeleteFile(FileSystem, FilePath.GetPathData());
+    Result FsError = fsFsDeleteFile(FileSystem, FilePath.GetPath());
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error deleting file: 0x%X.", FsError);
@@ -64,14 +64,14 @@ int64_t FsLib::GetFileSize(const FsLib::Path &FilePath)
     }
 
     FsFileSystem *FileSystem;
-    if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDeviceName(), &FileSystem))
+    if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDevice(), &FileSystem))
     {
         g_ErrorString = ERROR_DEVICE_NOT_FOUND;
         return -1;
     }
 
     FsFile FileHandle;
-    Result FsError = fsFsOpenFile(FileSystem, FilePath.GetPathData(), FsOpenMode_Read, &FileHandle);
+    Result FsError = fsFsOpenFile(FileSystem, FilePath.GetPath(), FsOpenMode_Read, &FileHandle);
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error opening file to get size: 0x%X.", FsError);
@@ -93,20 +93,20 @@ int64_t FsLib::GetFileSize(const FsLib::Path &FilePath)
 
 bool FsLib::RenameFile(const FsLib::Path &OldPath, const FsLib::Path &NewPath)
 {
-    if (!OldPath.IsValid() || !NewPath.IsValid() || OldPath.GetDeviceName() != NewPath.GetDeviceName())
+    if (!OldPath.IsValid() || !NewPath.IsValid() || OldPath.GetDevice() != NewPath.GetDevice())
     {
         g_ErrorString = ERROR_INVALID_PATH;
         return false;
     }
 
     FsFileSystem *FileSystem;
-    if (!FsLib::GetFileSystemByDeviceName(OldPath.GetDeviceName(), &FileSystem))
+    if (!FsLib::GetFileSystemByDeviceName(OldPath.GetDevice(), &FileSystem))
     {
         g_ErrorString = ERROR_DEVICE_NOT_FOUND;
         return false;
     }
 
-    Result FsError = fsFsRenameFile(FileSystem, OldPath.GetPathData(), NewPath.GetPathData());
+    Result FsError = fsFsRenameFile(FileSystem, OldPath.GetPath(), NewPath.GetPath());
     if (R_FAILED(FsError))
     {
         g_ErrorString = FsLib::String::GetFormattedString("Error renaming file: 0x%X.", FsError);

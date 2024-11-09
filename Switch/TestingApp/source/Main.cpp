@@ -1,9 +1,15 @@
 #include "FsLib.hpp"
 #include <array>
 #include <cstdarg>
+#include <cstdio>
+#include <cstring>
 #include <switch.h>
 
 static constexpr unsigned int VA_BUFFER_SIZE = 0x1000;
+static constexpr std::string_view FOLDER_TEST =
+    "sdmc:/Really/Long/Stupid/Chain/Of/Folders/For/Testing/Path/SubPath/And/Find/Functions/When/Will/This/End/Who/Knows/Seems/Like/It/Goes/On/"
+    "Forever/Thought/That/Was/The/End/Nope/Still/Going/For/Testing/And/Also/To/Be/A/Pain/In/The/Ass/Cause/I/Am/Not/Going/To/Test/The/Delete/"
+    "Function/Afterward/lol/";
 
 // Feels stupid but needed to get actual output in real time
 void Print(const char *Format, ...)
@@ -55,7 +61,10 @@ int main(void)
                  << "LOL IT WORKS.\n"
                  << "Sorry I printed your entire SD card to your screen...\n";
 
-    PrintDir("sdmc:/");
+    if (!FsLib::CreateDirectoryRecursively(FOLDER_TEST))
+    {
+        Print("%s\n", FsLib::GetErrorString());
+    }
 
     Print("Press + to exit.");
 

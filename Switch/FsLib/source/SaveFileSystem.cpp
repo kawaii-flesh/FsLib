@@ -22,7 +22,7 @@ bool FsLib::OpenSystemSaveFileSystem(std::string_view DeviceName, uint64_t Syste
         return false;
     }
 
-    if (!FsLib::RegisterFileSystem(DeviceName, &FileSystem))
+    if (!FsLib::MapFileSystem(DeviceName, &FileSystem))
     {
         fsFsClose(&FileSystem);
         return false;
@@ -48,7 +48,7 @@ bool FsLib::OpenAccountSaveFileSystem(std::string_view DeviceName, uint64_t Appl
         return false;
     }
 
-    if (!FsLib::RegisterFileSystem(DeviceName, &FileSystem))
+    if (!FsLib::MapFileSystem(DeviceName, &FileSystem))
     {
         fsFsClose(&FileSystem);
         return false;
@@ -74,7 +74,7 @@ bool FsLib::OpenBCATSaveFileSystem(std::string_view DeviceName, uint64_t Applica
         return false;
     }
 
-    if (!FsLib::RegisterFileSystem(DeviceName, &FileSystem))
+    if (!FsLib::MapFileSystem(DeviceName, &FileSystem))
     {
         fsFsClose(&FileSystem);
         return false;
@@ -100,7 +100,7 @@ bool FsLib::OpenDeviceSaveFileSystem(std::string_view DeviceName, uint64_t Appli
         return false;
     }
 
-    if (!FsLib::RegisterFileSystem(DeviceName, &FileSystem))
+    if (!FsLib::MapFileSystem(DeviceName, &FileSystem))
     {
         fsFsClose(&FileSystem);
         return false;
@@ -126,7 +126,7 @@ bool FsLib::OpenTemporarySaveFileSystem(std::string_view DeviceName)
         return false;
     }
 
-    if (!FsLib::RegisterFileSystem(DeviceName, &FileSystem))
+    if (!FsLib::MapFileSystem(DeviceName, &FileSystem))
     {
         fsFsClose(&FileSystem);
         return false;
@@ -152,7 +152,7 @@ bool FsLib::OpenCacheSaveFileSystem(std::string_view DeviceName, uint64_t Applic
         return false;
     }
 
-    if (!FsLib::RegisterFileSystem(DeviceName, &FileSystem))
+    if (!FsLib::MapFileSystem(DeviceName, &FileSystem))
     {
         fsFsClose(&FileSystem);
         return false;
@@ -178,7 +178,7 @@ bool FsLib::OpenSystemBCATSaveFileSystem(std::string_view DeviceName, uint64_t S
         return false;
     }
 
-    if (!FsLib::RegisterFileSystem(DeviceName, &FileSystem))
+    if (!FsLib::MapFileSystem(DeviceName, &FileSystem))
     {
         fsFsClose(&FileSystem);
         return false;
