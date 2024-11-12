@@ -2,6 +2,9 @@
 #include <3ds.h>
 #include <string>
 
+static std::u16string_view REALLY_LONG_DIR_PATH =
+    u"sdmc:/A/Really/Long/Chain/Of/Folders/To/Make/Sure/Create/Directories/Recursively/Works/Right/And/Doesnt/Crash/The/3DS/";
+
 static std::string UTF16ToUTF8(std::u16string_view Str)
 {
     // This isn't the best idea.
@@ -41,20 +44,10 @@ int main(void)
         return -1;
     }
 
-    FsLib::Path TestPath = u"sdmc:/TestFile.txt";
-    FsLib::Path SDMCRoot = u"sdmc:/";
-    FsLib::OutputFile TestFile(TestPath, false);
-    if (!TestFile.IsOpen())
+    if (!FsLib::CreateDirectoriesRecursively(REALLY_LONG_DIR_PATH))
     {
         printf("%s\n", FsLib::GetErrorString());
     }
-
-    FsLib::Directory SDMC(SDMCRoot);
-    if (!TestFile.IsOpen())
-    {
-        printf("%s\n", FsLib::GetErrorString());
-    }
-
 
     printf("Press Start to exit.");
     while (aptMainLoop())

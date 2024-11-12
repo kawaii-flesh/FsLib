@@ -7,7 +7,7 @@ namespace FsLib
     // Creates a directory. Returns false on failure.
     bool CreateDirectory(const FsLib::Path &DirectoryPath);
     // Tries to create all directories in path. Returns false on failure. Path must end with a trailing slash for this to work correctly.
-    bool CreateDirectoryRecursively(const FsLib::Path &DirectoryPath);
+    bool CreateDirectoriesRecursively(const FsLib::Path &DirectoryPath);
     // Tries to delete the directory. Returns false on failure.
     bool DeleteDirectory(const FsLib::Path &DirectoryPath);
     // Tries to recursively delete directory and all contents. Returns false on failure.

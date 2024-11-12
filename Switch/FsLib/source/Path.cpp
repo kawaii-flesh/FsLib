@@ -48,6 +48,7 @@ FsLib::Path FsLib::Path::SubPath(size_t PathLength) const
     FsLib::Path NewPath = *this;
     std::memset(NewPath.m_Path, 0x00, NewPath.m_PathSize);
     std::memcpy(NewPath.m_Path, m_Path, PathLength);
+    NewPath.m_DeviceEnd = std::strchr(NewPath.m_Path, ':');
     NewPath.m_PathLength = std::strlen(NewPath.m_Path);
     return NewPath;
 }
@@ -207,7 +208,7 @@ FsLib::Path &FsLib::Path::operator+=(const std::filesystem::path &P)
     return *this += P.string().c_str();
 }
 
-bool FsLib::Path::AllocatePath(size_t PathSize)
+bool FsLib::Path::AllocatePath(uint16_t PathSize)
 {
     Path::FreePath();
     m_Path = new (std::nothrow) char[PathSize];

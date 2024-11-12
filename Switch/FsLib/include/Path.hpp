@@ -47,22 +47,17 @@ namespace FsLib
             Path &operator+=(std::string_view P);
             Path &operator+=(const std::filesystem::path &P);
 
-            // This was for debugging stuff but I left it here anyways. Really convenient for printing or testing.
-            operator const char *(void) const
-            {
-                return m_Path;
-            }
-
             // This is for returning failure in the find methods.
-            static constexpr size_t npos = -1;
+            static constexpr uint16_t npos = -1;
 
         private:
             char *m_Path = nullptr;
             char *m_DeviceEnd = nullptr;
-            size_t m_PathSize = 0;
-            size_t m_PathLength = 0;
+            // Neither of these are going to come close to touching 0xFFFF.
+            uint16_t m_PathSize = 0;
+            uint16_t m_PathLength = 0;
             // This allocates memory for the path.
-            bool AllocatePath(size_t PathSize);
+            bool AllocatePath(uint16_t PathSize);
             // This frees the path data.
             void FreePath(void);
     };

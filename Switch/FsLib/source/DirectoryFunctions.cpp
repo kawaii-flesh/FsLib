@@ -31,21 +31,14 @@ bool FsLib::CreateDirectory(const FsLib::Path &DirectoryPath)
     return true;
 }
 
-bool FsLib::CreateDirectoryRecursively(const FsLib::Path &DirectoryPath)
+bool FsLib::CreateDirectoriesRecursively(const FsLib::Path &DirectoryPath)
 {
     // We don't really need to set any error strings here, because CreateDirectory will do that.
     size_t SlashPosition = DirectoryPath.FindFirstOf('/') + 1;
     while ((SlashPosition = DirectoryPath.FindFirstOf('/', SlashPosition)) != DirectoryPath.npos)
     {
         FsLib::Path CurrentDirectory = DirectoryPath.SubPath(SlashPosition);
-        if (FsLib::DirectoryExists(CurrentDirectory))
-        {
-            // Skip over directories that already exist so it doesn't trip up and fail CreateDirectory.
-            ++SlashPosition;
-            continue;
-        }
-
-        if (!FsLib::CreateDirectory(CurrentDirectory))
+        if (!FsLib::DirectoryExists(CurrentDirectory) && !FsLib::CreateDirectory(CurrentDirectory))
         {
             return false;
         }

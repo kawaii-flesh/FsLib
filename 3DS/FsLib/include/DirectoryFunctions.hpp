@@ -7,4 +7,10 @@ namespace FsLib
     bool DirectoryExists(const FsLib::Path &DirectoryPath);
     // Attempts to create DirectoryPath. Returns true on success.
     bool CreateDirectory(const FsLib::Path &DirectoryPath);
+    // Attempts to create all directories in path.
+    bool CreateDirectoriesRecursively(const FsLib::Path &DirectoryPath);
+    // Attempts to delete directory
+    bool DeleteDirectory(const FsLib::Path &DirectoryPath);
+    // Attempts to recursively delete directory.
+    bool DeleteDirectoryRecursively(const FsLib::Path &DirectoryPath);
 } // namespace FsLib

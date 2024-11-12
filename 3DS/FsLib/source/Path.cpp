@@ -49,7 +49,20 @@ const char16_t *FsLib::Path::GetPath(void) const
 
 FsLib::Path FsLib::Path::SubPath(size_t PathLength) const
 {
-    // To do tomorrow: This. It's already too late why am I still up?
+    FsLib::Path Sub = *this;
+    if (PathLength >= m_PathLength)
+    {
+        // Reassign this to correct path.
+        Sub.m_DeviceEnd = std::char_traits<char16_t>::find(Sub.m_Path, m_PathLength, u':');
+        return Sub;
+    }
+    // Only copy the section of the path we want.
+    std::memset(Sub.m_Path, 0x00, m_PathSize);
+    std::memcpy(Sub.m_Path, m_Path, PathLength);
+    // Reassign these to point to the correct path.
+    Sub.m_PathLength = std::char_traits<char16_t>::length(Sub.m_Path);
+    Sub.m_DeviceEnd = std::char_traits<char16_t>::find(Sub.m_Path, Sub.m_PathLength, u':');
+    return Sub;
 }
 
 size_t FsLib::Path::FindFirstOf(char16_t Character) const

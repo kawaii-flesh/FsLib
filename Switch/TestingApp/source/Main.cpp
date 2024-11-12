@@ -56,14 +56,13 @@ int main(void)
 
     FsLib::Initialize();
 
-    FsLib::OutputFile PathTestFile("sdmc:/switch/PathTest.txt", false);
-    PathTestFile << "Hello there. Testing FsLib path class." << "\n"
-                 << "LOL IT WORKS.\n"
-                 << "Sorry I printed your entire SD card to your screen...\n";
-
-    if (!FsLib::CreateDirectoryRecursively(FOLDER_TEST))
+    if (!FsLib::CreateDirectoriesRecursively(FOLDER_TEST))
     {
-        Print("%s\n", FsLib::GetErrorString());
+        Print("Guess Not: %s\n", FsLib::GetErrorString());
+    }
+    else
+    {
+        Print("Maybe?");
     }
 
     Print("Press + to exit.");
