@@ -34,6 +34,8 @@ namespace FsLib
             std::string_view GetDevice(void) const;
             // This returns the path for use with LibNX/Switch FS.
             const char *GetPath(void) const;
+            // This returns the full path Device:/Path instead of two parts.
+            const char *GetFullPath(void) const;
 
             // These operators are the most important part and assign most string types.
             Path &operator=(const Path &P);

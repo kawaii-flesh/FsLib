@@ -121,6 +121,11 @@ const char *FsLib::Path::GetPath(void) const
     return m_DeviceEnd + 1;
 }
 
+const char *FsLib::Path::GetFullPath(void) const
+{
+    return m_Path;
+}
+
 FsLib::Path &FsLib::Path::operator=(const FsLib::Path &P)
 {
     if (!Path::AllocatePath(P.m_PathSize))
