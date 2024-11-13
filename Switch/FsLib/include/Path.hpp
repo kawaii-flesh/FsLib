@@ -37,6 +37,8 @@ namespace FsLib
             std::string_view GetDeviceName(void) const;
             // This returns the path after the ':' for use with LibNX/Switch's FS.
             const char *GetPath(void) const;
+            // This returns the current length of the string.
+            size_t GetLength(void) const;
 
             // These operators are the most important part and assign most string types.
             Path &operator=(const Path &P);
