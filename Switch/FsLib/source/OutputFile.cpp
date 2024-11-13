@@ -10,7 +10,7 @@ namespace
     constexpr int VA_BUFFER_SIZE = 0x1000;
 }
 
-extern std::string g_ErrorString;
+extern std::string g_FsLibErrorString;
 
 FsLib::OutputFile::OutputFile(const FsLib::Path &FilePath, bool Append)
 {
@@ -27,14 +27,14 @@ void FsLib::OutputFile::Open(const FsLib::Path &FilePath, bool Append)
 
     if (!FilePath.IsValid())
     {
-        g_ErrorString = ERROR_INVALID_PATH;
+        g_FsLibErrorString = ERROR_INVALID_PATH;
         return;
     }
 
     FsFileSystem *FileSystem = NULL;
     if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDevice(), &FileSystem))
     {
-        g_ErrorString = ERROR_DEVICE_NOT_FOUND;
+        g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
         return;
     }
 
@@ -58,7 +58,7 @@ size_t FsLib::OutputFile::Write(const void *Buffer, size_t WriteSize)
     Result FsError = fsFileWrite(&m_FileHandle, m_Offset, Buffer, WriteSize, FsWriteOption_None);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error writing to file: 0x%X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error writing to file: 0x%X.", FsError);
         return 0;
     }
     m_Offset += WriteSize;
@@ -96,7 +96,7 @@ bool FsLib::OutputFile::Flush(void)
     Result FsError = fsFileFlush(&m_FileHandle);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error flushing file: 0x%X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error flushing file: 0x%X.", FsError);
         return false;
     }
     return true;
@@ -111,14 +111,14 @@ bool FsLib::OutputFile::OpenForWriting(FsFileSystem *FileSystem, const FsLib::Pa
     Result FsError = fsFsCreateFile(FileSystem, FilePath.GetPath(), 0, 0);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X creating file.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error 0x%X creating file.", FsError);
         return false;
     }
 
     FsError = fsFsOpenFile(FileSystem, FilePath.GetPath(), FsOpenMode_Write, &m_FileHandle);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening file for writing.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error 0x%X opening file for writing.", FsError);
         return false;
     }
     // Offset and Size are both 0 in this case.
@@ -132,14 +132,14 @@ bool FsLib::OutputFile::OpenForAppending(FsFileSystem *FileSystem, const FsLib::
     Result FsError = fsFsOpenFile(FileSystem, FilePath.GetPath(), FsOpenMode_Write | FsOpenMode_Append, &m_FileHandle);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening file for appending.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error 0x%X opening file for appending.", FsError);
         return false;
     }
 
     FsError = fsFileGetSize(&m_FileHandle, &m_StreamSize);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X retrieving file size.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error 0x%X retrieving file size.", FsError);
         return false;
     }
     // This is the same in this case.
@@ -159,7 +159,7 @@ bool FsLib::OutputFile::ResizeIfNeeded(size_t BufferSize)
         Result FsError = fsFileSetSize(&m_FileHandle, NewFileSize);
         if (R_FAILED(FsError))
         {
-            g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X resizing file.", FsError);
+            g_FsLibErrorString = FsLib::String::GetFormattedString("Error 0x%X resizing file.", FsError);
             return false;
         }
         // Update file size.

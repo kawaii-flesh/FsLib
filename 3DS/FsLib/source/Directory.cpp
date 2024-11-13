@@ -38,7 +38,7 @@ static bool CompareEntries(const FS_DirectoryEntry &EntryA, const FS_DirectoryEn
     return false;
 }
 
-extern std::string g_ErrorString;
+extern std::string g_FsLibErrorString;
 
 FsLib::Directory::Directory(const FsLib::Path &DirectoryPath)
 {
@@ -53,21 +53,21 @@ void FsLib::Directory::Open(const FsLib::Path &DirectoryPath)
 
     if (!DirectoryPath.IsValid())
     {
-        g_ErrorString = ERROR_INVALID_PATH;
+        g_FsLibErrorString = ERROR_INVALID_PATH;
         return;
     }
 
     FS_Archive Archive;
     if (!FsLib::GetArchiveByDeviceName(DirectoryPath.GetDevice(), &Archive))
     {
-        g_ErrorString = ERROR_DEVICE_NOT_FOUND;
+        g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
         return;
     }
 
     Result FsError = FSUSER_OpenDirectory(&m_DirectoryHande, Archive, fsMakePath(PATH_UTF16, DirectoryPath.GetPath()));
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening directory: 0x%08X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening directory: 0x%08X.", FsError);
         return;
     }
 
@@ -118,7 +118,7 @@ bool FsLib::Directory::Close(void)
     Result FsError = FSDIR_Close(m_DirectoryHande);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error closing directory handle: 0x%08X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error closing directory handle: 0x%08X.", FsError);
         return false;
     }
     return true;

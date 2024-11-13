@@ -4,7 +4,7 @@
 #include "String.hpp"
 #include <string>
 
-extern std::string g_ErrorString;
+extern std::string g_FsLibErrorString;
 
 FsLib::InputFile::InputFile(const FsLib::Path &FilePath)
 {
@@ -22,21 +22,21 @@ void FsLib::InputFile::Open(const FsLib::Path &FilePath)
 
     if (!FilePath.IsValid())
     {
-        g_ErrorString = ERROR_INVALID_PATH;
+        g_FsLibErrorString = ERROR_INVALID_PATH;
         return;
     }
 
     FsFileSystem *FileSystem;
     if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDevice(), &FileSystem))
     {
-        g_ErrorString = ERROR_DEVICE_NOT_FOUND;
+        g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
         return;
     }
 
     Result FsError = fsFsOpenFile(FileSystem, FilePath.GetPath(), FsOpenMode_Read, &m_FileHandle);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening file for reading: 0x%X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening file for reading: 0x%X.", FsError);
         return;
     }
 
@@ -44,7 +44,7 @@ void FsLib::InputFile::Open(const FsLib::Path &FilePath)
     if (R_FAILED(FsError))
     {
         FileBase::Close();
-        g_ErrorString = FsLib::String::GetFormattedString("Error obtaining file size: 0x%X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error obtaining file size: 0x%X.", FsError);
         return;
     }
     // Set offset and we're good.
@@ -58,7 +58,7 @@ size_t FsLib::InputFile::Read(void *Buffer, size_t ReadSize)
     Result FsError = fsFileRead(&m_FileHandle, m_Offset, Buffer, ReadSize, FsReadOption_None, &BytesRead);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error reading from file: 0x%X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error reading from file: 0x%X.", FsError);
         return 0;
     }
     m_Offset += BytesRead;
@@ -95,7 +95,7 @@ char FsLib::InputFile::GetCharacter(void)
     Result FsError = fsFileRead(&m_FileHandle, m_Offset++, &CharacterRead, 1, FsReadOption_None, &BytesRead);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error reading byte from file: 0x%X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error reading byte from file: 0x%X.", FsError);
         return -1;
     }
     return CharacterRead;

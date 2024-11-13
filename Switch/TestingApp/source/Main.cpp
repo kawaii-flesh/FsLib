@@ -5,11 +5,10 @@
 #include <cstring>
 #include <switch.h>
 
-static constexpr unsigned int VA_BUFFER_SIZE = 0x1000;
-static constexpr std::string_view FOLDER_TEST =
-    "sdmc:/Really/Long/Stupid/Chain/Of/Folders/For/Testing/Path/SubPath/And/Find/Functions/When/Will/This/End/Who/Knows/Seems/Like/It/Goes/On/"
-    "Forever/Thought/That/Was/The/End/Nope/Still/Going/For/Testing/And/Also/To/Be/A/Pain/In/The/Ass/Cause/I/Am/Not/Going/To/Test/The/Delete/"
-    "Function/Afterward/lol/";
+namespace
+{
+    constexpr int VA_BUFFER_SIZE = 0x1000;
+} // namespace
 
 // Feels stupid but needed to get actual output in real time
 void Print(const char *Format, ...)
@@ -56,15 +55,31 @@ int main(void)
 
     FsLib::Initialize();
 
-    if (!FsLib::CreateDirectoriesRecursively(FOLDER_TEST))
+    // This is a lazy dangerous way to do this.
+    for (int i = 0; i < 37; i++)
     {
-        Print("Guess Not: %s\n", FsLib::GetErrorString());
-    }
-    else
-    {
-        Print("Maybe?");
-    }
+        // FsLib will automatically close on a request to open a duplicate handle to the same DeviceName.
+        if (!FsLib::OpenBisFileSystem("bis", static_cast<FsBisPartitionId>(i)))
+        {
+            Print("Error opening Bis %i: %s.\n", i, FsLib::GetErrorString());
+            continue;
+        }
 
+        Print("Printing Bis Partition ID: %i\n", i);
+        FsLib::Directory BisRoot("bis:/");
+        for (int64_t i = 0; i < BisRoot.GetEntryCount(); i++)
+        {
+            const char *EntryName = BisRoot.GetEntryAt(i).data();
+            if (BisRoot.EntryAtIsDirectory(i))
+            {
+                Print("\tDIR %s\n", EntryName);
+            }
+            else
+            {
+                Print("\tFIL %s\n", EntryName);
+            }
+        }
+    }
     Print("Press + to exit.");
 
     while (true)

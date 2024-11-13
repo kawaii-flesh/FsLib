@@ -11,7 +11,7 @@ namespace
     constexpr int VA_BUFFER_SIZE = 0x1000;
 }
 
-extern std::string g_ErrorString;
+extern std::string g_FsLibErrorString;
 
 FsLib::OutputFile::OutputFile(const FsLib::Path &FilePath, bool Append)
 {
@@ -34,14 +34,14 @@ void FsLib::OutputFile::Open(const FsLib::Path &FilePath, uint64_t FileSize, boo
 
     if (!FilePath.IsValid())
     {
-        g_ErrorString = ERROR_INVALID_PATH;
+        g_FsLibErrorString = ERROR_INVALID_PATH;
         return;
     }
 
     FS_Archive Archive;
     if (!FsLib::GetArchiveByDeviceName(FilePath.GetDevice(), &Archive))
     {
-        g_ErrorString = ERROR_DEVICE_NOT_FOUND;
+        g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
         return;
     }
 
@@ -67,7 +67,7 @@ size_t FsLib::OutputFile::Write(const void *Buffer, size_t WriteSize)
     Result FsError = FSFILE_Write(m_FileHandle, &BytesWritten, m_Offset, Buffer, WriteSize, 0);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error writing to file: 0x%08X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error writing to file: 0x%08X.", FsError);
         return 0;
     }
     m_Offset += BytesWritten;
@@ -110,7 +110,7 @@ bool FsLib::OutputFile::Flush(void)
     Result FsError = FSFILE_Flush(m_FileHandle);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error flushing file: 0x%08X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error flushing file: 0x%08X.", FsError);
         return false;
     }
     return true;
@@ -127,14 +127,14 @@ bool FsLib::OutputFile::OpenForWriting(FS_Archive Archive, const char16_t *FileP
     Result FsError = FSUSER_CreateFile(Archive, FsPath, 0, FileSize);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error creating file: 0x%08X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error creating file: 0x%08X.", FsError);
         return false;
     }
 
     FsError = FSUSER_OpenFile(&m_FileHandle, Archive, FsPath, FS_OPEN_WRITE, 0);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening file for writing: 0x%08X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening file for writing: 0x%08X.", FsError);
         return false;
     }
 
@@ -148,14 +148,14 @@ bool FsLib::OutputFile::OpenForAppending(FS_Archive Archive, const char16_t *Fil
     Result FsError = FSUSER_OpenFile(&m_FileHandle, Archive, fsMakePath(PATH_UTF16, FilePath), FS_OPEN_WRITE, 0);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening file for appending: 0x%08X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening file for appending: 0x%08X.", FsError);
         return false;
     }
 
     FsError = FSFILE_GetSize(m_FileHandle, reinterpret_cast<uint64_t *>(&m_FileSize));
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error obtaining file size: 0x%08X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error obtaining file size: 0x%08X.", FsError);
         return false;
     }
 
@@ -173,7 +173,7 @@ bool FsLib::OutputFile::ResizeIfNeeded(size_t BufferSize)
         Result FsError = FSFILE_SetSize(m_FileHandle, static_cast<uint64_t>(NewFileSize));
         if (R_FAILED(FsError))
         {
-            g_ErrorString = FsLib::String::GetFormattedString("Error resizing file to fit buffer: 0x%08X.", FsError);
+            g_FsLibErrorString = FsLib::String::GetFormattedString("Error resizing file to fit buffer: 0x%08X.", FsError);
             return false;
         }
     }

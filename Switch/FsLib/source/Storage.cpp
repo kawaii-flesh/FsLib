@@ -3,7 +3,7 @@
 #include <string>
 
 // Globally used error string.
-extern std::string g_ErrorString;
+extern std::string g_FsLibErrorString;
 
 FsLib::Storage::Storage(FsBisPartitionId PartitionID)
 {
@@ -26,7 +26,7 @@ void FsLib::Storage::Open(FsBisPartitionId PartitionID)
     Result FsError = fsOpenBisStorage(&m_StorageHandle, PartitionID);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X opening partition ID 0x%X.", FsError, PartitionID);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error 0x%X opening partition ID 0x%X.", FsError, PartitionID);
         return;
     }
 
@@ -34,7 +34,7 @@ void FsLib::Storage::Open(FsBisPartitionId PartitionID)
     if (R_FAILED(FsError))
     {
         Storage::Close();
-        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X getting storage size.");
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error 0x%X getting storage size.");
         return;
     }
     m_Offset = 0;
@@ -57,7 +57,7 @@ size_t FsLib::Storage::Read(void *Buffer, size_t BufferSize)
     Result FsError = fsStorageRead(&m_StorageHandle, m_Offset, Buffer, static_cast<uint64_t>(BufferSize));
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X reading from storage.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error 0x%X reading from storage.", FsError);
         return 0;
     }
     // There really isn't a way to make sure this worked 100%...
@@ -67,14 +67,14 @@ size_t FsLib::Storage::Read(void *Buffer, size_t BufferSize)
 
 char FsLib::Storage::ReadByte(void)
 {
-    if(m_Offset >= m_StreamSize)
+    if (m_Offset >= m_StreamSize)
     {
         return -1;
     }
 
     char ByteRead = 0x00;
     Result FsError = fsStorageRead(&m_StorageHandle, m_Offset++, &ByteRead, 1);
-    if(R_FAILED(FsError))
+    if (R_FAILED(FsError))
     {
         return -1;
     }

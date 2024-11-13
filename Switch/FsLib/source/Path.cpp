@@ -2,6 +2,8 @@
 #include <cstring>
 #include <switch.h>
 
+static const char *ForbiddenPathCharacters = "#%&{}\\<>*?$!'\":@+`|=";
+
 FsLib::Path::Path(const FsLib::Path &P)
 {
     *this = P;
@@ -34,7 +36,7 @@ FsLib::Path::~Path()
 
 bool FsLib::Path::IsValid(void) const
 {
-    return m_Path && m_DeviceEnd && std::strlen(m_DeviceEnd + 1) > 0;
+    return m_Path && m_DeviceEnd && std::strlen(m_DeviceEnd + 1) > 0 && std::strpbrk(m_DeviceEnd + 1, ForbiddenPathCharacters) == NULL;
 }
 
 FsLib::Path FsLib::Path::SubPath(size_t PathLength) const

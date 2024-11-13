@@ -12,7 +12,7 @@ namespace
 } // namespace
 
 // This error string is shared globally, but I didn't want it extern'd in the header.
-std::string g_ErrorString = "No errors encountered.";
+std::string g_FsLibErrorString = "No errors encountered.";
 
 // This is for opening functions to search and make sure there are no duplicate uses of the same device name.
 static bool DeviceNameIsInUse(std::string_view DeviceName)
@@ -37,14 +37,14 @@ void FsLib::Exit(void)
 
 const char *FsLib::GetErrorString(void)
 {
-    return g_ErrorString.c_str();
+    return g_FsLibErrorString.c_str();
 }
 
 bool FsLib::MapFileSystem(std::string_view DeviceName, FsFileSystem *FileSystem)
 {
     if (DeviceName == SD_CARD_DEVICE_NAME)
     {
-        g_ErrorString = "Error: Cannot use sdmc for registering device.";
+        g_FsLibErrorString = "Error: Cannot use sdmc for registering device.";
         return false;
     }
 
@@ -72,14 +72,14 @@ bool FsLib::CommitDataToFileSystem(std::string_view DeviceName)
 {
     if (!DeviceNameIsInUse(DeviceName))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error committing data to \"%s\": Device does not exist.", DeviceName.data());
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error committing data to \"%s\": Device does not exist.", DeviceName.data());
         return false;
     }
 
     Result FsError = fsFsCommit(&s_DeviceMap[DeviceName]);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error 0x%X committing data to \"%s\".", FsError, DeviceName.data());
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error 0x%X committing data to \"%s\".", FsError, DeviceName.data());
         return false;
     }
     return true;

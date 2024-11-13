@@ -4,27 +4,27 @@
 #include "String.hpp"
 #include <switch.h>
 
-extern std::string g_ErrorString;
+extern std::string g_FsLibErrorString;
 
 bool FsLib::CreateDirectory(const FsLib::Path &DirectoryPath)
 {
     if (!DirectoryPath.IsValid())
     {
-        g_ErrorString = ERROR_DEVICE_NOT_FOUND;
+        g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
         return false;
     }
 
     FsFileSystem *FileSystem;
     if (!FsLib::GetFileSystemByDeviceName(DirectoryPath.GetDevice(), &FileSystem))
     {
-        g_ErrorString = ERROR_DEVICE_NOT_FOUND;
+        g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
         return false;
     }
 
     Result FsError = fsFsCreateDirectory(FileSystem, DirectoryPath.GetPath());
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error creating directory: 0x%X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error creating directory: 0x%X.", FsError);
         return false;
     }
 
@@ -51,21 +51,21 @@ bool FsLib::DeleteDirectory(const FsLib::Path &DirectoryPath)
 {
     if (!DirectoryPath.IsValid())
     {
-        g_ErrorString = ERROR_INVALID_PATH;
+        g_FsLibErrorString = ERROR_INVALID_PATH;
         return false;
     }
 
     FsFileSystem *FileSystem;
     if (!FsLib::GetFileSystemByDeviceName(DirectoryPath.GetDevice(), &FileSystem))
     {
-        g_ErrorString = ERROR_DEVICE_NOT_FOUND;
+        g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
         return false;
     }
 
     Result FsError = fsFsDeleteDirectory(FileSystem, DirectoryPath.GetPath());
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error deleting directory: 0x%X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error deleting directory: 0x%X.", FsError);
         return false;
     }
     return true;
@@ -75,21 +75,21 @@ bool FsLib::DeleteDirectoryRecursively(const FsLib::Path &DirectoryPath)
 {
     if (!DirectoryPath.IsValid())
     {
-        g_ErrorString = ERROR_INVALID_PATH;
+        g_FsLibErrorString = ERROR_INVALID_PATH;
         return false;
     }
 
     FsFileSystem *FileSystem;
     if (!FsLib::GetFileSystemByDeviceName(DirectoryPath.GetDevice(), &FileSystem))
     {
-        g_ErrorString = ERROR_DEVICE_NOT_FOUND;
+        g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
         return false;
     }
 
     Result FsError = fsFsDeleteDirectoryRecursively(FileSystem, DirectoryPath.GetPath());
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error deleting directory recursively: 0x%X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error deleting directory recursively: 0x%X.", FsError);
         return false;
     }
     return true;
@@ -123,21 +123,21 @@ bool FsLib::RenameDirectory(const FsLib::Path &OldPath, const FsLib::Path &NewPa
 {
     if (!OldPath.IsValid() || !NewPath.IsValid() || OldPath.GetDevice() != NewPath.GetDevice())
     {
-        g_ErrorString = ERROR_INVALID_PATH;
+        g_FsLibErrorString = ERROR_INVALID_PATH;
         return false;
     }
 
     FsFileSystem *FileSystem;
     if (!FsLib::GetFileSystemByDeviceName(OldPath.GetDevice(), &FileSystem))
     {
-        g_ErrorString = ERROR_DEVICE_NOT_FOUND;
+        g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
         return false;
     }
 
     Result FsError = fsFsRenameDirectory(FileSystem, OldPath.GetPath(), NewPath.GetPath());
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error renaming directory: 0x%X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error renaming directory: 0x%X.", FsError);
         return false;
     }
 

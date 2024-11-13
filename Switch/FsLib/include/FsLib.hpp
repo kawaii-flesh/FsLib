@@ -1,4 +1,5 @@
 #pragma once
+#include "BisFileSystem.hpp"
 #include "Directory.hpp"
 #include "DirectoryFunctions.hpp"
 #include "FileFunctions.hpp"

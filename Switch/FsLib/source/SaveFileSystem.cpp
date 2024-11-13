@@ -3,7 +3,7 @@
 #include "String.hpp"
 #include <switch.h>
 
-extern std::string g_ErrorString;
+extern std::string g_FsLibErrorString;
 
 bool FsLib::OpenSystemSaveFileSystem(std::string_view DeviceName, uint64_t SystemSaveID)
 {
@@ -18,7 +18,7 @@ bool FsLib::OpenSystemSaveFileSystem(std::string_view DeviceName, uint64_t Syste
     Result FsError = fsOpenSaveDataFileSystem(&FileSystem, FsSaveDataSpaceId_User, &SaveDataAttributes);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening system save data: 0x%X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening system save data: 0x%X.", FsError);
         return false;
     }
 
@@ -44,7 +44,7 @@ bool FsLib::OpenAccountSaveFileSystem(std::string_view DeviceName, uint64_t Appl
     Result FsError = fsOpenSaveDataFileSystem(&FileSystem, FsSaveDataSpaceId_User, &SaveDataAttributes);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening account save data: 0x%X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening account save data: 0x%X.", FsError);
         return false;
     }
 
@@ -70,7 +70,7 @@ bool FsLib::OpenBCATSaveFileSystem(std::string_view DeviceName, uint64_t Applica
     Result FsError = fsOpenSaveDataFileSystem(&FileSystem, FsSaveDataSpaceId_User, &SaveDataAttributes);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening BCAT save data: 0x%X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening BCAT save data: 0x%X.", FsError);
         return false;
     }
 
@@ -96,7 +96,7 @@ bool FsLib::OpenDeviceSaveFileSystem(std::string_view DeviceName, uint64_t Appli
     Result FsError = fsOpenSaveDataFileSystem(&FileSystem, FsSaveDataSpaceId_User, &SaveDataAttributes);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening device save data: 0x%X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening device save data: 0x%X.", FsError);
         return false;
     }
 
@@ -122,7 +122,7 @@ bool FsLib::OpenTemporarySaveFileSystem(std::string_view DeviceName)
     Result FsError = fsOpenSaveDataFileSystem(&FileSystem, FsSaveDataSpaceId_User, &SaveDataAttributes);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening temporary save data: 0x%X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening temporary save data: 0x%X.", FsError);
         return false;
     }
 
@@ -148,7 +148,7 @@ bool FsLib::OpenCacheSaveFileSystem(std::string_view DeviceName, uint64_t Applic
     Result FsError = fsOpenSaveDataFileSystem(&FileSystem, FsSaveDataSpaceId_User, &SaveDataAttributes);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening cache save data: 0x%X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening cache save data: 0x%X.", FsError);
         return false;
     }
 
@@ -174,7 +174,7 @@ bool FsLib::OpenSystemBCATSaveFileSystem(std::string_view DeviceName, uint64_t S
     Result FsError = fsOpenSaveDataFileSystem(&FileSystem, FsSaveDataSpaceId_User, &SaveDataAttributes);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening system bcat save data: 0x%X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening system bcat save data: 0x%X.", FsError);
         return false;
     }
 

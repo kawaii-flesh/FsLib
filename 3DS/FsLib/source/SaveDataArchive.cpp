@@ -2,7 +2,7 @@
 #include "FsLib.hpp"
 #include "String.hpp"
 
-extern std::string g_ErrorString;
+extern std::string g_FsLibErrorString;
 
 bool FsLib::OpenSaveData(std::u16string_view DeviceName)
 {
@@ -10,7 +10,7 @@ bool FsLib::OpenSaveData(std::u16string_view DeviceName)
     Result FsError = FSUSER_OpenArchive(&Archive, ARCHIVE_SAVEDATA, fsMakePath(PATH_EMPTY, NULL));
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening save data archive: 0x%08X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening save data archive: 0x%08X.", FsError);
         return false;
     }
 
@@ -30,7 +30,7 @@ bool FsLib::OpenExtData(std::u16string_view DeviceName, uint32_t ExtDataID)
     Result FsError = FSUSER_OpenArchive(&Archive, ARCHIVE_EXTDATA, PathData);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening ExtData archive %08X: 0x%08X.", ExtDataID, FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening ExtData archive %08X: 0x%08X.", ExtDataID, FsError);
         return false;
     }
 
@@ -51,7 +51,7 @@ bool FsLib::OpenSharedExtData(std::u16string_view DeviceName, uint32_t SharedExt
     Result FsError = FSUSER_OpenArchive(&Archive, ARCHIVE_SHARED_EXTDATA, PathData);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening shared extdata %08X: 0x%08X.", SharedExtDataID, FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening shared extdata %08X: 0x%08X.", SharedExtDataID, FsError);
         return false;
     }
 
@@ -72,7 +72,7 @@ bool FsLib::OpenSystemSaveData(std::u16string_view DeviceName, uint32_t UniqueID
     Result FsError = FSUSER_OpenArchive(&Archive, ARCHIVE_SYSTEM_SAVEDATA, PathData);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening system save data %08X: 0x%08.", UniqueID, FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening system save data %08X: 0x%08.", UniqueID, FsError);
         return false;
     }
 
@@ -91,7 +91,7 @@ bool FsLib::OpenGameCardSaveData(std::u16string_view DeviceName)
     Result FsError = FSUSER_OpenArchive(&Archive, ARCHIVE_GAMECARD_SAVEDATA, fsMakePath(PATH_EMPTY, NULL));
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening game card save data: 0x%08X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening game card save data: 0x%08X.", FsError);
         return false;
     }
 
@@ -111,7 +111,7 @@ bool FsLib::OpenUserSaveData(std::u16string_view DeviceName, FS_MediaType MediaT
     Result FsError = FSUSER_OpenArchive(&Archive, ARCHIVE_USER_SAVEDATA, PathData);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening user save data %08X%08X: 0x%08X.", UpperID, LowerID, FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening user save data %08X%08X: 0x%08X.", UpperID, LowerID, FsError);
         return false;
     }
 

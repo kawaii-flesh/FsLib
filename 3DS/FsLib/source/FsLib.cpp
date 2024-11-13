@@ -11,7 +11,7 @@ namespace
 } // namespace
 
 // Globally shared error string.
-std::string g_ErrorString = "No errors encountered.";
+std::string g_FsLibErrorString = "No errors encountered.";
 
 // Checks if device is already in map.
 static bool DeviceNameIsInUse(std::u16string_view DeviceName)
@@ -24,14 +24,14 @@ bool FsLib::Initialize(void)
     Result FsError = fsInit();
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error initializing FS: 0x%08X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error initializing FS: 0x%08X.", FsError);
         return false;
     }
 
     FsError = FSUSER_OpenArchive(&s_DeviceMap[SDMC_DEVICE_NAME], ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, NULL));
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening SDMC Archive: 0x%08X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening SDMC Archive: 0x%08X.", FsError);
         return false;
     }
     return true;
@@ -48,7 +48,7 @@ void FsLib::Exit(void)
 
 const char *FsLib::GetErrorString(void)
 {
-    return g_ErrorString.c_str();
+    return g_FsLibErrorString.c_str();
 }
 
 bool FsLib::MapArchiveToDevice(std::u16string_view DeviceName, FS_Archive Archive)
@@ -91,7 +91,7 @@ bool FsLib::ControlDevice(std::u16string_view DeviceName)
     Result FsError = FSUSER_ControlArchive(s_DeviceMap[DeviceName], ARCHIVE_ACTION_COMMIT_SAVE_DATA, NULL, 0, NULL, 0);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error committing save to device: 0x%08X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error committing save to device: 0x%08X.", FsError);
         return false;
     }
     return true;
@@ -107,7 +107,7 @@ bool FsLib::CloseDevice(std::u16string_view DeviceName)
     Result FsError = FSUSER_CloseArchive(s_DeviceMap[DeviceName]);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error closing archive: 0x%08X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error closing archive: 0x%08X.", FsError);
         return false;
     }
     // Erase the device from map so DeviceNameIsInUse works correctly.

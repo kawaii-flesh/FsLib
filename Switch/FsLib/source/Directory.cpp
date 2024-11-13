@@ -7,7 +7,7 @@
 
 
 // fslib global error string.
-extern std::string g_ErrorString;
+extern std::string g_FsLibErrorString;
 
 // Sorts by entry type, then alphabetically.
 static bool CompareEntries(const FsDirectoryEntry &EntryA, const FsDirectoryEntry &EntryB)
@@ -44,14 +44,14 @@ void FsLib::Directory::Open(const FsLib::Path &DirectoryPath)
 
     if (!DirectoryPath.IsValid())
     {
-        g_ErrorString = ERROR_INVALID_PATH;
+        g_FsLibErrorString = ERROR_INVALID_PATH;
         return;
     }
 
     FsFileSystem *FileSystem;
     if (!FsLib::GetFileSystemByDeviceName(DirectoryPath.GetDevice(), &FileSystem))
     {
-        g_ErrorString = ERROR_DEVICE_NOT_FOUND;
+        g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
         return;
     }
 
@@ -59,7 +59,7 @@ void FsLib::Directory::Open(const FsLib::Path &DirectoryPath)
         fsFsOpenDirectory(FileSystem, DirectoryPath.GetPath(), FsDirOpenMode_ReadDirs | FsDirOpenMode_ReadFiles, &m_DirectoryHandle);
     if (R_FAILED(FsError))
     {
-        g_ErrorString = FsLib::String::GetFormattedString("Error opening directory: 0x%X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening directory: 0x%X.", FsError);
         return;
     }
 
@@ -67,7 +67,7 @@ void FsLib::Directory::Open(const FsLib::Path &DirectoryPath)
     if (R_FAILED(FsError))
     {
         Directory::Close();
-        g_ErrorString = FsLib::String::GetFormattedString("Error getting directory entry count: 0x%X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error getting directory entry count: 0x%X.", FsError);
         return;
     }
 
@@ -78,7 +78,7 @@ void FsLib::Directory::Open(const FsLib::Path &DirectoryPath)
     if (R_FAILED(FsError) || TotalEntriesRead != m_EntryCount)
     {
         Directory::Close();
-        g_ErrorString =
+        g_FsLibErrorString =
             FsLib::String::GetFormattedString("Error reading entries: 0x%X. %02d/%02d entries read.", FsError, TotalEntriesRead, m_EntryCount);
         return;
     }
