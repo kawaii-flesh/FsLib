@@ -15,7 +15,7 @@ bool FsLib::FileExists(const FsLib::Path &FilePath)
     }
 
     FsFileSystem *FileSystem;
-    if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDevice(), &FileSystem))
+    if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDeviceName(), &FileSystem))
     {
         g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
         return false;
@@ -40,7 +40,7 @@ bool FsLib::DeleteFile(const FsLib::Path &FilePath)
     }
 
     FsFileSystem *FileSystem;
-    if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDevice(), &FileSystem))
+    if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDeviceName(), &FileSystem))
     {
         g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
         return false;
@@ -64,7 +64,7 @@ int64_t FsLib::GetFileSize(const FsLib::Path &FilePath)
     }
 
     FsFileSystem *FileSystem;
-    if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDevice(), &FileSystem))
+    if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDeviceName(), &FileSystem))
     {
         g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
         return -1;
@@ -93,14 +93,14 @@ int64_t FsLib::GetFileSize(const FsLib::Path &FilePath)
 
 bool FsLib::RenameFile(const FsLib::Path &OldPath, const FsLib::Path &NewPath)
 {
-    if (!OldPath.IsValid() || !NewPath.IsValid() || OldPath.GetDevice() != NewPath.GetDevice())
+    if (!OldPath.IsValid() || !NewPath.IsValid() || OldPath.GetDeviceName() != NewPath.GetDeviceName())
     {
         g_FsLibErrorString = ERROR_INVALID_PATH;
         return false;
     }
 
     FsFileSystem *FileSystem;
-    if (!FsLib::GetFileSystemByDeviceName(OldPath.GetDevice(), &FileSystem))
+    if (!FsLib::GetFileSystemByDeviceName(OldPath.GetDeviceName(), &FileSystem))
     {
         g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
         return false;

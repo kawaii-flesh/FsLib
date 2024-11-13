@@ -113,7 +113,12 @@ size_t FsLib::Path::FindLastOf(char Character, size_t Begin) const
     return Path::npos;
 }
 
-std::string_view FsLib::Path::GetDevice(void) const
+const char *FsLib::Path::CString(void) const
+{
+    return m_Path;
+}
+
+std::string_view FsLib::Path::GetDeviceName(void) const
 {
     return std::string_view(m_Path, m_DeviceEnd - m_Path);
 }
@@ -121,11 +126,6 @@ std::string_view FsLib::Path::GetDevice(void) const
 const char *FsLib::Path::GetPath(void) const
 {
     return m_DeviceEnd + 1;
-}
-
-const char *FsLib::Path::GetFullPath(void) const
-{
-    return m_Path;
 }
 
 FsLib::Path &FsLib::Path::operator=(const FsLib::Path &P)

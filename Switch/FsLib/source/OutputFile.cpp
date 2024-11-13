@@ -32,7 +32,7 @@ void FsLib::OutputFile::Open(const FsLib::Path &FilePath, bool Append)
     }
 
     FsFileSystem *FileSystem = NULL;
-    if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDevice(), &FileSystem))
+    if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDeviceName(), &FileSystem))
     {
         g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
         return;

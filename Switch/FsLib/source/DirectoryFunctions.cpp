@@ -15,7 +15,7 @@ bool FsLib::CreateDirectory(const FsLib::Path &DirectoryPath)
     }
 
     FsFileSystem *FileSystem;
-    if (!FsLib::GetFileSystemByDeviceName(DirectoryPath.GetDevice(), &FileSystem))
+    if (!FsLib::GetFileSystemByDeviceName(DirectoryPath.GetDeviceName(), &FileSystem))
     {
         g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
         return false;
@@ -56,7 +56,7 @@ bool FsLib::DeleteDirectory(const FsLib::Path &DirectoryPath)
     }
 
     FsFileSystem *FileSystem;
-    if (!FsLib::GetFileSystemByDeviceName(DirectoryPath.GetDevice(), &FileSystem))
+    if (!FsLib::GetFileSystemByDeviceName(DirectoryPath.GetDeviceName(), &FileSystem))
     {
         g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
         return false;
@@ -80,7 +80,7 @@ bool FsLib::DeleteDirectoryRecursively(const FsLib::Path &DirectoryPath)
     }
 
     FsFileSystem *FileSystem;
-    if (!FsLib::GetFileSystemByDeviceName(DirectoryPath.GetDevice(), &FileSystem))
+    if (!FsLib::GetFileSystemByDeviceName(DirectoryPath.GetDeviceName(), &FileSystem))
     {
         g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
         return false;
@@ -104,7 +104,7 @@ bool FsLib::DirectoryExists(const FsLib::Path &DirectoryPath)
     }
 
     FsFileSystem *FileSystem;
-    if (!FsLib::GetFileSystemByDeviceName(DirectoryPath.GetDevice(), &FileSystem))
+    if (!FsLib::GetFileSystemByDeviceName(DirectoryPath.GetDeviceName(), &FileSystem))
     {
         return false;
     }
@@ -121,14 +121,14 @@ bool FsLib::DirectoryExists(const FsLib::Path &DirectoryPath)
 
 bool FsLib::RenameDirectory(const FsLib::Path &OldPath, const FsLib::Path &NewPath)
 {
-    if (!OldPath.IsValid() || !NewPath.IsValid() || OldPath.GetDevice() != NewPath.GetDevice())
+    if (!OldPath.IsValid() || !NewPath.IsValid() || OldPath.GetDeviceName() != NewPath.GetDeviceName())
     {
         g_FsLibErrorString = ERROR_INVALID_PATH;
         return false;
     }
 
     FsFileSystem *FileSystem;
-    if (!FsLib::GetFileSystemByDeviceName(OldPath.GetDevice(), &FileSystem))
+    if (!FsLib::GetFileSystemByDeviceName(OldPath.GetDeviceName(), &FileSystem))
     {
         g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
         return false;

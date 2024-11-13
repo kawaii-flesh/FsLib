@@ -16,10 +16,11 @@ namespace FsLib
             Path(const std::filesystem::path &P);
             ~Path();
             /*
-                This returns whether or not the path is valid to use based on 3 conditions:
+                This returns whether or not the path is valid to use based on 4 conditions:
                     1. The path was properly allocated and m_Path isn't nullptr.
                     2. There was a device found in the path.
                     3. The path length following the device is not empty.
+                    4. The path has no illegal characters in it.
             */
             bool IsValid(void) const;
             // This returns a sub-path ending at Length. If PathLength >= the current, you've defeated the purpose of this.
@@ -30,12 +31,12 @@ namespace FsLib
             // This searches backwards for the last occurrence of Character in path. Overload starts at begin.
             size_t FindLastOf(char Character) const;
             size_t FindLastOf(char Character, size_t Begin) const;
+            // This returns the entire path aka Device:/Path
+            const char *CString(void) const;
             // This returns the device as string view for use with FsLib's device map.
-            std::string_view GetDevice(void) const;
-            // This returns the path for use with LibNX/Switch FS.
+            std::string_view GetDeviceName(void) const;
+            // This returns the path after the ':' for use with LibNX/Switch's FS.
             const char *GetPath(void) const;
-            // This returns the full path Device:/Path instead of two parts.
-            const char *GetFullPath(void) const;
 
             // These operators are the most important part and assign most string types.
             Path &operator=(const Path &P);

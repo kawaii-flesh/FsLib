@@ -49,7 +49,7 @@ void FsLib::Directory::Open(const FsLib::Path &DirectoryPath)
     }
 
     FsFileSystem *FileSystem;
-    if (!FsLib::GetFileSystemByDeviceName(DirectoryPath.GetDevice(), &FileSystem))
+    if (!FsLib::GetFileSystemByDeviceName(DirectoryPath.GetDeviceName(), &FileSystem))
     {
         g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
         return;

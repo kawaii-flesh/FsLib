@@ -27,7 +27,7 @@ void FsLib::InputFile::Open(const FsLib::Path &FilePath)
     }
 
     FsFileSystem *FileSystem;
-    if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDevice(), &FileSystem))
+    if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDeviceName(), &FileSystem))
     {
         g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
         return;
