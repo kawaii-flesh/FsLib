@@ -272,6 +272,36 @@ FsLib::Path &FsLib::Path::operator/=(const std::filesystem::path &P)
     return *this /= P.string().c_str();
 }
 
+FsLib::Path &FsLib::Path::operator+=(const char *P)
+{
+    size_t AppendLength = std::strlen(P);
+    if (m_PathLength + AppendLength >= m_PathSize)
+    {
+        return *this;
+    }
+
+    std::memcpy(&m_Path[m_PathLength], P, AppendLength);
+
+    m_PathLength += AppendLength;
+
+    return *this;
+}
+
+FsLib::Path &FsLib::Path::operator+=(const std::string &P)
+{
+    return *this += P.c_str();
+}
+
+FsLib::Path &FsLib::Path::operator+=(std::string_view P)
+{
+    return *this += P.data();
+}
+
+FsLib::Path &FsLib::Path::operator+=(const std::filesystem::path &P)
+{
+    return *this += P.string().c_str();
+}
+
 bool FsLib::Path::AllocatePath(uint16_t PathSize)
 {
     Path::FreePath();
@@ -317,5 +347,33 @@ FsLib::Path FsLib::operator/(const FsLib::Path &Path1, const std::filesystem::pa
 {
     FsLib::Path NewPath = Path1;
     NewPath /= Path2;
+    return NewPath;
+}
+
+FsLib::Path FsLib::operator+(const FsLib::Path &Path1, const char *Path2)
+{
+    FsLib::Path NewPath = Path1;
+    NewPath += Path2;
+    return NewPath;
+}
+
+FsLib::Path FsLib::operator+(const FsLib::Path &Path1, const std::string &Path2)
+{
+    FsLib::Path NewPath = Path1;
+    NewPath += Path2;
+    return NewPath;
+}
+
+FsLib::Path FsLib::operator+(const FsLib::Path &Path1, std::string_view Path2)
+{
+    FsLib::Path NewPath = Path1;
+    NewPath += Path2;
+    return NewPath;
+}
+
+FsLib::Path FsLib::operator+(const FsLib::Path &Path1, const std::filesystem::path &Path2)
+{
+    FsLib::Path NewPath = Path1;
+    NewPath += Path2;
     return NewPath;
 }

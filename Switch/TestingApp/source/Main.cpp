@@ -66,8 +66,12 @@ int main(void)
         Why would you even do this? This is just a stupid test to make sure this works how I want. I assume most people using C++ wouldn't do
         this to begin with. Then again, most college kids now ChatGPT their way through it...
     */
-    FsLib::Path DerivedPath = BasePath / "/Directory/" / "/TestFile.txt";
+    FsLib::Path DerivedPath = BasePath / "/Directory/" / "/TestFile";
     Print("Derived Path: %s\n", DerivedPath.CString());
+
+    // I actually needed this for JKSV to work right. There's no way to add an extension without a different operator.
+    DerivedPath += ".zip";
+    Print("Derived Path NOW: %s\n", DerivedPath.CString());
 
     FsLib::Path LongDirPath = LONG_PATH_OF_DIRS;
     Print("LongPathOfDirs: %s\n", LongDirPath.CString());

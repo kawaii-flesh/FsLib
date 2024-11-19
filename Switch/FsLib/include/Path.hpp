@@ -46,11 +46,16 @@ namespace FsLib
             Path &operator=(const std::string &P);
             Path &operator=(std::string_view P);
             Path &operator=(const std::filesystem::path &P);
-            // These append most string types.
+            // This operator performs checks and adds a '/' before appending.
             Path &operator/=(const char *P);
             Path &operator/=(const std::string &P);
             Path &operator/=(std::string_view P);
             Path &operator/=(const std::filesystem::path &P);
+            // This operator is unchecked and allows appending without any checking. I needed it to add extensions to files if need be.
+            Path &operator+=(const char *P);
+            Path &operator+=(const std::string &P);
+            Path &operator+=(std::string_view P);
+            Path &operator+=(const std::filesystem::path &P);
 
             // This is for returning failure in the find methods. Renamed to be clear.
             static constexpr uint16_t NotFound = -1;
@@ -66,8 +71,14 @@ namespace FsLib
             // This frees the path data.
             void FreePath(void);
     };
+    // These add a slash before appending.
     FsLib::Path operator/(const FsLib::Path &Path1, const char *Path2);
     FsLib::Path operator/(const FsLib::Path &Path1, const std::string &Path2);
     FsLib::Path operator/(const FsLib::Path &Path1, std::string_view Path2);
     FsLib::Path operator/(const FsLib::Path &Path1, const std::filesystem::path &Path2);
+    // These are unchecked and append everything.
+    FsLib::Path operator+(const FsLib::Path &Path1, const char *Path2);
+    FsLib::Path operator+(const FsLib::Path &Path1, const std::string &Path2);
+    FsLib::Path operator+(const FsLib::Path &Path1, std::string_view Path2);
+    FsLib::Path operator+(const FsLib::Path &Path1, const std::filesystem::path &Path2);
 } // namespace FsLib
