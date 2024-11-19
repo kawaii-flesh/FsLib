@@ -22,8 +22,8 @@ namespace FsLib
             int64_t GetEntryCount(void) const;
             // Returns file size of entry.
             int64_t GetEntrySizeAt(int Index) const;
-            // Returns full file name of entry at index. Returns an empty string if Index is out of bounds.
-            std::string_view GetEntryAt(int index) const;
+            // Returns full file name of entry at index. Returns NULL if entry is out of bounds.
+            const char *GetEntryAt(int index) const;
             // Returns whether entry at index is a directory or not. Returns false if Index is out of bounds.
             bool EntryAtIsDirectory(int Index) const;
 

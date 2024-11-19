@@ -109,13 +109,13 @@ int64_t FsLib::Directory::GetEntrySizeAt(int Index) const
     return m_DirectoryList[Index].file_size;
 }
 
-std::string_view FsLib::Directory::GetEntryAt(int Index) const
+const char *FsLib::Directory::GetEntryAt(int Index) const
 {
     if (Index >= m_EntryCount)
     {
-        return std::string_view("");
+        return NULL;
     }
-    return std::string_view(m_DirectoryList[Index].name);
+    return m_DirectoryList[Index].name;
 }
 
 bool FsLib::Directory::EntryAtIsDirectory(int Index) const

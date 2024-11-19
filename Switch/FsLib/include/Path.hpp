@@ -47,13 +47,13 @@ namespace FsLib
             Path &operator=(std::string_view P);
             Path &operator=(const std::filesystem::path &P);
             // These append most string types.
-            Path &operator+=(const char *P);
-            Path &operator+=(const std::string &P);
-            Path &operator+=(std::string_view P);
-            Path &operator+=(const std::filesystem::path &P);
+            Path &operator/=(const char *P);
+            Path &operator/=(const std::string &P);
+            Path &operator/=(std::string_view P);
+            Path &operator/=(const std::filesystem::path &P);
 
-            // This is for returning failure in the find methods.
-            static constexpr uint16_t npos = -1;
+            // This is for returning failure in the find methods. Renamed to be clear.
+            static constexpr uint16_t NotFound = -1;
 
         private:
             char *m_Path = nullptr;
@@ -66,8 +66,8 @@ namespace FsLib
             // This frees the path data.
             void FreePath(void);
     };
-    FsLib::Path operator+(const FsLib::Path &Path1, const char *Path2);
-    FsLib::Path operator+(const FsLib::Path &Path1, const std::string &Path2);
-    FsLib::Path operator+(const FsLib::Path &Path1, std::string_view Path2);
-    FsLib::Path operator+(const FsLib::Path &Path1, const std::filesystem::path &Path2);
+    FsLib::Path operator/(const FsLib::Path &Path1, const char *Path2);
+    FsLib::Path operator/(const FsLib::Path &Path1, const std::string &Path2);
+    FsLib::Path operator/(const FsLib::Path &Path1, std::string_view Path2);
+    FsLib::Path operator/(const FsLib::Path &Path1, const std::filesystem::path &Path2);
 } // namespace FsLib

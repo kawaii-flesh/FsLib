@@ -2,7 +2,42 @@
 #include <cstring>
 #include <switch.h>
 
-static const char *ForbiddenPathCharacters = "#%&{}\\<>*?$!'\":@+`|=";
+namespace
+{
+    const char *ForbiddenPathCharacters = "#%&{}\\<>*?$!'\":@+`|=";
+}
+
+// This will return where the beginning of a string to append really is.
+const char *GetItemBegin(const char *P)
+{
+    while (*P == '/')
+    {
+        P++;
+    }
+    return P;
+}
+
+// This is to trim trailing slashes from the end of the path.
+size_t GetPathLength(const char *P)
+{
+    // This is to trim trailing slashes from the path.
+    char *PathBegin = std::strchr(P, '/');
+    if (!PathBegin)
+    {
+        // This might be bad...
+        return std::strlen(P);
+    }
+
+    // Skip over the first slash so it can't be deleted by the loop.
+    ++PathBegin;
+    size_t PathLength = std::strlen(PathBegin);
+    while (PathLength > 0 && PathBegin[PathLength - 1] == '/')
+    {
+        --PathLength;
+    }
+
+    return (PathBegin - P) + PathLength;
+}
 
 FsLib::Path::Path(const FsLib::Path &P)
 {
@@ -46,12 +81,14 @@ FsLib::Path FsLib::Path::SubPath(size_t PathLength) const
         PathLength = m_PathLength;
     }
 
-    // Only doing this cause it should get us going quicker without as much work.
-    FsLib::Path NewPath = *this;
-    std::memset(NewPath.m_Path, 0x00, NewPath.m_PathSize);
-    std::memcpy(NewPath.m_Path, m_Path, PathLength);
-    NewPath.m_DeviceEnd = std::strchr(NewPath.m_Path, ':');
-    NewPath.m_PathLength = std::strlen(NewPath.m_Path);
+    FsLib::Path NewPath;
+    if (NewPath.AllocatePath(m_PathSize))
+    {
+        std::memcpy(NewPath.m_Path, m_Path, PathLength);
+        NewPath.m_DeviceEnd = std::strchr(NewPath.m_Path, ':');
+        NewPath.m_PathLength = std::strlen(NewPath.m_Path);
+    }
+    // I don't think returning a blank path is the best idea, but it might be the only option. IsValid should catch this anyway.
     return NewPath;
 }
 
@@ -64,14 +101,14 @@ size_t FsLib::Path::FindFirstOf(char Character) const
             return i;
         }
     }
-    return Path::npos;
+    return Path::NotFound;
 }
 
 size_t FsLib::Path::FindFirstOf(char Character, size_t Begin) const
 {
     if (Begin >= m_PathLength)
     {
-        return Path::npos;
+        return Path::NotFound;
     }
 
     for (size_t i = Begin; i < m_PathLength; i++)
@@ -81,7 +118,7 @@ size_t FsLib::Path::FindFirstOf(char Character, size_t Begin) const
             return i;
         }
     }
-    return Path::npos;
+    return Path::NotFound;
 }
 
 size_t FsLib::Path::FindLastOf(char Character) const
@@ -93,7 +130,7 @@ size_t FsLib::Path::FindLastOf(char Character) const
             return i;
         }
     }
-    return Path::npos;
+    return Path::NotFound;
 }
 
 size_t FsLib::Path::FindLastOf(char Character, size_t Begin) const
@@ -110,7 +147,7 @@ size_t FsLib::Path::FindLastOf(char Character, size_t Begin) const
             return i;
         }
     }
-    return Path::npos;
+    return Path::NotFound;
 }
 
 const char *FsLib::Path::CString(void) const
@@ -140,10 +177,10 @@ FsLib::Path &FsLib::Path::operator=(const FsLib::Path &P)
         return *this;
     }
 
+    // Copy P's data and make m_DeviceEnd point to this instance's m_Path.
     m_PathSize = P.m_PathSize;
     m_PathLength = P.m_PathLength;
-    std::memcpy(m_Path, P.m_Path, m_PathSize);
-
+    std::memcpy(m_Path, P.m_Path, P.m_PathSize);
     m_DeviceEnd = std::strchr(m_Path, ':');
 
     return *this;
@@ -167,11 +204,15 @@ FsLib::Path &FsLib::Path::operator=(const char *P)
         return *this;
     }
 
-    std::memcpy(m_Path, P, std::strlen(P));
+    // This function will return the length of the path being assigned without trailing slashes being counted.
+    size_t PathLength = GetPathLength(P);
 
+    // Copy and set everything up.
+    std::memcpy(m_Path, P, PathLength);
     m_DeviceEnd = std::strchr(m_Path, ':');
     m_PathLength = std::strlen(m_Path);
 
+    // Should be good to go.
     return *this;
 }
 
@@ -190,34 +231,45 @@ FsLib::Path &FsLib::Path::operator=(const std::filesystem::path &P)
     return *this = P.string().c_str();
 }
 
-FsLib::Path &FsLib::Path::operator+=(const char *P)
+FsLib::Path &FsLib::Path::operator/=(const char *P)
 {
-    size_t StringLength = std::strlen(P);
-    if (m_PathLength + StringLength >= m_PathSize)
+    // This will trim beginning and trailing slashes.
+    const char *AppendBegin = GetItemBegin(P);
+    size_t AppendLength = GetPathLength(AppendBegin);
+
+    // Length check.
+    if ((m_PathLength + AppendLength) + 1 >= m_PathSize)
     {
+        // I should do something here, but what I don't know what yet.
         return *this;
     }
 
-    std::memcpy(&m_Path[m_PathLength], P, StringLength);
+    // This is to avoid doubling up device slashes.
+    if (m_Path[m_PathLength - 1] != '/')
+    {
+        m_Path[m_PathLength++] = '/';
+    }
 
-    m_PathLength += StringLength;
+    std::memcpy(&m_Path[m_PathLength], AppendBegin, AppendLength);
+
+    m_PathLength += AppendLength;
 
     return *this;
 }
 
-FsLib::Path &FsLib::Path::operator+=(const std::string &P)
+FsLib::Path &FsLib::Path::operator/=(const std::string &P)
 {
-    return *this += P.c_str();
+    return *this /= P.c_str();
 }
 
-FsLib::Path &FsLib::Path::operator+=(std::string_view P)
+FsLib::Path &FsLib::Path::operator/=(std::string_view P)
 {
-    return *this += P.data();
+    return *this /= P.data();
 }
 
-FsLib::Path &FsLib::Path::operator+=(const std::filesystem::path &P)
+FsLib::Path &FsLib::Path::operator/=(const std::filesystem::path &P)
 {
-    return *this += P.string().c_str();
+    return *this /= P.string().c_str();
 }
 
 bool FsLib::Path::AllocatePath(uint16_t PathSize)
@@ -228,7 +280,7 @@ bool FsLib::Path::AllocatePath(uint16_t PathSize)
     {
         return false;
     }
-    std::memset(m_Path, 0x00, m_PathSize);
+    std::memset(m_Path, 0x00, PathSize);
     return true;
 }
 
@@ -240,30 +292,30 @@ void FsLib::Path::FreePath(void)
     }
 }
 
-FsLib::Path FsLib::operator+(const FsLib::Path &Path1, const char *Path2)
+FsLib::Path FsLib::operator/(const FsLib::Path &Path1, const char *Path2)
 {
     FsLib::Path NewPath = Path1;
-    NewPath += Path2;
+    NewPath /= Path2;
     return NewPath;
 }
 
-FsLib::Path FsLib::operator+(const FsLib::Path &Path1, const std::string &Path2)
+FsLib::Path FsLib::operator/(const FsLib::Path &Path1, const std::string &Path2)
 {
     FsLib::Path NewPath = Path1;
-    NewPath += Path2;
+    NewPath /= Path2;
     return NewPath;
 }
 
-FsLib::Path FsLib::operator+(const FsLib::Path &Path1, std::string_view Path2)
+FsLib::Path FsLib::operator/(const FsLib::Path &Path1, std::string_view Path2)
 {
     FsLib::Path NewPath = Path1;
-    NewPath += Path2;
+    NewPath /= Path2;
     return NewPath;
 }
 
-FsLib::Path FsLib::operator+(const FsLib::Path &Path1, const std::filesystem::path &Path2)
+FsLib::Path FsLib::operator/(const FsLib::Path &Path1, const std::filesystem::path &Path2)
 {
     FsLib::Path NewPath = Path1;
-    NewPath += Path2;
+    NewPath /= Path2;
     return NewPath;
 }

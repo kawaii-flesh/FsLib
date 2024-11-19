@@ -8,6 +8,8 @@
 namespace
 {
     constexpr int VA_BUFFER_SIZE = 0x1000;
+    constexpr std::string_view LONG_PATH_OF_DIRS = "sdmc:/This/is/a/really/long/path/of/directories/that/I/need/to/use/to/test/stuff";
+    constexpr std::string_view JKSV_DIR = "sdmc:/";
 } // namespace
 
 // Feels stupid but needed to get actual output in real time
@@ -27,20 +29,24 @@ void PrintDir(const FsLib::Path &DirectoryPath)
     FsLib::Directory Dir(DirectoryPath);
     if (!Dir.IsOpen())
     {
+        Print("%s\n", FsLib::GetErrorString());
         return;
     }
 
     for (int64_t i = 0; i < Dir.GetEntryCount(); i++)
     {
+
+
         if (Dir.EntryAtIsDirectory(i))
         {
-            Print("DIR %s\n", Dir.GetEntryAt(i).data());
-            FsLib::Path NewDirPath = DirectoryPath + Dir.GetEntryAt(i) + "/";
+            Print("DIR %s\n", Dir.GetEntryAt(i));
+            FsLib::Path NewDirPath = DirectoryPath / Dir.GetEntryAt(i);
+            Print("%s\n", NewDirPath.CString());
             PrintDir(NewDirPath);
         }
         else
         {
-            Print("FIL %s\n", Dir.GetEntryAt(i).data());
+            Print("FIL %s\n", Dir.GetEntryAt(i));
         }
     }
 }
@@ -55,31 +61,19 @@ int main(void)
 
     FsLib::Initialize();
 
-    // This is a lazy dangerous way to do this.
-    for (int i = 0; i < 37; i++)
-    {
-        // FsLib will automatically close on a request to open a duplicate handle to the same DeviceName.
-        if (!FsLib::OpenBisFileSystem("bis", static_cast<FsBisPartitionId>(i)))
-        {
-            Print("Error opening Bis %i: %s.\n", i, FsLib::GetErrorString());
-            continue;
-        }
+    FsLib::Path BasePath = "sdmc:/";
+    /*
+        Why would you even do this? This is just a stupid test to make sure this works how I want. I assume most people using C++ wouldn't do
+        this to begin with. Then again, most college kids now ChatGPT their way through it...
+    */
+    FsLib::Path DerivedPath = BasePath / "/Directory/" / "/TestFile.txt";
+    Print("Derived Path: %s\n", DerivedPath.CString());
 
-        Print("Printing Bis Partition ID: %i\n", i);
-        FsLib::Directory BisRoot("bis:/");
-        for (int64_t i = 0; i < BisRoot.GetEntryCount(); i++)
-        {
-            const char *EntryName = BisRoot.GetEntryAt(i).data();
-            if (BisRoot.EntryAtIsDirectory(i))
-            {
-                Print("\tDIR %s\n", EntryName);
-            }
-            else
-            {
-                Print("\tFIL %s\n", EntryName);
-            }
-        }
+    if (!FsLib::CreateDirectoriesRecursively(LONG_PATH_OF_DIRS))
+    {
+        Print("%s\n", FsLib::GetErrorString());
     }
+
     Print("Press + to exit.");
 
     while (true)

@@ -10,7 +10,8 @@ bool FsLib::CreateDirectory(const FsLib::Path &DirectoryPath)
 {
     if (!DirectoryPath.IsValid())
     {
-        g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
+        g_FsLibErrorString = DirectoryPath.CString();
+        // g_FsLibErrorString = ERROR_INVALID_PATH;
         return false;
     }
 
@@ -24,7 +25,7 @@ bool FsLib::CreateDirectory(const FsLib::Path &DirectoryPath)
     Result FsError = fsFsCreateDirectory(FileSystem, DirectoryPath.GetPath());
     if (R_FAILED(FsError))
     {
-        g_FsLibErrorString = FsLib::String::GetFormattedString("Error creating directory: 0x%X.", FsError);
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error creating directory %s: 0x%X.", DirectoryPath.CString(), FsError);
         return false;
     }
 
@@ -33,17 +34,19 @@ bool FsLib::CreateDirectory(const FsLib::Path &DirectoryPath)
 
 bool FsLib::CreateDirectoriesRecursively(const FsLib::Path &DirectoryPath)
 {
-    // We don't really need to set any error strings here, because CreateDirectory will do that.
     size_t SlashPosition = DirectoryPath.FindFirstOf('/') + 1;
-    while ((SlashPosition = DirectoryPath.FindFirstOf('/', SlashPosition)) != DirectoryPath.npos)
+
+    do
     {
+        SlashPosition = DirectoryPath.FindFirstOf('/', SlashPosition);
         FsLib::Path CurrentDirectory = DirectoryPath.SubPath(SlashPosition);
         if (!FsLib::DirectoryExists(CurrentDirectory) && !FsLib::CreateDirectory(CurrentDirectory))
         {
+            // Create directory will set the error string.
             return false;
         }
         ++SlashPosition;
-    }
+    } while (SlashPosition < DirectoryPath.GetLength()); // There might be another way to do this, but this works for now.
     return true;
 }
 
