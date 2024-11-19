@@ -10,8 +10,7 @@ bool FsLib::CreateDirectory(const FsLib::Path &DirectoryPath)
 {
     if (!DirectoryPath.IsValid())
     {
-        g_FsLibErrorString = DirectoryPath.CString();
-        // g_FsLibErrorString = ERROR_INVALID_PATH;
+        g_FsLibErrorString = ERROR_INVALID_PATH;
         return false;
     }
 
