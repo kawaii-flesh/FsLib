@@ -8,7 +8,7 @@
 namespace
 {
     constexpr int VA_BUFFER_SIZE = 0x1000;
-    constexpr std::string_view LONG_PATH_OF_DIRS = "sdmc:/This/is/a/really/long/path/of/directories/that/I/need/to/use/to/test/stuff";
+    constexpr std::string_view LONG_PATH_OF_DIRS = "sdmc:/This/is/a/really/long/path/of/directories/that/I/need/to/use/to/test/stuff////////";
     constexpr std::string_view JKSV_DIR = "sdmc:/";
 } // namespace
 
@@ -68,6 +68,9 @@ int main(void)
     */
     FsLib::Path DerivedPath = BasePath / "/Directory/" / "/TestFile.txt";
     Print("Derived Path: %s\n", DerivedPath.CString());
+
+    FsLib::Path LongDirPath = LONG_PATH_OF_DIRS;
+    Print("LongPathOfDirs: %s\n", LongDirPath.CString());
 
     if (!FsLib::CreateDirectoriesRecursively(LONG_PATH_OF_DIRS))
     {

@@ -6,6 +6,7 @@
 #include "InputFile.hpp"
 #include "OutputFile.hpp"
 #include "Path.hpp"
+#include "SaveFileSystem.hpp"
 #include "Storage.hpp"
 #include <string>
 #include <switch.h>
