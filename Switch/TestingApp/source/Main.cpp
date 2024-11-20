@@ -61,22 +61,45 @@ int main(void)
 
     FsLib::Initialize();
 
-    FsLib::Path BasePath = "sdmc:/";
-    /*
-        Why would you even do this? This is just a stupid test to make sure this works how I want. I assume most people using C++ wouldn't do
-        this to begin with. Then again, most college kids now ChatGPT their way through it...
-    */
-    FsLib::Path DerivedPath = BasePath / "/Directory/" / "/TestFile";
-    Print("Derived Path: %s\n", DerivedPath.CString());
+    if (!FsLib::OpenBisFileSystem("user", FsBisPartitionId_User))
+    {
+        Print("Error opening user partition: %s", FsLib::GetErrorString());
+        return -1;
+    }
 
-    // I actually needed this for JKSV to work right. There's no way to add an extension without a different operator.
-    DerivedPath += ".zip";
-    Print("Derived Path NOW: %s\n", DerivedPath.CString());
+    if (!FsLib::OpenBisFileSystem("system", FsBisPartitionId_System))
+    {
+        Print("Error opening system partition: %s", FsLib::GetErrorString());
+        return -2;
+    }
 
-    FsLib::Path LongDirPath = LONG_PATH_OF_DIRS;
-    Print("LongPathOfDirs: %s\n", LongDirPath.CString());
+    int64_t SDFree, SDTotal;
+    int64_t UserFree, UserTotal;
+    int64_t SystemFree, SystemTotal;
+    Print("Device: Free MB / Total MB\n");
+    if (FsLib::GetDeviceFreeSpace("sdmc:/", SDFree) && FsLib::GetDeviceTotalSpace("sdmc:/", SDTotal))
+    {
+        Print("SDMC: %lli MB / %lli MB.\n", SDFree / 1024 / 1024, SDTotal / 1024 / 1024);
+    }
+    else
+    {
+        Print("%s\n", FsLib::GetErrorString());
+    }
 
-    if (!FsLib::CreateDirectoriesRecursively(LONG_PATH_OF_DIRS))
+    if (FsLib::GetDeviceFreeSpace("user:/", UserFree) && FsLib::GetDeviceTotalSpace("user:/", UserTotal))
+    {
+        Print("USER: %lli MB / %lli MB.\n", UserFree / 1024 / 1024, UserTotal / 1024 / 1024);
+    }
+    else
+    {
+        Print("%s\n", FsLib::GetErrorString());
+    }
+
+    if (FsLib::GetDeviceFreeSpace("system:/", SystemFree) && FsLib::GetDeviceTotalSpace("system:/", SystemTotal))
+    {
+        Print("System: %lli MB / %lli MB.\n", SystemFree / 1024 / 1024, SystemTotal / 1024 / 1024);
+    }
+    else
     {
         Print("%s\n", FsLib::GetErrorString());
     }

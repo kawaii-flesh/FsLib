@@ -85,6 +85,52 @@ bool FsLib::CommitDataToFileSystem(std::string_view DeviceName)
     return true;
 }
 
+bool FsLib::GetDeviceFreeSpace(const FsLib::Path &DeviceRoot, int64_t &SizeOut)
+{
+    if (!DeviceRoot.IsValid())
+    {
+        SizeOut = 0;
+        return false;
+    }
+
+    if (!DeviceNameIsInUse(DeviceRoot.GetDeviceName()))
+    {
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error getting total space: Device does not exist.");
+        return false;
+    }
+
+    Result FsError = fsFsGetFreeSpace(&s_DeviceMap[DeviceRoot.GetDeviceName()], DeviceRoot.GetPath(), &SizeOut);
+    if (R_FAILED(FsError))
+    {
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error getting device free space: 0x%X.", FsError);
+        return false;
+    }
+    return true;
+}
+
+bool FsLib::GetDeviceTotalSpace(const FsLib::Path &DeviceRoot, int64_t &SizeOut)
+{
+    if (!DeviceRoot.IsValid())
+    {
+        SizeOut = 0;
+        return false;
+    }
+
+    if (!DeviceNameIsInUse(DeviceRoot.GetDeviceName()))
+    {
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error getting free space: Device does not exist.");
+        return false;
+    }
+
+    Result FsError = fsFsGetTotalSpace(&s_DeviceMap[DeviceRoot.GetDeviceName()], DeviceRoot.GetPath(), &SizeOut);
+    if (R_FAILED(FsError))
+    {
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error getting device total space: 0x%X.", FsError);
+        return false;
+    }
+    return true;
+}
+
 bool FsLib::CloseFileSystem(std::string_view DeviceName)
 {
     // Guard against closing sdmc. Only exiting FsLib will do that.

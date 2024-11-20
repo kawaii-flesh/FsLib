@@ -25,6 +25,10 @@ namespace FsLib
     bool GetFileSystemByDeviceName(std::string_view DeviceName, FsFileSystem **FileSystemOut);
     // Commits data to filesystem associated with DeviceName
     bool CommitDataToFileSystem(std::string_view DeviceName);
+    // Attempts to get the free space available from fileSystem.
+    bool GetDeviceFreeSpace(const FsLib::Path &DeviceRoot, int64_t &SizeOut);
+    // Attempts to get the total space available from filesystem.
+    bool GetDeviceTotalSpace(const FsLib::Path &DeviceRoot, int64_t &SizeOut);
     // Closes filesystem handle associated with deviceName.
     bool CloseFileSystem(std::string_view DeviceName);
 } // namespace FsLib
