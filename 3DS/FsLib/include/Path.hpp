@@ -22,10 +22,6 @@ namespace FsLib
             ~Path();
             // Returns if a path is valid for use with FsLib and 3DS FS.
             bool IsValid(void) const;
-            // Returns the device name as u16string_view for use with FsLib's device map.
-            std::u16string_view GetDevice(void) const;
-            // Returns the path for use with 3DS FS functions.
-            const char16_t *GetPath(void) const;
             // Returns a subpath of length. If length >= m_PathLength... Good job.
             Path SubPath(size_t PathLength) const;
             // Searches for Character in path. Overload uses Begin at the start point. Returns npos when not found.
@@ -34,33 +30,51 @@ namespace FsLib
             // Searches backwards for character in path. Same as above.
             size_t FindLastOf(char16_t Character) const;
             size_t FindLastOf(char16_t Character, size_t Begin) const;
+            // Returns entire path as char16_t string array
+            const char16_t *CString(void) const;
+            // Returns the device name as u16string_view fo r use with FsLib's device map.
+            std::u16string_view GetDevice(void) const;
+            // Returns the path for use with 3DS FS functions.
+            const char16_t *GetPath(void) const;
+            // Returns the current length of the string.
+            size_t GetLength(void) const;
 
+            // These erase and assign.
             Path &operator=(const Path &P);
             Path &operator=(const char16_t *P);
             Path &operator=(const uint16_t *P);
             Path &operator=(const std::u16string &P);
             Path &operator=(std::u16string_view P);
-
+            // These append, check and erase beginning and trailing slashes, and append.
+            Path &operator/=(const char16_t *P);
+            Path &operator/=(const uint16_t *P);
+            Path &operator/=(const std::u16string &P);
+            Path &operator/=(std::u16string_view P);
+            // These are unchecked appending operators.
             Path &operator+=(const char16_t *P);
             Path &operator+=(const uint16_t *P);
             Path &operator+=(const std::u16string &P);
             Path &operator+=(std::u16string_view P);
 
             // This is for returning failure for find functions.
-            static constexpr size_t npos = -1;
+            static constexpr uint16_t NotFound = -1;
 
         private:
             // First is the pointer to path data, second is pointer to the ':'.
             char16_t *m_Path = nullptr;
             const char16_t *m_DeviceEnd = nullptr;
             // First is the actual size of the path buffer, second is the current, actual length of the path.
-            size_t m_PathSize = 0;
-            size_t m_PathLength = 0;
+            uint16_t m_PathSize = 0;
+            uint16_t m_PathLength = 0;
             // This allocates memory to hold the string.
-            bool AllocatePath(size_t PathSize);
+            bool AllocatePath(uint16_t PathSize);
             // This frees it.
             void FreePath(void);
     };
+    FsLib::Path operator/(const FsLib::Path &Path1, const char16_t *Path2);
+    FsLib::Path operator/(const FsLib::Path &Path1, const uint16_t *Path2);
+    FsLib::Path operator/(const FsLib::Path &Path1, const std::u16string &Path2);
+    FsLib::Path operator/(const FsLib::Path &Path1, std::u16string_view Path2);
     FsLib::Path operator+(const FsLib::Path &Path1, const char16_t *Path2);
     FsLib::Path operator+(const FsLib::Path &Path1, const uint16_t *Path2);
     FsLib::Path operator+(const FsLib::Path &Path1, const std::u16string &Path2);

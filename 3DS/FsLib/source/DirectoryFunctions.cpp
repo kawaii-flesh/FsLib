@@ -57,22 +57,19 @@ bool FsLib::CreateDirectory(const FsLib::Path &DirectoryPath)
 
 bool FsLib::CreateDirectoriesRecursively(const FsLib::Path &DirectoryPath)
 {
-    if (!DirectoryPath.IsValid())
-    {
-        g_FsLibErrorString = ERROR_INVALID_PATH;
-        return false;
-    }
+    size_t SlashPosition = DirectoryPath.FindFirstOf(u'/') + 1;
 
-    size_t Slash = DirectoryPath.FindFirstOf(u'/') + 1;
-    while ((Slash = DirectoryPath.FindFirstOf(u'/', Slash)) != DirectoryPath.npos)
+    do
     {
-        FsLib::Path CurrentDir = DirectoryPath.SubPath(Slash);
-        if (!FsLib::DirectoryExists(CurrentDir) && !FsLib::CreateDirectory(CurrentDir))
+        SlashPosition = DirectoryPath.FindFirstOf(u'/', SlashPosition);
+        FsLib::Path CurrentDirectory = DirectoryPath.SubPath(SlashPosition);
+        if (!FsLib::DirectoryExists(CurrentDirectory) && !FsLib::CreateDirectory(CurrentDirectory))
         {
+            // CreateDirectory will set the error string.
             return false;
         }
-        ++Slash;
-    }
+        ++SlashPosition;
+    } while (SlashPosition < DirectoryPath.GetLength());
     return true;
 }
 

@@ -104,6 +104,16 @@ int main(void)
         Print("%s\n", FsLib::GetErrorString());
     }
 
+    // This is to make sure root path works with these changes.
+    FsLib::Path SDMCRoot = "sdmc:/";
+    Print("%s\n", SDMCRoot.CString());
+
+    // This is ridiculous but I'm trying to break this on purpose.
+    FsLib::Path TestPath = "sdmc://////////////////////////////////JKSV////////////////////////////////////////////////";
+    TestPath = TestPath / "///////////////////////////////////////////POKEMON SHIELD//////////////////////////////////////////" /
+               "///////////////////////_HACKED CHEATER SAVE 99///////////////////////";
+    Print("%s\n", TestPath.CString());
+
     Print("Press + to exit.");
 
     while (true)

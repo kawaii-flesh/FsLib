@@ -2,6 +2,50 @@
 #include "String.hpp"
 #include <cstring>
 
+namespace
+{
+    const char16_t *ForbiddenPathCharacters = u"#%&{}\\<>*?$!'\":@+`|=";
+}
+
+// Apparently C++ has no way of doing this in char_traits.
+// C standard library has some pretty hard to decifer names too.
+const char16_t *U16StrPBrk(const char16_t *String, const char16_t *Characters)
+{
+    size_t CharacterCount = std::char_traits<char16_t>::length(Characters);
+    while (*String)
+    {
+        for (size_t i = 0; i < CharacterCount; i++)
+        {
+            if (*String == Characters[i])
+            {
+                return String;
+            }
+        }
+        ++String;
+    }
+    return nullptr;
+}
+
+// This is an all in one version of what Switch does. Passing NULL as PathBegin skips trimming the beginning.
+void GetTrimmedPath(const char16_t *Path, const char16_t **PathBegin, size_t &PathLength)
+{
+    // This will skip over beginning slashes.
+    if (PathBegin)
+    {
+        while (*Path == u'/')
+        {
+            ++Path;
+        }
+        *PathBegin = Path;
+    }
+
+    PathLength = std::char_traits<char16_t>::length(Path);
+    while (PathLength > 0 && Path[PathLength - 1] == u'/')
+    {
+        --PathLength;
+    }
+}
+
 FsLib::Path::Path(const FsLib::Path &P)
 {
     *this = P;
@@ -34,35 +78,25 @@ FsLib::Path::~Path()
 
 bool FsLib::Path::IsValid(void) const
 {
-    return m_Path != nullptr && m_DeviceEnd != nullptr && std::char_traits<char16_t>::length(m_Path) > 0;
-}
-
-std::u16string_view FsLib::Path::GetDevice(void) const
-{
-    return std::u16string_view(m_Path, m_DeviceEnd - m_Path);
-}
-
-const char16_t *FsLib::Path::GetPath(void) const
-{
-    return m_DeviceEnd + 1;
+    return m_Path != nullptr && m_DeviceEnd != nullptr && std::char_traits<char16_t>::length(m_Path) > 0 &&
+           U16StrPBrk(m_DeviceEnd + 1, ForbiddenPathCharacters) == NULL;
 }
 
 FsLib::Path FsLib::Path::SubPath(size_t PathLength) const
 {
-    FsLib::Path Sub = *this;
     if (PathLength >= m_PathLength)
     {
-        // Reassign this to correct path.
-        Sub.m_DeviceEnd = std::char_traits<char16_t>::find(Sub.m_Path, m_PathLength, u':');
-        return Sub;
+        PathLength = m_PathLength;
     }
-    // Only copy the section of the path we want.
-    std::memset(Sub.m_Path, 0x00, m_PathSize);
-    std::memcpy(Sub.m_Path, m_Path, PathLength);
-    // Reassign these to point to the correct path.
-    Sub.m_PathLength = std::char_traits<char16_t>::length(Sub.m_Path);
-    Sub.m_DeviceEnd = std::char_traits<char16_t>::find(Sub.m_Path, Sub.m_PathLength, u':');
-    return Sub;
+
+    FsLib::Path NewPath;
+    if (NewPath.AllocatePath(m_PathSize))
+    {
+        std::memcpy(NewPath.m_Path, m_Path, PathLength * sizeof(char16_t));
+        NewPath.m_DeviceEnd = std::char_traits<char16_t>::find(NewPath.m_Path, m_PathLength, u':');
+        NewPath.m_PathLength = m_PathLength;
+    }
+    return NewPath;
 }
 
 size_t FsLib::Path::FindFirstOf(char16_t Character) const
@@ -74,14 +108,14 @@ size_t FsLib::Path::FindFirstOf(char16_t Character) const
             return i;
         }
     }
-    return Path::npos;
+    return Path::NotFound;
 }
 
 size_t FsLib::Path::FindFirstOf(char16_t Character, size_t Begin) const
 {
     if (Begin >= m_PathLength)
     {
-        return Path::npos;
+        return Path::NotFound;
     }
 
     for (size_t i = Begin; i < m_PathLength; i++)
@@ -91,7 +125,7 @@ size_t FsLib::Path::FindFirstOf(char16_t Character, size_t Begin) const
             return i;
         }
     }
-    return Path::npos;
+    return Path::NotFound;
 }
 
 size_t FsLib::Path::FindLastOf(char16_t Character) const
@@ -103,7 +137,7 @@ size_t FsLib::Path::FindLastOf(char16_t Character) const
             return i;
         }
     }
-    return Path::npos;
+    return Path::NotFound;
 }
 
 size_t FsLib::Path::FindLastOf(char16_t Character, size_t Begin) const
@@ -120,7 +154,27 @@ size_t FsLib::Path::FindLastOf(char16_t Character, size_t Begin) const
             return i;
         }
     }
-    return Path::npos;
+    return Path::NotFound;
+}
+
+const char16_t *FsLib::Path::CString(void) const
+{
+    return m_Path;
+}
+
+std::u16string_view FsLib::Path::GetDevice(void) const
+{
+    return std::u16string_view(m_Path, m_DeviceEnd - m_Path);
+}
+
+const char16_t *FsLib::Path::GetPath(void) const
+{
+    return m_DeviceEnd + 1;
+}
+
+size_t FsLib::Path::GetLength(void) const
+{
+    return m_PathLength;
 }
 
 FsLib::Path &FsLib::Path::operator=(const FsLib::Path &P)
@@ -132,11 +186,11 @@ FsLib::Path &FsLib::Path::operator=(const FsLib::Path &P)
     }
 
     // Just copy the path.
-    std::memcpy(m_Path, P.m_Path, P.m_PathSize);
+    std::memcpy(m_Path, P.m_Path, P.m_PathLength * sizeof(char16_t));
     // These need to point to this path instead of the other.
-    m_PathLength = std::char_traits<char16_t>::length(m_Path);
-    m_DeviceEnd = std::char_traits<char16_t>::find(m_Path, P.m_PathSize, u':');
     m_PathSize = P.m_PathSize;
+    m_PathLength = P.m_PathLength;
+    m_DeviceEnd = std::char_traits<char16_t>::find(m_Path, m_PathLength, u':');
 
     return *this;
 }
@@ -157,11 +211,17 @@ FsLib::Path &FsLib::Path::operator=(const char16_t *P)
     {
         return *this;
     }
-    // Copy path.
-    std::memcpy(m_Path, P, std::char_traits<char16_t>::length(P) * sizeof(char16_t));
-    // Need to make sure this all points to this class's stuff now.
-    m_DeviceEnd = std::char_traits<char16_t>::find(m_Path, PathLength, u':');
+
+    const char16_t *PathBegin = nullptr;
+    size_t SubPathLength = 0;
+    GetTrimmedPath(m_DeviceEnd + 1, &PathBegin, SubPathLength);
+
+    // Copy device first.
+    std::memcpy(m_Path, P, ((m_DeviceEnd - P) + 2) * sizeof(char16_t));
+    // Copy the rest, but trimmed.
+    std::memcpy(&m_Path[std::char_traits<char16_t>::length(m_Path)], PathBegin, SubPathLength * sizeof(char16_t));
     m_PathLength = std::char_traits<char16_t>::length(m_Path);
+    m_DeviceEnd = std::char_traits<char16_t>::find(m_Path, m_PathLength, u':');
 
     return *this;
 }
@@ -179,6 +239,44 @@ FsLib::Path &FsLib::Path::operator=(const std::u16string &P)
 FsLib::Path &FsLib::Path::operator=(std::u16string_view P)
 {
     return *this = P.data();
+}
+
+FsLib::Path &FsLib::Path::operator/=(const char16_t *P)
+{
+    const char16_t *PathBegin = nullptr;
+    size_t PathLength = 0;
+    GetTrimmedPath(P, &PathBegin, PathLength);
+
+    if ((m_PathLength + PathLength) + 1 >= m_PathSize)
+    {
+        return *this;
+    }
+
+    if (m_Path[m_PathLength - 1] != u'/')
+    {
+        m_Path[m_PathLength++] = u'/';
+    }
+
+    std::memcpy(&m_Path[m_PathLength], PathBegin, PathLength * sizeof(char16_t));
+
+    m_PathLength += PathLength;
+
+    return *this;
+}
+
+FsLib::Path &FsLib::Path::operator/=(const uint16_t *P)
+{
+    return *this /= reinterpret_cast<const char16_t *>(P);
+}
+
+FsLib::Path &FsLib::Path::operator/=(const std::u16string &P)
+{
+    return *this /= P.c_str();
+}
+
+FsLib::Path &FsLib::Path::operator/=(std::u16string_view P)
+{
+    return *this /= P.data();
 }
 
 FsLib::Path &FsLib::Path::operator+=(const char16_t *P)
@@ -211,7 +309,7 @@ FsLib::Path &FsLib::Path::operator+=(std::u16string_view P)
     return *this += P.data();
 }
 
-bool FsLib::Path::AllocatePath(size_t PathSize)
+bool FsLib::Path::AllocatePath(uint16_t PathSize)
 {
     Path::FreePath();
     m_Path = new (std::nothrow) char16_t[PathSize];
@@ -229,6 +327,34 @@ void FsLib::Path::FreePath(void)
     {
         delete[] m_Path;
     }
+}
+
+FsLib::Path FsLib::operator/(const FsLib::Path &Path1, const char16_t *Path2)
+{
+    FsLib::Path NewPath = Path1;
+    NewPath /= Path2;
+    return NewPath;
+}
+
+FsLib::Path FsLib::operator/(const FsLib::Path &Path1, const uint16_t *Path2)
+{
+    FsLib::Path NewPath = Path1;
+    NewPath /= Path2;
+    return NewPath;
+}
+
+FsLib::Path FsLib::operator/(const FsLib::Path &Path1, const std::u16string &Path2)
+{
+    FsLib::Path NewPath = Path1;
+    NewPath /= Path2;
+    return NewPath;
+}
+
+FsLib::Path FsLib::operator/(const FsLib::Path &Path1, std::u16string_view Path2)
+{
+    FsLib::Path NewPath = Path1;
+    NewPath /= Path2;
+    return NewPath;
 }
 
 FsLib::Path FsLib::operator+(const FsLib::Path &Path1, const char16_t *Path2)

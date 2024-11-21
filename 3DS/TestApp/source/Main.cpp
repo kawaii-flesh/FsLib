@@ -3,7 +3,7 @@
 #include <string>
 
 static std::u16string_view REALLY_LONG_DIR_PATH =
-    u"sdmc:/A/Really/Long/Chain/Of/Folders/To/Make/Sure/Create/Directories/Recursively/Works/Right/And/Doesnt/Crash/The/3DS/";
+    u"sdmc:/A/Really/Long/Chain/Of/Folders/To/Make/Sure/Create/Directories/Recursively/Works/Right/And/Doesnt/Crash/The/3DS";
 
 static std::string UTF16ToUTF8(std::u16string_view Str)
 {
@@ -43,6 +43,10 @@ int main(void)
         printf("%s\n", FsLib::GetErrorString());
         return -1;
     }
+
+    FsLib::Path TestPath = u"sdmc:///////////////////////////////////////3ds//////////////////////////////////";
+    TestPath = TestPath / u"//////////////////JKSM/////////////////////////";
+    printf("%s\n", UTF16ToUTF8(TestPath.CString()).c_str());
 
     if (!FsLib::CreateDirectoriesRecursively(REALLY_LONG_DIR_PATH))
     {

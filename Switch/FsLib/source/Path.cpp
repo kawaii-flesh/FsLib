@@ -7,36 +7,23 @@ namespace
     const char *ForbiddenPathCharacters = "#%&{}\\<>*?$!'\":@+`|=";
 }
 
-// This will return where the beginning of a string to append really is.
-const char *GetItemBegin(const char *P)
+// This will get the trimmed version of the path. Passing NULL to PathBegin will skip  trimming
+void GetTrimmedPath(const char *Path, const char **PathBegin, size_t &PathLength)
 {
-    while (*P == '/')
+    if (PathBegin)
     {
-        P++;
-    }
-    return P;
-}
-
-// This is to trim trailing slashes from the end of the path.
-size_t GetPathLength(const char *P)
-{
-    // This is to trim trailing slashes from the path.
-    char *PathBegin = std::strchr(P, '/');
-    if (!PathBegin)
-    {
-        // This might be bad...
-        return std::strlen(P);
+        while (*Path == '/')
+        {
+            ++Path;
+        }
+        *PathBegin = Path;
     }
 
-    // Skip over the first slash so it can't be deleted by the loop.
-    ++PathBegin;
-    size_t PathLength = std::strlen(PathBegin);
-    while (PathLength > 0 && PathBegin[PathLength - 1] == '/')
+    PathLength = std::strlen(Path);
+    while (PathLength > 0 && Path[PathLength - 1] == '/')
     {
         --PathLength;
     }
-
-    return (PathBegin - P) + PathLength;
 }
 
 FsLib::Path::Path(const FsLib::Path &P)
@@ -178,9 +165,9 @@ FsLib::Path &FsLib::Path::operator=(const FsLib::Path &P)
     }
 
     // Copy P's data and make m_DeviceEnd point to this instance's m_Path.
+    std::memcpy(m_Path, P.m_Path, P.m_PathSize);
     m_PathSize = P.m_PathSize;
     m_PathLength = P.m_PathLength;
-    std::memcpy(m_Path, P.m_Path, P.m_PathSize);
     m_DeviceEnd = std::strchr(m_Path, ':');
 
     return *this;
@@ -197,18 +184,23 @@ FsLib::Path &FsLib::Path::operator=(const char *P)
         // Should do something here...
         return *this;
     }
-    m_PathSize = FS_MAX_PATH + ((m_DeviceEnd - P) + 1);
 
+    m_PathSize = FS_MAX_PATH + ((m_DeviceEnd - P) + 1);
     if (!Path::AllocatePath(m_PathSize))
     {
         return *this;
     }
 
-    // This function will return the length of the path being assigned without trailing slashes being counted.
-    size_t PathLength = GetPathLength(P);
+    // We're going to use this here too, but we're going to ignore where it says the path begins.
+    const char *PathBegin = NULL;
+    size_t PathLength = 0;
+    GetTrimmedPath(m_DeviceEnd + 1, &PathBegin, PathLength);
 
-    // Copy and set everything up.
-    std::memcpy(m_Path, P, PathLength);
+    // Copy the device string first.
+    std::memcpy(m_Path, P, (m_DeviceEnd - P) + 2);
+    // Copy the rest of the path beginning with where slashes end.
+    std::memcpy(&m_Path[std::strlen(m_Path)], PathBegin, PathLength);
+    // Set everything up.
     m_DeviceEnd = std::strchr(m_Path, ':');
     m_PathLength = std::strlen(m_Path);
 
@@ -234,11 +226,13 @@ FsLib::Path &FsLib::Path::operator=(const std::filesystem::path &P)
 FsLib::Path &FsLib::Path::operator/=(const char *P)
 {
     // This will trim beginning and trailing slashes.
-    const char *AppendBegin = GetItemBegin(P);
-    size_t AppendLength = GetPathLength(AppendBegin);
+    const char *PathBegin = nullptr;
+    size_t PathLength = 0;
+
+    GetTrimmedPath(P, &PathBegin, PathLength);
 
     // Length check.
-    if ((m_PathLength + AppendLength) + 1 >= m_PathSize)
+    if ((m_PathLength + PathLength) + 1 >= m_PathSize)
     {
         // I should do something here, but what I don't know what yet.
         return *this;
@@ -250,9 +244,9 @@ FsLib::Path &FsLib::Path::operator/=(const char *P)
         m_Path[m_PathLength++] = '/';
     }
 
-    std::memcpy(&m_Path[m_PathLength], AppendBegin, AppendLength);
+    std::memcpy(&m_Path[m_PathLength], PathBegin, PathLength);
 
-    m_PathLength += AppendLength;
+    m_PathLength += PathLength;
 
     return *this;
 }
