@@ -34,7 +34,6 @@ bool FsLib::CreateDirectory(const FsLib::Path &DirectoryPath)
 bool FsLib::CreateDirectoriesRecursively(const FsLib::Path &DirectoryPath)
 {
     size_t SlashPosition = DirectoryPath.FindFirstOf('/') + 1;
-
     do
     {
         SlashPosition = DirectoryPath.FindFirstOf('/', SlashPosition);

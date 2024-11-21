@@ -12,7 +12,7 @@
 static constexpr uint64_t TITLE_ID = 0x00040000001B8700;
 
 // This is the target folder on SD to backup and restore from.
-static constexpr std::u16string_view TARGET_DIRECTORY = u"sdmc:/MinecraftSave/";
+static constexpr std::u16string_view TARGET_DIRECTORY = u"sdmc:/MinecraftSave";
 
 int main(void)
 {
@@ -46,7 +46,7 @@ int main(void)
         return -3;
     }
 
-    printf("Press A to backup ExtData\nPress X to copy SD card to ExtData\nStart to exit.\n");
+    printf("Press A to backup ExtData Normally\nPress Y to backup ExtData Accurately\nPress X to copy SD card to ExtData\nStart to exit.\n");
     while (aptMainLoop())
     {
         hidScanInput();
@@ -79,19 +79,19 @@ int main(void)
             }
 
             // This will recursively copy the ExtData archive/device to the folder on SD we just created.
-            CopyDirectoryTo(u"ExtData:/", u"sdmc:/MinecraftSave/");
+            CopyDirectoryTo(u"ExtData:/", TARGET_DIRECTORY);
             printf("Done!\n");
         }
         else if (ButtonsDown & KEY_X)
         {
             // Check if the directory on SD exists. If it doesn't, just continue the loop.
-            if (!FsLib::DirectoryExists(u"sdmc:/MinecraftSave/"))
+            if (!FsLib::DirectoryExists(u"sdmc:/MinecraftSave"))
             {
                 continue;
             }
 
             printf("Importing Data from SD card... \n");
-            CopyDirectoryTo(u"sdmc:/MinecraftSave/", u"ExtData:/");
+            CopyDirectoryTo(u"sdmc:/MinecraftSave", u"ExtData:/");
             printf("Done!\n");
         }
         else if (ButtonsDown & KEY_START)

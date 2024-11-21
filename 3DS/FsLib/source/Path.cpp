@@ -4,11 +4,11 @@
 
 namespace
 {
-    const char16_t *ForbiddenPathCharacters = u"#%&{}\\<>*?$!'\":@+`|=";
+    const char16_t *ForbiddenPathCharacters = u"<>:\"|?*";
 }
 
 // Apparently C++ has no way of doing this in char_traits.
-// C standard library has some pretty hard to decifer names too.
+// C standard library has some pretty hard to decipher names.
 const char16_t *U16StrPBrk(const char16_t *String, const char16_t *Characters)
 {
     size_t CharacterCount = std::char_traits<char16_t>::length(Characters);

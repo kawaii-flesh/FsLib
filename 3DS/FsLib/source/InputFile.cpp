@@ -57,18 +57,8 @@ size_t FsLib::InputFile::Read(void *Buffer, size_t ReadSize)
     Result FsError = FSFILE_Read(m_FileHandle, &BytesRead, static_cast<uint64_t>(m_Offset), Buffer, static_cast<uint32_t>(ReadSize));
     if (R_FAILED(FsError))
     {
-        // Setting error string and correcting for read errors.
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error reading from file: 0x%08X.", FsError);
-        if (m_Offset + ReadSize > m_FileSize)
-        {
-            BytesRead = m_FileSize - m_Offset;
-        }
-        else
-        {
-            BytesRead = ReadSize;
-        }
-        // Just set the buffer to all 0x00 since we can't magically generate what we can't read.
-        std::memset(Buffer, 0x00, BytesRead);
+        BytesRead = m_Offset + ReadSize > m_FileSize ? m_FileSize - m_Offset : ReadSize;
     }
     m_Offset += BytesRead;
     return BytesRead;
@@ -90,7 +80,7 @@ bool FsLib::InputFile::ReadLine(std::string &LineOut)
     return false;
 }
 
-char FsLib::InputFile::GetCharacter(void)
+signed char FsLib::InputFile::GetCharacter(void)
 {
     if (m_Offset >= m_FileSize)
     {

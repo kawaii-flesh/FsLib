@@ -4,7 +4,7 @@
 
 namespace
 {
-    const char *ForbiddenPathCharacters = "#%&{}\\<>*?$!'\":@+`|=";
+    const char *ForbiddenPathCharacters = "<>:\"|?*";
 }
 
 // This will get the trimmed version of the path. Passing NULL to PathBegin will skip  trimming
