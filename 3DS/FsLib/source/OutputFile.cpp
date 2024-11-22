@@ -137,9 +137,8 @@ bool FsLib::OutputFile::OpenForWriting(FS_Archive Archive, const char16_t *FileP
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening file for writing: 0x%08X.", FsError);
         return false;
     }
-
     m_Offset = 0;
-    m_FileSize = 0;
+    m_FileSize = FileSize;
     return true;
 }
 

@@ -8,7 +8,7 @@
 
 // This is the size of the buffer used to copy files from ExtData. This is 1MB because this is threaded and I'm not sure much would be gained
 // from raising it. You can change it to see what it does.
-static constexpr size_t FILE_BUFFER_SIZE = 0x100000;
+static constexpr size_t FILE_BUFFER_SIZE = 0x40000;
 
 // I'm too lazy to type unsigned char over and over.
 using Byte = unsigned char;
@@ -71,6 +71,7 @@ void CopyFile(const FsLib::Path &Source, const FsLib::Path &Destination)
     FsLib::OutputFile DestinationFile(Destination, SourceFile.GetSize());
     if (!SourceFile.IsOpen() || !DestinationFile.IsOpen())
     {
+        printf("FsLib ERROR: %s", FsLib::GetErrorString());
         return;
     }
 
