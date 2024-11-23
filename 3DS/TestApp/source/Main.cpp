@@ -48,6 +48,27 @@ int main(void)
     TestPath = TestPath / u"//////////////////JKSM/////////////////////////";
     printf("%s\n", UTF16ToUTF8(TestPath.CString()).c_str());
 
+    if (FsLib::RenameDirectory(u"sdmc:/JKSV", u"sdmc:/JKSM"))
+    {
+        printf("Did it.\n");
+    }
+
+    if (FsLib::RenameDirectory(u"sdmc:/JKSM", u"sdmc:/JKSV"))
+    {
+        printf("Did it again.\n");
+    }
+
+    if (FsLib::FileExists(u"sdmc:/3ds/JKSM.3dsx"))
+    {
+        printf("Good shit.\n");
+    }
+
+    // I guess this *technically* makes this test app malware, huh?
+    if (FsLib::FileExists(u"sdmc:/3ds/Checkpoint.3dsx") && FsLib::DeleteFile(u"sdmc:/3ds/Checkpoint.3dsx"))
+    {
+        printf("lol fixed that for you.\n");
+    }
+
     if (!FsLib::CreateDirectoriesRecursively(REALLY_LONG_DIR_PATH))
     {
         printf("%s\n", FsLib::GetErrorString());

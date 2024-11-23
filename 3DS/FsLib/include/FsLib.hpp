@@ -1,6 +1,7 @@
 #pragma once
 #include "Directory.hpp"
 #include "DirectoryFunctions.hpp"
+#include "FileFunctions.hpp"
 #include "InputFile.hpp"
 #include "OutputFile.hpp"
 #include "Path.hpp"

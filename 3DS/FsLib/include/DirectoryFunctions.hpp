@@ -9,6 +9,8 @@ namespace FsLib
     bool CreateDirectory(const FsLib::Path &DirectoryPath);
     // Attempts to create all directories in path.
     bool CreateDirectoriesRecursively(const FsLib::Path &DirectoryPath);
+    // Attempts to rename directory from OldPath to NewPath. Device must match for this to work at all.
+    bool RenameDirectory(const FsLib::Path &OldPath, const FsLib::Path &NewPath);
     // Attempts to delete directory
     bool DeleteDirectory(const FsLib::Path &DirectoryPath);
     // Attempts to recursively delete directory.

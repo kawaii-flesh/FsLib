@@ -73,6 +73,31 @@ bool FsLib::CreateDirectoriesRecursively(const FsLib::Path &DirectoryPath)
     return true;
 }
 
+bool FsLib::RenameDirectory(const FsLib::Path &OldPath, const FsLib::Path &NewPath)
+{
+    if ((!OldPath.IsValid() || !NewPath.IsValid()) || (OldPath.GetDevice() != NewPath.GetDevice()))
+    {
+        g_FsLibErrorString = ERROR_INVALID_PATH;
+        return false;
+    }
+
+    FS_Archive Archive;
+    if (!FsLib::GetArchiveByDeviceName(OldPath.GetDevice(), &Archive))
+    {
+        g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
+        return false;
+    }
+
+    Result FsError =
+        FSUSER_RenameDirectory(Archive, fsMakePath(PATH_UTF16, OldPath.GetPath()), Archive, fsMakePath(PATH_UTF16, NewPath.GetPath()));
+    if (R_FAILED(FsError))
+    {
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error renaming directory: 0x%08X.", FsError);
+        return false;
+    }
+    return true;
+}
+
 bool FsLib::DeleteDirectory(const FsLib::Path &DirectoryPath)
 {
     if (!DirectoryPath.IsValid())
