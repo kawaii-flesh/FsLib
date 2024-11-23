@@ -64,6 +64,28 @@ bool FsLib::OpenSharedExtData(std::u16string_view DeviceName, uint32_t SharedExt
     return true;
 }
 
+// This is basically identical to OpenExtData, but the archive ID is different.
+bool FsLib::OpenBossExtData(std::u16string_view DeviceName, uint32_t ExtDataID)
+{
+    FS_Archive Archive;
+    uint32_t BinaryData[] = {MEDIATYPE_SD, ExtDataID, 0x00000000};
+    FS_Path PathData = {.type = PATH_BINARY, .size = 0x0C, .data = BinaryData};
+
+    Result FsError = FSUSER_OpenArchive(&Archive, ARCHIVE_BOSS_EXTDATA, PathData);
+    if (R_FAILED(FsError))
+    {
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening BOSS Extdata archive %08X: 0x%08X", ExtDataID, FsError);
+        return false;
+    }
+
+    if (!FsLib::MapArchiveToDevice(DeviceName, Archive))
+    {
+        FSUSER_CloseArchive(Archive);
+        return false;
+    }
+    return true;
+}
+
 bool FsLib::OpenSystemSaveData(std::u16string_view DeviceName, uint32_t UniqueID)
 {
     FS_Archive Archive;
