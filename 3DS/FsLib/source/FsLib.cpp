@@ -28,7 +28,7 @@ bool FsLib::Initialize(void)
         return false;
     }
 
-    FsError = FSUSER_OpenArchive(&s_DeviceMap[SDMC_DEVICE_NAME], ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, NULL));
+    FsError = FSUSER_OpenArchive(&s_DeviceMap[SDMC_DEVICE_NAME], ARCHIVE_SDMC, {PATH_EMPTY, 0x00, NULL});
     if (R_FAILED(FsError))
     {
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening SDMC Archive: 0x%08X.", FsError);

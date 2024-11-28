@@ -1,6 +1,7 @@
 #include "OutputFile.hpp"
 #include "ErrorCommon.h"
 #include "FsLib.hpp"
+#include "FsPath.hpp"
 #include "String.hpp"
 #include <array>
 #include <cstdarg>
@@ -57,7 +58,6 @@ void FsLib::OutputFile::Open(const FsLib::Path &FilePath, uint64_t FileSize, boo
 
 size_t FsLib::OutputFile::Write(const void *Buffer, size_t WriteSize)
 {
-    // This is so we don't need to know file size for sure for extdata etc.
     if (!OutputFile::ResizeIfNeeded(WriteSize))
     {
         return 0;
@@ -118,20 +118,17 @@ bool FsLib::OutputFile::Flush(void)
 
 bool FsLib::OutputFile::OpenForWriting(FS_Archive Archive, const char16_t *FilePath, uint64_t FileSize)
 {
-    // FS_Path we're working with.
-    FS_Path FsPath = fsMakePath(PATH_UTF16, FilePath);
-
     // This will fail if the file doesn't exist. Hence, no error checking unless it becomes a problem.
-    FSUSER_DeleteFile(Archive, FsPath);
+    FSUSER_DeleteFile(Archive, CreatePath(FilePath));
 
-    Result FsError = FSUSER_CreateFile(Archive, FsPath, 0, FileSize);
+    Result FsError = FSUSER_CreateFile(Archive, CreatePath(FilePath), 0, FileSize);
     if (R_FAILED(FsError))
     {
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error creating file: 0x%08X.", FsError);
         return false;
     }
 
-    FsError = FSUSER_OpenFile(&m_FileHandle, Archive, FsPath, FS_OPEN_WRITE, 0);
+    FsError = FSUSER_OpenFile(&m_FileHandle, Archive, CreatePath(FilePath), FS_OPEN_WRITE, 0);
     if (R_FAILED(FsError))
     {
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening file for writing: 0x%08X.", FsError);
@@ -144,7 +141,7 @@ bool FsLib::OutputFile::OpenForWriting(FS_Archive Archive, const char16_t *FileP
 
 bool FsLib::OutputFile::OpenForAppending(FS_Archive Archive, const char16_t *FilePath)
 {
-    Result FsError = FSUSER_OpenFile(&m_FileHandle, Archive, fsMakePath(PATH_UTF16, FilePath), FS_OPEN_WRITE, 0);
+    Result FsError = FSUSER_OpenFile(&m_FileHandle, Archive, CreatePath(FilePath), FS_OPEN_WRITE, 0);
     if (R_FAILED(FsError))
     {
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening file for appending: 0x%08X.", FsError);

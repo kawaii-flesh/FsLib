@@ -1,6 +1,7 @@
 #include "Directory.hpp"
 #include "ErrorCommon.h"
 #include "FsLib.hpp"
+#include "FsPath.hpp"
 #include "String.hpp"
 #include <algorithm>
 #include <cstring>
@@ -64,7 +65,7 @@ void FsLib::Directory::Open(const FsLib::Path &DirectoryPath)
         return;
     }
 
-    Result FsError = FSUSER_OpenDirectory(&m_DirectoryHande, Archive, fsMakePath(PATH_UTF16, DirectoryPath.GetPath()));
+    Result FsError = FSUSER_OpenDirectory(&m_DirectoryHande, Archive, CreatePath(DirectoryPath.GetPath()));
     if (R_FAILED(FsError))
     {
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening directory: 0x%08X.", FsError);

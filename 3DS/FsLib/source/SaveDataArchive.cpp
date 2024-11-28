@@ -7,7 +7,7 @@ extern std::string g_FsLibErrorString;
 bool FsLib::OpenSaveData(std::u16string_view DeviceName)
 {
     FS_Archive Archive;
-    Result FsError = FSUSER_OpenArchive(&Archive, ARCHIVE_SAVEDATA, fsMakePath(PATH_EMPTY, NULL));
+    Result FsError = FSUSER_OpenArchive(&Archive, ARCHIVE_SAVEDATA, {PATH_EMPTY, 0x00, NULL});
     if (R_FAILED(FsError))
     {
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening save data archive: 0x%08X.", FsError);
@@ -110,7 +110,7 @@ bool FsLib::OpenSystemSaveData(std::u16string_view DeviceName, uint32_t UniqueID
 bool FsLib::OpenGameCardSaveData(std::u16string_view DeviceName)
 {
     FS_Archive Archive;
-    Result FsError = FSUSER_OpenArchive(&Archive, ARCHIVE_GAMECARD_SAVEDATA, fsMakePath(PATH_EMPTY, NULL));
+    Result FsError = FSUSER_OpenArchive(&Archive, ARCHIVE_GAMECARD_SAVEDATA, {PATH_EMPTY, 0x00, NULL});
     if (R_FAILED(FsError))
     {
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening game card save data: 0x%08X.", FsError);
