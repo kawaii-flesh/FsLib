@@ -57,7 +57,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=c++23
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= ../../FsLib/lib/libFsLib.a -lctru -lm -ljson-c
+LIBS	:= ../../FsLib/lib/libFsLib.a -lctru -lm -lminizip -lz
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

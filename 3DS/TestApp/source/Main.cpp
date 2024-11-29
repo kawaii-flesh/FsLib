@@ -1,7 +1,7 @@
 #include "FsLib.hpp"
 #include <3ds.h>
 #include <fstream>
-#include <json-c/json.h>
+#include <minizip/zip.h>
 #include <string>
 
 static std::u16string_view REALLY_LONG_DIR_PATH =
@@ -36,6 +36,7 @@ static void PrintDirectory(const FsLib::Path &DirectoryPath)
 // This will completely cut out archive_dev.
 extern "C"
 {
+    u32 __stacksize__ = 0x20000;
     void __appInit(void)
     {
         srvInit();
@@ -97,16 +98,9 @@ int main(void)
         TestFile << "Test String.";
     }
 
-    // This is to test to make sure FsLib::Dev is working.
-    json_object *JKSMConfig = json_object_from_file("sdmc:/config/JKSM/JKSM.json");
-    if (!JKSMConfig)
-    {
-        // This is more useful than stdio errors.
-        printf("%s\n", FsLib::GetErrorString());
-        return -1;
-    }
-    printf("%s\n", json_object_get_string(JKSMConfig));
-    json_object_put(JKSMConfig);
+    // This is a test for JKSM and minizip.
+    zipFile TestZip = zipOpen("sdmc:/Test.zip", 0);
+    zipClose(TestZip, NULL);
 
     printf("Press Start to exit.");
     while (aptMainLoop())

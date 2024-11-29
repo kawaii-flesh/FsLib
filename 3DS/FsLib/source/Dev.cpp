@@ -22,14 +22,14 @@ extern "C"
 
 namespace
 {
-    constexpr devoptab_t s_SDMCdevoptab = {.name = "sdmc",
-                                           .structSize =
-                                               sizeof(int), // This is just the ID of the file. This is to pretty much bypass newlib entirely.
-                                           .open_r = FsLibDevOpen,
-                                           .close_r = FsLibDevClose,
-                                           .write_r = FsLibDevWrite,
-                                           .read_r = FsLibDevRead,
-                                           .seek_r = FsLibDevSeek};
+    constexpr devoptab_t s_SDMCdevoptab = {
+        .name = "sdmc",
+        .structSize = sizeof(int), // This is just the ID of the file. This is to pretty much bypass newlib as much as possible.
+        .open_r = FsLibDevOpen,
+        .close_r = FsLibDevClose,
+        .write_r = FsLibDevWrite,
+        .read_r = FsLibDevRead,
+        .seek_r = FsLibDevSeek};
 
     // Map of open files.
     std::unordered_map<int, FsLib::File> s_FileMap;

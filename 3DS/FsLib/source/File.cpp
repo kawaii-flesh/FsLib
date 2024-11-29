@@ -36,15 +36,15 @@ void FsLib::File::Open(const FsLib::Path &FilePath, uint32_t OpenModes, uint64_t
     // Need to save these.
     m_Modes = OpenModes;
 
-    if (m_Modes & FS_OPEN_CREATE && FsLib::FileExists(FilePath) && !FsLib::DeleteFile(FilePath))
+    // The second mode condition is a work around for FsLib::Dev.
+    if ((m_Modes & FS_OPEN_CREATE || (m_Modes & (FS_OPEN_READ | FS_OPEN_WRITE))) && FsLib::FileExists(FilePath) && !FsLib::DeleteFile(FilePath))
     {
-        g_FsLibErrorString = "Shouldn't be here?";
         return;
     }
 
-    if (m_Modes & FS_OPEN_CREATE && !FsLib::CreateFile(FilePath, FileSize))
+
+    if ((m_Modes & FS_OPEN_CREATE || (m_Modes & (FS_OPEN_READ | FS_OPEN_WRITE))) && !FsLib::CreateFile(FilePath, FileSize))
     {
-        g_FsLibErrorString = "Here either.";
         return;
     }
 
@@ -71,8 +71,6 @@ void FsLib::File::Open(const FsLib::Path &FilePath, uint32_t OpenModes, uint64_t
 
     // I added FS_OPEN_APPEND to FsLib. This isn't normally part of ctrulib/3DS.
     m_Offset = m_Modes & FS_OPEN_APPEND ? m_FileSize : 0;
-
-    g_FsLibErrorString = "Good to go?\n";
 
     // Should be good now.
     m_IsOpen = true;
