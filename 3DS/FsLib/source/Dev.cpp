@@ -117,7 +117,7 @@ extern "C"
         *reinterpret_cast<int *>(FileID) = CurrentFile;
 
         // Set file in map.
-        s_FileMap[CurrentFile].Open(Path, 0, OpenModeFlags);
+        s_FileMap[CurrentFile].Open(Path, OpenModeFlags);
         if (!s_FileMap[CurrentFile].IsOpen())
         {
             // Erase from map and return error.

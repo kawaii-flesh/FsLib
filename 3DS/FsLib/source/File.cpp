@@ -12,14 +12,9 @@ namespace
 
 extern std::string g_FsLibErrorString;
 
-FsLib::File::File(const FsLib::Path &FilePath, uint32_t OpenModes)
+FsLib::File::File(const FsLib::Path &FilePath, uint32_t OpenModes, uint64_t FileSize)
 {
-    File::Open(FilePath, 0, OpenModes);
-}
-
-FsLib::File::File(const FsLib::Path &FilePath, uint64_t FileSize, uint32_t OpenModes)
-{
-    File::Open(FilePath, FileSize, OpenModes);
+    File::Open(FilePath, OpenModes, FileSize);
 }
 
 FsLib::File::~File()
@@ -27,7 +22,7 @@ FsLib::File::~File()
     File::Close();
 }
 
-void FsLib::File::Open(const FsLib::Path &FilePath, uint64_t FileSize, uint32_t OpenModes)
+void FsLib::File::Open(const FsLib::Path &FilePath, uint32_t OpenModes, uint64_t FileSize)
 {
     // Just to be sure.
     m_IsOpen = false;

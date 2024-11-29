@@ -68,7 +68,7 @@ void CopyFile(const FsLib::Path &Source, const FsLib::Path &Destination)
     FsLib::File SourceFile(Source, FS_OPEN_READ);
     // Writing. This uses an overload of the OutputFile class that allows you to specify the size of the file when it's created. This is
     // actually required for write to ExtData.
-    FsLib::File DestinationFile(Destination, SourceFile.GetSize(), FS_OPEN_CREATE | FS_OPEN_WRITE);
+    FsLib::File DestinationFile(Destination, FS_OPEN_CREATE | FS_OPEN_WRITE, SourceFile.GetSize());
     if (!SourceFile.IsOpen() || !DestinationFile.IsOpen())
     {
         printf("FsLib ERROR: %s", FsLib::GetErrorString());

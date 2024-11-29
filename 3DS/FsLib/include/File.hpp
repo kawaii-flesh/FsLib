@@ -20,12 +20,11 @@ namespace FsLib
         public:
             File(void) = default;
             // These call open for you.
-            File(const FsLib::Path &FilePath, uint32_t OpenModes);
-            File(const FsLib::Path &FilePath, uint64_t FileSize, uint32_t OpenModes);
+            File(const FsLib::Path &FilePath, uint32_t OpenModes, uint64_t FileSize = 0);
             // This calls close.
             ~File();
             // Opens the file handle with mode and file size passed. Is open can be checked to see if it was successful.
-            void Open(const FsLib::Path &FilePath, uint64_t FileSize, uint32_t OpenModes);
+            void Open(const FsLib::Path &FilePath, uint32_t OpenModes, uint64_t FileSize = 0);
             // Closes file Handle.
             void Close(void);
             // Returns if file was successfully opened.
