@@ -77,30 +77,24 @@ extern "C"
             return -1;
         }
 
-        uint32_t OpenModeFlags = 0;
-        switch (Mode & O_ACCMODE)
+        uint32_t OpenFlags = 0;
+        switch (Flags & O_ACCMODE)
         {
             case O_RDONLY:
             {
-                OpenModeFlags = FS_OPEN_READ;
+                OpenFlags = FS_OPEN_READ;
             }
             break;
 
             case O_WRONLY:
             {
-                OpenModeFlags = FS_OPEN_CREATE | FS_OPEN_WRITE;
+                OpenFlags = FS_OPEN_WRITE;
             }
             break;
 
             case O_RDWR:
             {
-                OpenModeFlags = FS_OPEN_READ | FS_OPEN_WRITE;
-            }
-            break;
-
-            case O_APPEND:
-            {
-                OpenModeFlags = FS_OPEN_WRITE | FS_OPEN_APPEND; // I added the append flag to FsLib. It's not a standard part of ctrulib.
+                OpenFlags = FS_OPEN_READ | FS_OPEN_WRITE;
             }
             break;
 
@@ -112,12 +106,26 @@ extern "C"
             break;
         }
 
+        // The first condition is a precaution.
+        if (Flags & O_APPEND && !FsLib::FileExists(Path))
+        {
+            OpenFlags |= FS_OPEN_CREATE;
+        }
+        else if (Flags & O_APPEND)
+        {
+            OpenFlags |= FS_OPEN_APPEND;
+        }
+        else if (Flags & O_CREAT)
+        {
+            OpenFlags |= FS_OPEN_CREATE;
+        }
+
         // Since we got here, increase ID count
         int CurrentFile = CurrentFileID++;
         *reinterpret_cast<int *>(FileID) = CurrentFile;
 
         // Set file in map.
-        s_FileMap[CurrentFile].Open(Path, OpenModeFlags);
+        s_FileMap[CurrentFile].Open(Path, OpenFlags);
         if (!s_FileMap[CurrentFile].IsOpen())
         {
             // Erase from map and return error.

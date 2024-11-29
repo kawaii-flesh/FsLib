@@ -3,7 +3,7 @@
 #include <3ds.h>
 #include <cstdint>
 
-// The 3DS apparently doesn't have this?
+// This is to make this easier.
 static constexpr uint32_t FS_OPEN_APPEND = BIT(3);
 
 namespace FsLib
@@ -20,11 +20,11 @@ namespace FsLib
         public:
             File(void) = default;
             // These call open for you.
-            File(const FsLib::Path &FilePath, uint32_t OpenModes, uint64_t FileSize = 0);
+            File(const FsLib::Path &FilePath, uint32_t OpenFlags, uint64_t FileSize = 0);
             // This calls close.
             ~File();
             // Opens the file handle with mode and file size passed. Is open can be checked to see if it was successful.
-            void Open(const FsLib::Path &FilePath, uint32_t OpenModes, uint64_t FileSize = 0);
+            void Open(const FsLib::Path &FilePath, uint32_t OpenFlags, uint64_t FileSize = 0);
             // Closes file Handle.
             void Close(void);
             // Returns if file was successfully opened.
@@ -77,7 +77,7 @@ namespace FsLib
             // Whether or not file is open
             bool m_IsOpen = false;
             // The modes used to open the file.
-            uint32_t m_Modes;
+            uint32_t m_Flags;
             // Offset and size
             int64_t m_Offset, m_FileSize;
             // This can be called to check and correct the offset to a certain degree.
@@ -85,8 +85,14 @@ namespace FsLib
             // Attempts to resize file before write operation.
             bool ResizeIfNeeded(size_t BufferSize);
             // Returns whether or not file is open for reading.
-            bool IsOpenForReading(void) const;
+            inline bool IsOpenForReading(void) const
+            {
+                return m_Flags & FS_OPEN_READ;
+            }
             // Returns whether or not file is open for writing.
-            bool IsOpenForWriting(void) const;
+            inline bool IsOpenForWriting(void) const
+            {
+                return m_Flags & FS_OPEN_WRITE;
+            }
     };
 } // namespace FsLib

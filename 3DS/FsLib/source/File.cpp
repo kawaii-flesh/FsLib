@@ -12,9 +12,9 @@ namespace
 
 extern std::string g_FsLibErrorString;
 
-FsLib::File::File(const FsLib::Path &FilePath, uint32_t OpenModes, uint64_t FileSize)
+FsLib::File::File(const FsLib::Path &FilePath, uint32_t OpenFlags, uint64_t FileSize)
 {
-    File::Open(FilePath, OpenModes, FileSize);
+    File::Open(FilePath, OpenFlags, FileSize);
 }
 
 FsLib::File::~File()
@@ -22,7 +22,7 @@ FsLib::File::~File()
     File::Close();
 }
 
-void FsLib::File::Open(const FsLib::Path &FilePath, uint32_t OpenModes, uint64_t FileSize)
+void FsLib::File::Open(const FsLib::Path &FilePath, uint32_t OpenFlags, uint64_t FileSize)
 {
     // Just to be sure.
     m_IsOpen = false;
@@ -34,16 +34,14 @@ void FsLib::File::Open(const FsLib::Path &FilePath, uint32_t OpenModes, uint64_t
     }
 
     // Need to save these.
-    m_Modes = OpenModes;
+    m_Flags = OpenFlags;
 
-    // The second mode condition is a work around for FsLib::Dev.
-    if ((m_Modes & FS_OPEN_CREATE || (m_Modes & (FS_OPEN_READ | FS_OPEN_WRITE))) && FsLib::FileExists(FilePath) && !FsLib::DeleteFile(FilePath))
+    if (m_Flags & FS_OPEN_CREATE && FsLib::FileExists(FilePath) && !FsLib::DeleteFile(FilePath))
     {
         return;
     }
 
-
-    if ((m_Modes & FS_OPEN_CREATE || (m_Modes & (FS_OPEN_READ | FS_OPEN_WRITE))) && !FsLib::CreateFile(FilePath, FileSize))
+    if (m_Flags & FS_OPEN_CREATE && !FsLib::CreateFile(FilePath, FileSize))
     {
         return;
     }
@@ -55,7 +53,7 @@ void FsLib::File::Open(const FsLib::Path &FilePath, uint32_t OpenModes, uint64_t
         return;
     }
 
-    Result FsError = FSUSER_OpenFile(&m_FileHandle, Archive, CreatePath(FilePath.GetPath()), m_Modes, 0);
+    Result FsError = FSUSER_OpenFile(&m_FileHandle, Archive, CreatePath(FilePath.GetPath()), m_Flags, 0);
     if (R_FAILED(FsError))
     {
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening file: 0x%08X.", FsError);
@@ -70,7 +68,7 @@ void FsLib::File::Open(const FsLib::Path &FilePath, uint32_t OpenModes, uint64_t
     }
 
     // I added FS_OPEN_APPEND to FsLib. This isn't normally part of ctrulib/3DS.
-    m_Offset = m_Modes & FS_OPEN_APPEND ? m_FileSize : 0;
+    m_Offset = m_Flags & FS_OPEN_APPEND ? m_FileSize : 0;
 
     // Should be good now.
     m_IsOpen = true;
@@ -278,14 +276,4 @@ bool FsLib::File::ResizeIfNeeded(size_t BufferSize)
         }
     }
     return true;
-}
-
-bool FsLib::File::IsOpenForReading(void) const
-{
-    return m_Modes & FS_OPEN_READ;
-}
-
-bool FsLib::File::IsOpenForWriting(void) const
-{
-    return m_Modes & FS_OPEN_WRITE;
 }

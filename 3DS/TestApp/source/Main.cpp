@@ -1,6 +1,7 @@
 #include "FsLib.hpp"
 #include <3ds.h>
 #include <fstream>
+#include <minizip/unzip.h>
 #include <minizip/zip.h>
 #include <string>
 
@@ -99,8 +100,22 @@ int main(void)
     }
 
     // This is a test for JKSM and minizip.
-    zipFile TestZip = zipOpen("sdmc:/Test.zip", 0);
-    zipClose(TestZip, NULL);
+    FILE *Test = fopen("sdmc:/Test.txt", "w");
+    if (!Test)
+    {
+        printf("%s\n", FsLib::GetErrorString());
+        return -2;
+    }
+    fputs("Text to make sure of something.\n", Test);
+    fclose(Test);
+
+    Test = fopen("sdmc:/Test.txt", "a");
+    fputs("Appended text.", Test);
+    fclose(Test);
+
+    // This is just to make sure this doesn't do anything odd.
+    Test = fopen("sdmc:/Test.txt", "r");
+    fclose(Test);
 
     printf("Press Start to exit.");
     while (aptMainLoop())
