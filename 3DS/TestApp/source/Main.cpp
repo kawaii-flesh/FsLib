@@ -1,5 +1,7 @@
 #include "FsLib.hpp"
 #include <3ds.h>
+#include <fstream>
+#include <json-c/json.h>
 #include <string>
 
 static std::u16string_view REALLY_LONG_DIR_PATH =
@@ -31,6 +33,26 @@ static void PrintDirectory(const FsLib::Path &DirectoryPath)
     }
 }
 
+// This will completely cut out archive_dev.
+extern "C"
+{
+    void __appInit(void)
+    {
+        srvInit();
+        aptInit();
+        fsInit();
+        hidInit();
+    }
+
+    void __appExit(void)
+    {
+        hidExit();
+        fsExit();
+        aptExit();
+        srvExit();
+    }
+}
+
 int main(void)
 {
     hidInit();
@@ -44,35 +66,47 @@ int main(void)
         return -1;
     }
 
-    FsLib::Path TestPath = u"sdmc:///////////////////////////////////////3ds//////////////////////////////////";
-    TestPath = TestPath / u"//////////////////JKSM/////////////////////////";
-    printf("%s\n", UTF16ToUTF8(TestPath.CString()).c_str());
-
-    if (FsLib::RenameDirectory(u"sdmc:/JKSV", u"sdmc:/JKSM"))
+    // This will initialize the barebones newlib->fslib layer.
+    if (!FsLib::Dev::InitializeSDMC())
     {
-        printf("Did it.\n");
+        printf("FsLib::Dev Failed.\n");
+        return -2;
     }
 
-    if (FsLib::RenameDirectory(u"sdmc:/JKSM", u"sdmc:/JKSV"))
+    // This is what's most important, because FsLib's job is to do what archive_dev can't.
     {
-        printf("Did it again.\n");
+        FsLib::File JKSMConfig(u"sdmc:/config/JKSM/JKSM.json", FS_OPEN_READ);
+        if (!JKSMConfig.IsOpen())
+        {
+            printf("%s\n", FsLib::GetErrorString());
+            return -1;
+        }
+        // This shouldn't be large enough to need heap.
+        char ConfigBuffer[JKSMConfig.GetSize()] = {0};
+        JKSMConfig.Read(ConfigBuffer, JKSMConfig.GetSize());
+        printf("%s\n", ConfigBuffer);
     }
 
-    if (FsLib::FileExists(u"sdmc:/3ds/JKSM.3dsx"))
     {
-        printf("Good shit.\n");
+        FsLib::File TestFile(u"sdmc:/TestFile.txt", FS_OPEN_CREATE | FS_OPEN_WRITE);
+        if (!TestFile.IsOpen())
+        {
+            printf("%s\n", FsLib::GetErrorString());
+            return -1;
+        }
+        TestFile << "Test String.";
     }
 
-    // I guess this *technically* makes this test app malware, huh?
-    if (FsLib::FileExists(u"sdmc:/3ds/Checkpoint.3dsx") && FsLib::DeleteFile(u"sdmc:/3ds/Checkpoint.3dsx"))
+    // This is to test to make sure FsLib::Dev is working.
+    json_object *JKSMConfig = json_object_from_file("sdmc:/config/JKSM/JKSM.json");
+    if (!JKSMConfig)
     {
-        printf("lol fixed that for you.\n");
-    }
-
-    if (!FsLib::CreateDirectoriesRecursively(REALLY_LONG_DIR_PATH))
-    {
+        // This is more useful than stdio errors.
         printf("%s\n", FsLib::GetErrorString());
+        return -1;
     }
+    printf("%s\n", json_object_get_string(JKSMConfig));
+    json_object_put(JKSMConfig);
 
     printf("Press Start to exit.");
     while (aptMainLoop())

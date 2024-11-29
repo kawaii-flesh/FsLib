@@ -13,6 +13,10 @@ namespace
 // Globally shared error string.
 std::string g_FsLibErrorString = "No errors encountered.";
 
+/*
+    This overrides libctru's init and exit so it doesn't init archive_dev.
+*/
+
 // Checks if device is already in map.
 static bool DeviceNameIsInUse(std::u16string_view DeviceName)
 {

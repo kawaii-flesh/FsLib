@@ -57,13 +57,13 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=c++23
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lctru -lm ../../FsLib/lib/libFsLib.a
+LIBS	:= ../../FsLib/lib/libFsLib.a -lctru -lm -ljson-c
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(CTRULIB)
+LIBDIRS	:= $(CTRULIB) $(PORTLIBS)
 
 
 #---------------------------------------------------------------------------------

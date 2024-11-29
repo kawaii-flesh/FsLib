@@ -25,7 +25,7 @@ typedef struct
 } SharedWriteData;
 
 // This is the function that is going to be running in our thread.
-void WriteThreadFunction(FsLib::OutputFile &FileOut, std::shared_ptr<SharedWriteData> SharedStruct)
+void WriteThreadFunction(FsLib::File &FileOut, std::shared_ptr<SharedWriteData> SharedStruct)
 {
     // This keeps track of how many bytes were written by this thread.
     size_t TotalBytesWritten = 0;
@@ -65,10 +65,10 @@ void CopyFile(const FsLib::Path &Source, const FsLib::Path &Destination)
     printf("Copying %s to %s... ", ToUTF8(Source.CString()).c_str(), ToUTF8(Destination.CString()).c_str());
     // Open the source and destination files.
     // Source/Reading
-    FsLib::InputFile SourceFile(Source);
+    FsLib::File SourceFile(Source, FS_OPEN_READ);
     // Writing. This uses an overload of the OutputFile class that allows you to specify the size of the file when it's created. This is
     // actually required for write to ExtData.
-    FsLib::OutputFile DestinationFile(Destination, SourceFile.GetSize());
+    FsLib::File DestinationFile(Destination, SourceFile.GetSize(), FS_OPEN_CREATE | FS_OPEN_WRITE);
     if (!SourceFile.IsOpen() || !DestinationFile.IsOpen())
     {
         printf("FsLib ERROR: %s", FsLib::GetErrorString());
