@@ -173,6 +173,29 @@ std::u16string_view FsLib::Path::GetDevice(void) const
     return std::u16string_view(m_Path, m_DeviceEnd - m_Path);
 }
 
+std::u16string_view FsLib::Path::GetFileName(void) const
+{
+    size_t FileNameBegin = Path::FindLastOf(u'/');
+    size_t FileNameEnd = Path::FindLastOf(u'.');
+    if (FileNameBegin == Path::NotFound || FileNameEnd == Path::NotFound)
+    {
+        return std::u16string_view(u"");
+    }
+    ++FileNameBegin;
+    --FileNameEnd;
+    return std::u16string_view(&m_Path[FileNameBegin], FileNameEnd - FileNameBegin);
+}
+
+std::u16string_view FsLib::Path::GetExtension(void) const
+{
+    size_t ExtensionBegin = Path::FindLastOf(u'.');
+    if (ExtensionBegin == Path::NotFound)
+    {
+        return std::u16string_view(u"");
+    }
+    return std::u16string_view(&m_Path[ExtensionBegin] + 1, m_PathLength);
+}
+
 FS_Path FsLib::Path::GetPath(void) const
 {
     return {PATH_UTF16, (std::char_traits<char16_t>::length(m_DeviceEnd) * sizeof(char16_t)) + sizeof(char16_t), m_DeviceEnd + 1};

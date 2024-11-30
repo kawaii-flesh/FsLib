@@ -36,6 +36,10 @@ namespace FsLib
             const char16_t *CString(void) const;
             // Returns the device name as u16string_view fo r use with FsLib's device map.
             std::u16string_view GetDevice(void) const;
+            // Returns file name as string_view
+            std::u16string_view GetFileName(void) const;
+            // Returns the extension as string_view.
+            std::u16string_view GetExtension(void) const;
             // Returns the path for use with 3DS FS functions.
             FS_Path GetPath(void) const;
             // Returns the current length of the string.

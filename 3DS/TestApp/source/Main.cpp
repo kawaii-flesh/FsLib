@@ -75,47 +75,9 @@ int main(void)
         return -2;
     }
 
-    // This is what's most important, because FsLib's job is to do what archive_dev can't.
-    {
-        FsLib::File JKSMConfig(u"sdmc:/config/JKSM/JKSM.json", FS_OPEN_READ);
-        if (!JKSMConfig.IsOpen())
-        {
-            printf("%s\n", FsLib::GetErrorString());
-            return -1;
-        }
-        // This shouldn't be large enough to need heap.
-        char ConfigBuffer[JKSMConfig.GetSize()] = {0};
-        JKSMConfig.Read(ConfigBuffer, JKSMConfig.GetSize());
-        printf("%s\n", ConfigBuffer);
-    }
+    FsLib::Path TestPath = u"sdmc:/JKSM/SAVE_FOLDER/Backup.zip";
 
-    {
-        FsLib::File TestFile(u"sdmc:/TestFile.txt", FS_OPEN_CREATE | FS_OPEN_WRITE);
-        if (!TestFile.IsOpen())
-        {
-            printf("%s\n", FsLib::GetErrorString());
-            return -1;
-        }
-        TestFile << "Test String.";
-    }
-
-    // This is a test for JKSM and minizip.
-    FILE *Test = fopen("sdmc:/Test.txt", "w");
-    if (!Test)
-    {
-        printf("%s\n", FsLib::GetErrorString());
-        return -2;
-    }
-    fputs("Text to make sure of something.\n", Test);
-    fclose(Test);
-
-    Test = fopen("sdmc:/Test.txt", "a");
-    fputs("Appended text.", Test);
-    fclose(Test);
-
-    // This is just to make sure this doesn't do anything odd.
-    Test = fopen("sdmc:/Test.txt", "r");
-    fclose(Test);
+    printf("File name: %s\nExtension: %s\n", UTF16ToUTF8(TestPath.GetFileName()).c_str(), UTF16ToUTF8(TestPath.GetExtension()).c_str());
 
     printf("Press Start to exit.");
     while (aptMainLoop())
@@ -125,6 +87,9 @@ int main(void)
         {
             break;
         }
+        gfxFlushBuffers();
+        gfxSwapBuffers();
+        gspWaitForVBlank();
     }
 
     FsLib::Exit();
