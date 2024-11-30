@@ -113,7 +113,7 @@ const char *FsLib::Directory::GetEntryAt(int Index) const
 {
     if (Index >= m_EntryCount)
     {
-        return NULL;
+        return nullptr;
     }
     return m_DirectoryList[Index].name;
 }

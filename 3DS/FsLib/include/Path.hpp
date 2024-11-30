@@ -1,4 +1,5 @@
 #pragma once
+#include <3ds.h>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -19,6 +20,7 @@ namespace FsLib
             Path(const uint16_t *P);
             Path(const std::u16string &P);
             Path(std::u16string_view P);
+            Path(Path &&P);
             ~Path();
             // Returns if a path is valid for use with FsLib and 3DS FS.
             bool IsValid(void) const;
@@ -35,7 +37,7 @@ namespace FsLib
             // Returns the device name as u16string_view fo r use with FsLib's device map.
             std::u16string_view GetDevice(void) const;
             // Returns the path for use with 3DS FS functions.
-            const char16_t *GetPath(void) const;
+            FS_Path GetPath(void) const;
             // Returns the current length of the string.
             size_t GetLength(void) const;
 

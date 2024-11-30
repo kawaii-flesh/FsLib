@@ -1,32 +1,30 @@
 #include "Path.hpp"
 #include "String.hpp"
+#include <algorithm>
+#include <array>
 #include <cstring>
 
 namespace
 {
-    const char16_t *ForbiddenPathCharacters = u"<>:\"|?*";
-}
+    constexpr std::array<char16_t, 8> s_ForbiddenPathCharacters = {u'<', u'>', u':', u'\\', u'"', u'|', u'?', u'*'};
+} // namespace
 
 // Apparently C++ has no way of doing this in char_traits.
 // C standard library has some pretty hard to decipher names.
-const char16_t *U16StrPBrk(const char16_t *String, const char16_t *Characters)
+const char16_t *U16StrPBrk(const char16_t *String)
 {
-    size_t CharacterCount = std::char_traits<char16_t>::length(Characters);
     while (*String)
     {
-        for (size_t i = 0; i < CharacterCount; i++)
+        if (std::find(s_ForbiddenPathCharacters.begin(), s_ForbiddenPathCharacters.end(), *String) != s_ForbiddenPathCharacters.end())
         {
-            if (*String == Characters[i])
-            {
-                return String;
-            }
+            return String;
         }
         ++String;
     }
     return nullptr;
 }
 
-// This is an all in one version of what Switch does. Passing NULL as PathBegin skips trimming the beginning.
+// This is an all in one version of what Switch does. Passing nullptr as PathBegin skips trimming the beginning.
 void GetTrimmedPath(const char16_t *Path, const char16_t **PathBegin, size_t &PathLength)
 {
     // This will skip over beginning slashes.
@@ -71,6 +69,14 @@ FsLib::Path::Path(std::u16string_view P)
     *this = P;
 }
 
+FsLib::Path::Path(FsLib::Path &&P) : m_Path(P.m_Path), m_DeviceEnd(P.m_DeviceEnd), m_PathSize(P.m_PathSize), m_PathLength(P.m_PathLength)
+{
+    P.m_Path = nullptr;
+    P.m_DeviceEnd = nullptr;
+    P.m_PathSize = 0;
+    P.m_PathLength = 0;
+}
+
 FsLib::Path::~Path()
 {
     Path::FreePath();
@@ -79,7 +85,7 @@ FsLib::Path::~Path()
 bool FsLib::Path::IsValid(void) const
 {
     return m_Path != nullptr && m_DeviceEnd != nullptr && std::char_traits<char16_t>::length(m_Path) > 0 &&
-           U16StrPBrk(m_DeviceEnd + 1, ForbiddenPathCharacters) == NULL;
+           U16StrPBrk(m_DeviceEnd + 1) == nullptr;
 }
 
 FsLib::Path FsLib::Path::SubPath(size_t PathLength) const
@@ -167,9 +173,9 @@ std::u16string_view FsLib::Path::GetDevice(void) const
     return std::u16string_view(m_Path, m_DeviceEnd - m_Path);
 }
 
-const char16_t *FsLib::Path::GetPath(void) const
+FS_Path FsLib::Path::GetPath(void) const
 {
-    return m_DeviceEnd + 1;
+    return {PATH_UTF16, (std::char_traits<char16_t>::length(m_DeviceEnd) * sizeof(char16_t)) + sizeof(char16_t), m_DeviceEnd + 1};
 }
 
 size_t FsLib::Path::GetLength(void) const

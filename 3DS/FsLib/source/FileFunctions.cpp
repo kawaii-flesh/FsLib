@@ -1,7 +1,6 @@
 #include "FileFunctions.hpp"
 #include "ErrorCommon.h"
 #include "FsLib.hpp"
-#include "FsPath.hpp"
 #include "String.hpp"
 
 extern std::string g_FsLibErrorString;
@@ -20,7 +19,7 @@ bool FsLib::CreateFile(const FsLib::Path &FilePath, uint64_t FileSize)
         return false;
     }
 
-    Result FsError = FSUSER_CreateFile(Archive, CreatePath(FilePath.GetPath()), 0, FileSize);
+    Result FsError = FSUSER_CreateFile(Archive, FilePath.GetPath(), 0, FileSize);
     if (R_FAILED(FsError))
     {
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error creating file: 0x%08X.", FsError);
@@ -45,7 +44,7 @@ bool FsLib::FileExists(const FsLib::Path &FilePath)
     }
 
     Handle FileHandle;
-    Result FsError = FSUSER_OpenFile(&FileHandle, Archive, CreatePath(FilePath.GetPath()), FS_OPEN_READ, 0);
+    Result FsError = FSUSER_OpenFile(&FileHandle, Archive, FilePath.GetPath(), FS_OPEN_READ, 0);
     if (R_FAILED(FsError))
     {
         return false;
@@ -70,7 +69,7 @@ bool FsLib::RenameFile(const FsLib::Path &OldPath, const FsLib::Path &NewPath)
         return false;
     }
 
-    Result FsError = FSUSER_RenameFile(Archive, CreatePath(OldPath.GetPath()), Archive, CreatePath(NewPath.GetPath()));
+    Result FsError = FSUSER_RenameFile(Archive, OldPath.GetPath(), Archive, NewPath.GetPath());
     if (R_FAILED(FsError))
     {
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error renaming file: 0x%08X.", FsError);
@@ -94,7 +93,7 @@ bool FsLib::DeleteFile(const FsLib::Path &FilePath)
         return false;
     }
 
-    Result FsError = FSUSER_DeleteFile(Archive, CreatePath(FilePath.GetPath()));
+    Result FsError = FSUSER_DeleteFile(Archive, FilePath.GetPath());
     if (R_FAILED(FsError))
     {
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error deleting file: 0x%08X.", FsError);

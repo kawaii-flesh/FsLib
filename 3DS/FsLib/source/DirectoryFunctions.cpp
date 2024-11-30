@@ -1,7 +1,6 @@
 #include "DirectoryFunctions.hpp"
 #include "ErrorCommon.h"
 #include "FsLib.hpp"
-#include "FsPath.hpp"
 #include "String.hpp"
 #include <3ds.h>
 
@@ -23,7 +22,7 @@ bool FsLib::DirectoryExists(const FsLib::Path &DirectoryPath)
     }
 
     Handle DirectoryHandle;
-    Result FsError = FSUSER_OpenDirectory(&DirectoryHandle, Archive, CreatePath(DirectoryPath.GetPath()));
+    Result FsError = FSUSER_OpenDirectory(&DirectoryHandle, Archive, DirectoryPath.GetPath());
     if (R_FAILED(FsError))
     {
         return false;
@@ -47,7 +46,7 @@ bool FsLib::CreateDirectory(const FsLib::Path &DirectoryPath)
         return false;
     }
 
-    Result FsError = FSUSER_CreateDirectory(Archive, CreatePath(DirectoryPath.GetPath()), 0);
+    Result FsError = FSUSER_CreateDirectory(Archive, DirectoryPath.GetPath(), 0);
     if (R_FAILED(FsError))
     {
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error creating directory: 0x%08X.", FsError);
@@ -89,7 +88,7 @@ bool FsLib::RenameDirectory(const FsLib::Path &OldPath, const FsLib::Path &NewPa
         return false;
     }
 
-    Result FsError = FSUSER_RenameDirectory(Archive, CreatePath(OldPath.GetPath()), Archive, CreatePath(NewPath.GetPath()));
+    Result FsError = FSUSER_RenameDirectory(Archive, OldPath.GetPath(), Archive, NewPath.GetPath());
     if (R_FAILED(FsError))
     {
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error renaming directory: 0x%08X.", FsError);
@@ -113,7 +112,7 @@ bool FsLib::DeleteDirectory(const FsLib::Path &DirectoryPath)
         return false;
     }
 
-    Result FsError = FSUSER_DeleteDirectory(Archive, CreatePath(DirectoryPath.GetPath()));
+    Result FsError = FSUSER_DeleteDirectory(Archive, DirectoryPath.GetPath());
     if (R_FAILED(FsError))
     {
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error deleting directory: 0x%08X.", FsError);
@@ -138,7 +137,7 @@ bool FsLib::DeleteDirectoryRecursively(const FsLib::Path &DirectoryPath)
         return false;
     }
 
-    Result FsError = FSUSER_DeleteDirectoryRecursively(Archive, CreatePath(DirectoryPath.GetPath()));
+    Result FsError = FSUSER_DeleteDirectoryRecursively(Archive, DirectoryPath.GetPath());
     if (R_FAILED(FsError))
     {
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error deleting directory recursively: 0x%08X.", FsError);

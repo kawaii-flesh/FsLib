@@ -1,7 +1,6 @@
 #include "File.hpp"
 #include "ErrorCommon.h"
 #include "FsLib.hpp"
-#include "FsPath.hpp"
 #include "String.hpp"
 #include <cstdarg>
 
@@ -53,7 +52,7 @@ void FsLib::File::Open(const FsLib::Path &FilePath, uint32_t OpenFlags, uint64_t
         return;
     }
 
-    Result FsError = FSUSER_OpenFile(&m_FileHandle, Archive, CreatePath(FilePath.GetPath()), m_Flags, 0);
+    Result FsError = FSUSER_OpenFile(&m_FileHandle, Archive, FilePath.GetPath(), m_Flags, 0);
     if (R_FAILED(FsError))
     {
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening file: 0x%08X.", FsError);

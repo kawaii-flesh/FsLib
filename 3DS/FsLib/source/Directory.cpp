@@ -1,31 +1,20 @@
 #include "Directory.hpp"
 #include "ErrorCommon.h"
 #include "FsLib.hpp"
-#include "FsPath.hpp"
 #include "String.hpp"
 #include <algorithm>
 #include <cstring>
+#include <string>
 
-// This is only for testing the length of entry filenames.
-static size_t UTF16StringLength(const uint16_t *String)
-{
-    size_t Length = 0;
-    while (*String++ != 0)
-    {
-        Length++;
-    }
-    return Length + 1; // Forgot null terminator... derp.
-}
-
-static bool CompareEntries(const FS_DirectoryEntry &EntryA, const FS_DirectoryEntry &EntryB)
+bool CompareEntries(const FS_DirectoryEntry &EntryA, const FS_DirectoryEntry &EntryB)
 {
     if (EntryA.attributes != EntryB.attributes)
     {
         return EntryA.attributes & FS_ATTRIBUTE_DIRECTORY;
     }
 
-    size_t EntryALength = UTF16StringLength(EntryA.name);
-    size_t EntryBLength = UTF16StringLength(EntryB.name);
+    size_t EntryALength = std::char_traits<uint16_t>::length(EntryA.name);
+    size_t EntryBLength = std::char_traits<uint16_t>::length(EntryB.name);
     size_t ShortestString = EntryALength < EntryBLength ? EntryALength : EntryBLength;
     for (size_t i = 0; i < ShortestString; i++)
     {
@@ -65,7 +54,7 @@ void FsLib::Directory::Open(const FsLib::Path &DirectoryPath)
         return;
     }
 
-    Result FsError = FSUSER_OpenDirectory(&m_DirectoryHande, Archive, CreatePath(DirectoryPath.GetPath()));
+    Result FsError = FSUSER_OpenDirectory(&m_DirectoryHande, Archive, DirectoryPath.GetPath());
     if (R_FAILED(FsError))
     {
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening directory: 0x%08X.", FsError);
