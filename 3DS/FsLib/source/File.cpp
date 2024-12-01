@@ -273,6 +273,7 @@ bool FsLib::File::ResizeIfNeeded(size_t BufferSize)
             g_FsLibErrorString = FsLib::String::GetFormattedString("Error resizing file to fit buffer: 0x%08X.", FsError);
             return false;
         }
+        m_FileSize = NewFileSize;
     }
     return true;
 }

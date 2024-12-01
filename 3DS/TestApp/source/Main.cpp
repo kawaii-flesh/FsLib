@@ -8,30 +8,14 @@
 static std::u16string_view REALLY_LONG_DIR_PATH =
     u"sdmc:/A/Really/Long/Chain/Of/Folders/To/Make/Sure/Create/Directories/Recursively/Works/Right/And/Doesnt/Crash/The/3DS";
 
+const char *ZipString = "asdsf;kjsaf;kjasd;fkjas;dfkja'sdfj'asldjf'asljdf'askjldf'asjdf'asjkdf'kasjdf'kajsdf'kajsdf'kajsdf'askdjf'askdjf'";
+
 static std::string UTF16ToUTF8(std::u16string_view Str)
 {
     // This isn't the best idea.
     uint8_t UTF8Buffer[Str.length() + 1] = {0};
     utf16_to_utf8(UTF8Buffer, reinterpret_cast<const uint16_t *>(Str.data()), Str.length() + 1);
     return std::string(reinterpret_cast<const char *>(UTF8Buffer));
-}
-
-static void PrintDirectory(const FsLib::Path &DirectoryPath)
-{
-    FsLib::Directory Dir(DirectoryPath);
-    for (unsigned int i = 0; i < Dir.GetEntryCount(); i++)
-    {
-        if (Dir.EntryAtIsDirectory(i))
-        {
-            printf("\tDIR %s\n", UTF16ToUTF8(Dir.GetEntryAt(i)).c_str());
-            FsLib::Path NewPath = DirectoryPath + Dir.GetEntryAt(i) + u"/";
-            PrintDirectory(NewPath);
-        }
-        else
-        {
-            printf("\tFIL %s\n", UTF16ToUTF8(Dir.GetEntryAt(i)).c_str());
-        }
-    }
 }
 
 // This will completely cut out archive_dev.
@@ -75,9 +59,11 @@ int main(void)
         return -2;
     }
 
-    FsLib::Path TestPath = u"sdmc:/JKSM/SAVE_FOLDER/Backup.zip";
-
-    printf("File name: %s\nExtension: %s\n", UTF16ToUTF8(TestPath.GetFileName()).c_str(), UTF16ToUTF8(TestPath.GetExtension()).c_str());
+    zipFile TestZip = zipOpen("sdmc:/Test.zip", APPEND_STATUS_CREATE);
+    zipOpenNewFileInZip(TestZip, "Test.File", NULL, NULL, 0, NULL, 0, NULL, Z_DEFLATED, Z_BEST_SPEED);
+    zipWriteInFileInZip(TestZip, ZipString, std::char_traits<char>::length(ZipString));
+    zipCloseFileInZip(TestZip);
+    zipClose(TestZip, NULL);
 
     printf("Press Start to exit.");
     while (aptMainLoop())
