@@ -59,12 +59,6 @@ int main(void)
         return -2;
     }
 
-    zipFile TestZip = zipOpen("sdmc:/Test.zip", APPEND_STATUS_CREATE);
-    zipOpenNewFileInZip(TestZip, "Test.File", NULL, NULL, 0, NULL, 0, NULL, Z_DEFLATED, Z_BEST_SPEED);
-    zipWriteInFileInZip(TestZip, ZipString, std::char_traits<char>::length(ZipString));
-    zipCloseFileInZip(TestZip);
-    zipClose(TestZip, NULL);
-
     printf("Press Start to exit.");
     while (aptMainLoop())
     {

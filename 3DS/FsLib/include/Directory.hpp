@@ -9,18 +9,33 @@ namespace FsLib
     class Directory
     {
         public:
+            /// @brief Default initializer for FsLib::Directory.
             Directory(void) = default;
-            // Just calls the open function for you.
+
+            /// @brief Opens the directory at DirectoryPath and gets a listing. IsOpen can be checked to see if this was successful.
+            /// @param DirectoryPath Path to directory as either FsLib::Path or UTF-16 formatted string. Ex: u"sdmc:/"
             Directory(const FsLib::Path &DirectoryPath);
-            // Opens directory and reads contents. Whether operation was successful or not can be checked with IsOpen()
+
+            /// @brief Opens the directory at DirectoryPath and gets a listing. IsOpen can be checked to see if this was successful.
+            /// @param DirectoryPath Path to directory as either FsLib::Path or UTF-16 formatted string. Ex: u"sdmc:/"
             void Open(const FsLib::Path &DirectoryPath);
-            // Returns whether directory was successfully opened and read or not.
+
+            /// @brief Returns whether or not opening the directory and reading its contents was successful.
+            /// @return True on success. False on failure.
             bool IsOpen(void) const;
-            // Returns number of entries in directory.
+
+            /// @brief Returns the number of entries succefully read from the directory.
+            /// @return Number of entries read from directory.
             uint32_t GetEntryCount(void) const;
-            // Returns whether or not the entry at index is a directory.
+
+            /// @brief Returns whether or not the entry at Index in directory listing is a directory or not.
+            /// @param Index Index of entry to check.
+            /// @return True if the entry is a directory. False if not or Index is out of bounds.
             bool EntryAtIsDirectory(int Index) const;
-            // I've decided to leave converting this to other things up to the user. Returns empty view if index is out of bounds.
+
+            /// @brief Returns Entry at index as a UTF-16 AKA u16_string view.
+            /// @param Index Index of entry to retrieve.
+            /// @return Entry at index or empty if out of bounds.
             std::u16string_view GetEntryAt(int Index) const;
 
         private:

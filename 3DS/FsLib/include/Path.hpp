@@ -14,6 +14,8 @@ namespace FsLib
     class Path
     {
         public:
+            /// @brief Creates a new path for use with FsLib
+            /// @param StringType String to assign. Path supports most standard UTF-16 string types.
             Path(void) = default;
             Path(const Path &P);
             Path(const char16_t *P);
@@ -21,48 +23,80 @@ namespace FsLib
             Path(const std::u16string &P);
             Path(std::u16string_view P);
             Path(Path &&P);
+
+            /// @brief Frees path buffer.
             ~Path();
-            // Returns if a path is valid for use with FsLib and 3DS FS.
+
+            /// @brief Performs checks and returns if path is valid for use with FsLib.
+            /// @return True if path is valid. False if it is not.
             bool IsValid(void) const;
-            // Returns a subpath of length. If length >= m_PathLength... Good job.
+
+            /// @brief Returns a sub-path ending at PathLength
+            /// @param PathLength Length of subpath to return.
+            /// @return Sub-path.
             Path SubPath(size_t PathLength) const;
-            // Searches for Character in path. Overload uses Begin at the start point. Returns npos when not found.
+
+            /// @brief Searches for first occurrence of Character in Path. Overload starts at Begin.
+            /// @param Character Character to search.
+            /// @return Position of Character or Path::NotFound on failure.
             size_t FindFirstOf(char16_t Character) const;
             size_t FindFirstOf(char16_t Character, size_t Begin) const;
-            // Searches backwards for character in path. Same as above.
+
+            /// @brief Searches backwards to find last occurrence of Character in string. Overload starts at begin.
+            /// @param Character Character to search for.
+            /// @return Position of Character or Path::NotFound on failure.
             size_t FindLastOf(char16_t Character) const;
             size_t FindLastOf(char16_t Character, size_t Begin) const;
-            // Returns entire path as char16_t string array
+
+            /// @brief Returns the entire path as a C const char16_t* String
+            /// @return Pointer to path string buffer.
             const char16_t *CString(void) const;
-            // Returns the device name as u16string_view fo r use with FsLib's device map.
+
+            /// @brief Returns the device as a UTF-16 u16string_view.
+            /// @return Device string.
             std::u16string_view GetDevice(void) const;
-            // Returns file name as string_view
+
+            /// @brief Returns file name as u16string_view.
+            /// @return File name
             std::u16string_view GetFileName(void) const;
-            // Returns the extension as string_view.
+
+            /// @brief Returns extension of path as u16string_view.
+            /// @return Path's extension.
             std::u16string_view GetExtension(void) const;
-            // Returns the path for use with 3DS FS functions.
+
+            /// @brief Returns and FS_Path for use with 3DS FS functions.
+            /// @return FS_Path
             FS_Path GetPath(void) const;
-            // Returns the current length of the string.
+
+            /// @brief Returns length of the entire path string.
+            /// @return Length of path string.
             size_t GetLength(void) const;
 
-            // These erase and assign.
+            /// @brief Assigns Path from various standard UTF-16 string types.
+            /// @param P Path to assign from
+            /// @return Refrence to current path.
             Path &operator=(const Path &P);
             Path &operator=(const char16_t *P);
             Path &operator=(const uint16_t *P);
             Path &operator=(const std::u16string &P);
             Path &operator=(std::u16string_view P);
-            // These append, check and erase beginning and trailing slashes, and append.
+
+            /// @brief Preferred appending operator. Adds / if needed between paths. Also trims slashes from input.
+            /// @param P String to append.
+            /// @return Reference to current Path
             Path &operator/=(const char16_t *P);
             Path &operator/=(const uint16_t *P);
             Path &operator/=(const std::u16string &P);
             Path &operator/=(std::u16string_view P);
-            // These are unchecked appending operators.
+
+            /// @brief Unchecked appending operator. Input is not checked for validity of string appended.
+            /// @param P String to append.
+            /// @return Reference to current Path.
             Path &operator+=(const char16_t *P);
             Path &operator+=(const uint16_t *P);
             Path &operator+=(const std::u16string &P);
             Path &operator+=(std::u16string_view P);
 
-            // This is for returning failure for find functions.
             static constexpr uint16_t NotFound = -1;
 
         private:

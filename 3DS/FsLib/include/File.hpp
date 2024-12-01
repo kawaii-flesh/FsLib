@@ -18,57 +18,92 @@ namespace FsLib
     class File
     {
         public:
+            /// @brief Default FsLib::File constructor.
             File(void) = default;
-            // These call open for you.
+
+            /**
+             * @brief Attempts to open FilePath with OpenFlags. FileSize is optional unless trying to create new Extra Data type files.
+             * @param FilePath Path to target file.
+             * @param OpenFlags Flags to use to open the file. Can be any flag from Ctrulib. FsLib provides a new FS_OPEN_APPEND if needed.
+             * @param FileSize Optional. Size used to create the file. This is only needed when creating and writing to Extra Data type archives.
+             */
             File(const FsLib::Path &FilePath, uint32_t OpenFlags, uint64_t FileSize = 0);
-            // This calls close.
+
+            /// @brief Automatically closes handle when freed or goes out of scope.
             ~File();
-            // Opens the file handle with mode and file size passed. Is open can be checked to see if it was successful.
+
+            /**
+             * @brief Attempts to open FilePath with OpenFlags. FileSize is optional unless trying to create new Extra Data type files.
+             * @param FilePath Path to target file.
+             * @param OpenFlags Flags to use to open the file. Can be any flag from Ctrulib. FsLib provides a new FS_OPEN_APPEND if needed.
+             * @param FileSize Optional. Size used to create the file. This is only needed when creating and writing to Extra Data type archives.
+             */
             void Open(const FsLib::Path &FilePath, uint32_t OpenFlags, uint64_t FileSize = 0);
-            // Closes file Handle.
+
+            /// @brief Can be used to manually close the file handle if needed.
             void Close(void);
-            // Returns if file was successfully opened.
+
+            /// @brief Returns whether opening the file was successful or not.
+            /// @return True on success. False on failure.
             bool IsOpen(void) const;
-            // Returns the current offset in file.
+
+            /// @brief Returns the current offset of the file.
+            /// @return Current file offset.
             uint64_t Tell(void) const;
-            // Returns the size of the file.
+
+            /// @brief Returns the size of the file.
+            /// @return File's current size.
             uint64_t GetSize(void) const;
-            // Returns whether end of file has been reached.
+
+            /// @brief Returns whether or not the end of the file has been reached.
+            /// @return True if the end is reached. False if not.
             bool EndOfFile(void) const;
-            /*
-                Seeks to position relative to Origin. Origin can be the following:
-                    FsLib::SeekOrigin::Beginning
-                    FsLib::SeekOrigin::Current
-                    FsLib::SeekOrigin::End
-                Offset will be checked and corrected if out of bounds.
-            */
+
+            /// @brief Seeks to a position in file. Offsets are bounds checked.
+            /// @param Offset Offset to seek to.
+            /// @param Origin Position to seek from.
             void Seek(int64_t Offset, FsLib::SeekOrigin Origin);
 
-            /*
-                Reading functions.
-            */
-
-            // Attempts to read ReadSize into Buffer. Returns number of bytes read on success, 0 on failure.
+            /// @brief Attempts to read from file. Certain read errors are corrected for.
+            /// @param Buffer Buffer to read into.
+            /// @param ReadSize Size of the buffer to read into.
+            /// @return Number of bytes read on success. 0 on complete failure. FsLib::GetError string can be used to get slightly more information.
             size_t Read(void *Buffer, size_t ReadSize);
-            // Attempts to read a line from the file. Returns true on success, false on failure. Line is written to LineOut.
+
+            /// @brief Attempts to read a line AKA read bytes until '\n' or '\r' is hit.
+            /// @param LineOut The string to write the line to.
+            /// @return True on success. False on failure.
             bool ReadLine(std::string &LineOut);
-            // Reads a character from file. Returns -1 on failure.
+
+            /// @brief Reads one char or byte from file.
+            /// @return Byte read on success. -1 on failure.
             signed char GetCharacter(void);
 
-            /*
-                Writing functions.
-            */
-
-            // Attempts to write Buffer of WriteSize bytes to file. Returns number of bytes written on success, zero on failure.
+            /// @brief Attempts to write Buffer to File. File is automatically resized to fit Buffer if needed.
+            /// @param Buffer Buffer to write to file.
+            /// @param WriteSize Size of Buffer
+            /// @return Number of bytes written on success. 0 on complete failure.
             size_t Write(const void *Buffer, size_t WriteSize);
-            // Attempts to write a formatted string to file. Returns true on success.
+
+            /// @brief Attempts to write a formatted string to file.
+            /// @param Format Format of string.
+            /// @param Arguments
+            /// @return True on success. False on failure.
             bool Writef(const char *Format, ...);
-            // Operators for quick, lazy string writing
+
+            /// @brief std style operators for quick, easy string writing.
+            /// @param String String to write to file.
+            /// @return Reference to current file.
             File &operator<<(const char *String);
             File &operator<<(const std::string &String);
-            // Writes a single byte to file. Returns true on success.
+
+            /// @brief Attempts to write a single char or byte to file.
+            /// @param C Char or byte to write.
+            /// @return True on success. False on failure.
             bool PutCharacter(char C);
-            // Flushes file. Returns true on success.
+
+            /// @brief Flushes the file.
+            /// @return True on success. False on failure.
             bool Flush(void);
 
         protected:
