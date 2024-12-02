@@ -33,8 +33,7 @@ bool FsLib::Initialize(void)
     // Copy the handle just to be 100% sure we have it for good.
     std::memcpy(&s_DeviceMap[SD_CARD_DEVICE_NAME], &SDMC, sizeof(FsFileSystem));
 
-    // Just return this
-    return FsLib::Dev::InitializeSDMC();
+    return true;
 }
 
 void FsLib::Exit(void)
