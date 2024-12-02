@@ -57,13 +57,10 @@ static inline bool FileIsValid(int FileID)
     return true;
 }
 
-extern void Print(const char *Format, ...);
-
 extern "C"
 {
     static int FsLibDevOpen(struct _reent *Reent, void *FileID, const char *Path, int Flags, int Mode)
     {
-        Print("FsLibDevOpen\n");
         // This is to keep track of which file we're on.
         static int CurrentFileID = 0;
 
@@ -134,7 +131,6 @@ extern "C"
 
     static int FsLibDevClose(struct _reent *Reent, void *FileID)
     {
-        Print("FsLibDevClose\n");
         int TargetFileID = *reinterpret_cast<int *>(FileID);
         if (!FileIsValid(TargetFileID))
         {
@@ -147,7 +143,6 @@ extern "C"
 
     static ssize_t FsLibDevWrite(struct _reent *Reent, void *FileID, const char *Buffer, size_t BufferSize)
     {
-        Print("FsLibDevWrite\n");
         int TargetFileID = *reinterpret_cast<int *>(FileID);
         if (!FileIsValid(TargetFileID))
         {
@@ -159,7 +154,6 @@ extern "C"
 
     static ssize_t FsLibDevRead(struct _reent *Reent, void *FileID, char *Buffer, size_t BufferSize)
     {
-        Print("FsLibDevRead\n");
         int TargetFileID = *reinterpret_cast<int *>(FileID);
         if (!FileIsValid(TargetFileID))
         {
@@ -171,7 +165,6 @@ extern "C"
 
     static ssize_t FsLibDevSeek(struct _reent *Reent, void *FileID, off_t Offset, int Direction)
     {
-        Print("FsLibDevSeek\n");
         int TargetFileID = *reinterpret_cast<int *>(FileID);
         if (!FileIsValid(TargetFileID))
         {
