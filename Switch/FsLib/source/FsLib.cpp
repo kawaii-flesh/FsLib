@@ -1,4 +1,5 @@
 #include "FsLib.hpp"
+#include "Dev.hpp"
 #include "String.hpp"
 #include <cstring>
 #include <unordered_map>
@@ -20,10 +21,20 @@ static bool DeviceNameIsInUse(std::string_view DeviceName)
     return s_DeviceMap.find(DeviceName) != s_DeviceMap.end();
 }
 
-void FsLib::Initialize(void)
+bool FsLib::Initialize(void)
 {
-    // If you don't want me to call the function directly... I'll just steal the handle.
-    std::memcpy(&s_DeviceMap[SD_CARD_DEVICE_NAME], fsdevGetDeviceFileSystem(SD_CARD_DEVICE_NAME.data()), sizeof(FsFileSystem));
+    FsFileSystem SDMC;
+    // I called it anyway. Don't tell me what to do.
+    Result FsError = fsOpenSdCardFileSystem(&SDMC);
+    if (R_FAILED(FsError))
+    {
+        return false;
+    }
+    // Copy the handle just to be 100% sure we have it for good.
+    std::memcpy(&s_DeviceMap[SD_CARD_DEVICE_NAME], &SDMC, sizeof(FsFileSystem));
+
+    // Just return this
+    return FsLib::Dev::InitializeSDMC();
 }
 
 void FsLib::Exit(void)
@@ -133,7 +144,7 @@ bool FsLib::GetDeviceTotalSpace(const FsLib::Path &DeviceRoot, int64_t &SizeOut)
 
 bool FsLib::CloseFileSystem(std::string_view DeviceName)
 {
-    // Guard against closing sdmc. Only exiting FsLib will do that.
+    // Guard against closing sdmc. Only exiting FsLib can do that.
     if (DeviceName == SD_CARD_DEVICE_NAME)
     {
         return false;

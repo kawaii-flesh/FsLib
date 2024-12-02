@@ -184,19 +184,19 @@ extern "C"
         {
             case SEEK_SET:
             {
-                s_FileMap[ID].Seek(Offset, FsLib::SeekOrigin::Beginning);
+                s_FileMap[ID].Seek(Offset, FsLib::File::Beginning);
             }
             break;
 
             case SEEK_CUR:
             {
-                s_FileMap[ID].Seek(Offset, FsLib::SeekOrigin::Current);
+                s_FileMap[ID].Seek(Offset, FsLib::File::Current);
             }
             break;
 
             case SEEK_END:
             {
-                s_FileMap[ID].Seek(Offset, FsLib::SeekOrigin::End);
+                s_FileMap[ID].Seek(Offset, FsLib::File::End);
             }
             break;
 

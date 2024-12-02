@@ -101,23 +101,23 @@ bool FsLib::File::EndOfFile(void) const
     return m_Offset >= m_FileSize;
 }
 
-void FsLib::File::Seek(int64_t Offset, FsLib::SeekOrigin Origin)
+void FsLib::File::Seek(int64_t Offset, uint8_t Origin)
 {
     switch (Origin)
     {
-        case FsLib::SeekOrigin::Beginning:
+        case FsLib::File::Beginning:
         {
             m_Offset = 0 + Offset;
         }
         break;
 
-        case FsLib::SeekOrigin::Current:
+        case FsLib::File::Current:
         {
             m_Offset += Offset;
         }
         break;
 
-        case FsLib::SeekOrigin::End:
+        case FsLib::File::End:
         {
             m_Offset = m_FileSize + Offset;
         }

@@ -3,14 +3,6 @@
 
 namespace FsLib
 {
-    /// @brief Values used for seeking in streams.
-    enum class SeekOrigin
-    {
-        Beginning,
-        Current,
-        End
-    };
-
     /// @brief This is the base class all File and storage types are derived from.
     class Stream
     {
@@ -44,15 +36,27 @@ namespace FsLib
              *      2. FsLib::SeekOrigin::Current
              *      3. FsLib::SeekOrigin::End
              */
-            void Seek(int64_t Offset, FsLib::SeekOrigin Origin);
+            void Seek(int64_t Offset, uint8_t Origin);
+
+            /// @brief Used to seek from the beginning of the stream.
+            static constexpr uint8_t Beginning = 0;
+            /// @brief Used to seek from the current offset of the stream.
+            static constexpr uint8_t Current = 1;
+            /// @brief Used to seek from the end of the stream.
+            static constexpr uint8_t End = 2;
 
         protected:
-            // Offset and size.
+            /// @brief Current offset in stream.
             int64_t m_Offset = 0;
+
+            /// @brief Total size of the stream being accessed.
             int64_t m_StreamSize = 0;
-            // Whether opening was successful
+
+            /// @brief Whether or not opening the stream was successful.
+            /// @note This is handled by derived classes.
             bool m_IsOpen = false;
-            // This can be called to ensure the current offset is valid
+
+            /// @brief Ensures offset isn't out of bounds after a seek is performed.
             void EnsureOffsetIsValid(void);
     };
 } // namespace FsLib

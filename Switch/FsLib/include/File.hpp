@@ -3,21 +3,25 @@
 #include "Stream.hpp"
 #include <switch.h>
 
-/// @brief 3DS has this flag, Switch doesn't. Switch has append, 3DS doesn't. What the double heck Nintendo?
-static constexpr uint32_t FsOpenMode_Create = BIT(3);
+/// @brief This is an added OpenMode flag for FsLib on Switch so File::Open knows for sure it's supposed to create the file.
+static constexpr uint32_t FsOpenMode_Create = BIT(8);
 
 namespace FsLib
 {
+    /// @brief Class for opening, reading, and writing to files.
     class File : public FsLib::Stream
     {
         public:
             /// @brief Default file constructor.
             File(void) = default;
 
-            /// @brief Attempts to open file at FilePath with OpenFlags. IsOpen can be used to check if this was successful.
-            /// @param FilePath Path to file.
-            /// @param OpenFlags Flags from LibNX to use to open the file with.
-            /// @param FileSize Optional. Creates the file with a starting size defined.
+            /**
+             * @brief Attempts to open file at FilePath with OpenFlags. IsOpen can be used to check if this was successful.
+             *
+             * @param FilePath Path to file.
+             * @param OpenFlags Flags from LibNX to use to open the file with.
+             * @param FileSize Optional. Creates the file with a starting size defined.
+             */
             File(const FsLib::Path &FilePath, uint32_t OpenFlags, int64_t FileSize = 0);
 
             /// @brief Closes file handle if it's still open.
@@ -42,7 +46,7 @@ namespace FsLib
             /// @return Number of bytes read.
             ssize_t Read(void *Buffer, size_t BufferSize);
 
-            /// @brief Attempts to read a line from file until '\n' or '\r' is reached.
+            /// @brief Attempts to read a line from file until `\n` or `\r` is reached.
             /// @param LineOut Buffer to read line into.
             /// @param LineLength Size of line buffer.
             /// @return True on success. False on failure or line exceeding LineLength.
@@ -84,9 +88,10 @@ namespace FsLib
             bool Flush(void);
 
         private:
-            // Handle to file.
+            /// @brief File handle.
             FsFile m_FileHandle;
-            // Flags used to open file.
+
+            /// @brief Stores flags used to open file.
             uint32_t m_OpenFlags = 0;
 
             /// @brief Private: Resizes file if Buffer is too large to fit in remaining space.
@@ -98,14 +103,14 @@ namespace FsLib
             /// @return True if flags are correct. False if not.
             inline bool IsOpenForReading(void) const
             {
-                return m_OpenFlags & FsOpenMode_Read;
+                return (m_OpenFlags & FsOpenMode_Read);
             }
 
             /// @brief Private: Returns if file has flag set to write.
             /// @return True if flags are correct. False if not.
             inline bool IsOpenForWriting(void) const
             {
-                return m_OpenFlags & FsOpenMode_Write;
+                return (m_OpenFlags & FsOpenMode_Write) || (m_OpenFlags & FsOpenMode_Append);
             }
     };
 } // namespace FsLib

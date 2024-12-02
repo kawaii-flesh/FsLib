@@ -20,23 +20,23 @@ bool FsLib::Stream::EndOfStream(void) const
     return m_Offset >= m_StreamSize;
 }
 
-void FsLib::Stream::Seek(int64_t Offset, FsLib::SeekOrigin Origin)
+void FsLib::Stream::Seek(int64_t Offset, uint8_t Origin)
 {
     switch (Origin)
     {
-        case FsLib::SeekOrigin::Beginning:
+        case Stream::Beginning:
         {
             m_Offset = 0 + Offset;
         }
         break;
 
-        case FsLib::SeekOrigin::Current:
+        case Stream::Current:
         {
             m_Offset += Offset;
         }
         break;
 
-        case FsLib::SeekOrigin::End:
+        case Stream::End:
         {
             m_Offset = m_StreamSize + Offset;
         }

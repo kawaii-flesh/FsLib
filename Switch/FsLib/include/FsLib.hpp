@@ -1,5 +1,6 @@
 #pragma once
 #include "BisFileSystem.hpp"
+#include "Dev.hpp"
 #include "Directory.hpp"
 #include "DirectoryFunctions.hpp"
 #include "File.hpp"
@@ -14,7 +15,8 @@ namespace FsLib
 {
     /// @brief Initializes FsLib. Steals LibNX's sdmc handle.
     /// @note Once FsLib::Dev is implemented for Switch this will get more interesting.
-    void Initialize(void);
+    /// @return True on success. False on failure.
+    bool Initialize(void);
 
     /// @brief Exits FsLib closing any remaining open devices.
     void Exit(void);

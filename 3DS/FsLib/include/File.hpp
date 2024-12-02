@@ -8,13 +8,7 @@ static constexpr uint32_t FS_OPEN_APPEND = BIT(3);
 
 namespace FsLib
 {
-    enum class SeekOrigin
-    {
-        Beginning,
-        Current,
-        End
-    };
-
+    /// @brief Class for reading and writing to files.
     class File
     {
         public:
@@ -62,7 +56,7 @@ namespace FsLib
             /// @brief Seeks to a position in file. Offsets are bounds checked.
             /// @param Offset Offset to seek to.
             /// @param Origin Position to seek from.
-            void Seek(int64_t Offset, FsLib::SeekOrigin Origin);
+            void Seek(int64_t Offset, uint8_t Origin);
 
             /// @brief Attempts to read from file. Certain read errors are corrected for.
             /// @param Buffer Buffer to read into.
@@ -70,7 +64,7 @@ namespace FsLib
             /// @return Number of bytes read on success. 0 on complete failure. FsLib::GetError string can be used to get slightly more information.
             size_t Read(void *Buffer, size_t ReadSize);
 
-            /// @brief Attempts to read a line AKA read bytes until '\n' or '\r' is hit.
+            /// @brief Attempts to read a line AKA read bytes until `\n` or `\r` is hit.
             /// @param LineOut The string to write the line to.
             /// @return True on success. False on failure.
             bool ReadLine(std::string &LineOut);
@@ -106,25 +100,43 @@ namespace FsLib
             /// @return True on success. False on failure.
             bool Flush(void);
 
+            /// @brief Used to seek from the beginning of the file.
+            static constexpr uint8_t Beginning = 0;
+            /// @brief Used to seek from the current offset of the file.
+            static constexpr uint8_t Current = 1;
+            /// @brief Used to seek from the end of the file.
+            static constexpr uint8_t End = 2;
+
         protected:
-            // File handle.
+            /// @brief Handle to file.
             Handle m_FileHandle;
-            // Whether or not file is open
+
+            /// @brief Stores whether open was successful or not.
             bool m_IsOpen = false;
-            // The modes used to open the file.
+
+            /// @brief Stores flags passed to open.
             uint32_t m_Flags;
-            // Offset and size
+
+            /// @brief Store the current offset in the file and the size of the file.
             int64_t m_Offset, m_FileSize;
-            // This can be called to check and correct the offset to a certain degree.
+
+            /// @brief Private: Corrects if offset is out of bounds. Ex: m_Offset < 0 or m_Offset > m_FileSize
             void EnsureOffsetIsValid(void);
-            // Attempts to resize file before write operation.
+
+            /// @brief Attempts to resize a file if the buffer size is too large to fit in the remaining space.
+            /// @param BufferSize Size of buffer to check.
+            /// @return True on success. False on failure.
             bool ResizeIfNeeded(size_t BufferSize);
-            // Returns whether or not file is open for reading.
+
+            /// @brief Returns whether or not the file is open for reading by checking m_Flags.
+            /// @return True if it is. False if it isn't.
             inline bool IsOpenForReading(void) const
             {
                 return m_Flags & FS_OPEN_READ;
             }
-            // Returns whether or not file is open for writing.
+
+            /// @brief Returns whether or not the file is open for writing by checking m_Flags.
+            /// @return True if it is. False if it isn't.
             inline bool IsOpenForWriting(void) const
             {
                 return m_Flags & FS_OPEN_WRITE;

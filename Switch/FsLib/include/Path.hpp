@@ -4,7 +4,7 @@
 
 namespace FsLib
 {
-
+    /// @brief Class to make working with the Switch's FS and it's odd rules much easier.
     class Path
     {
         public:

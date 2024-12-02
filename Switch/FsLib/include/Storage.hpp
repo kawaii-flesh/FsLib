@@ -46,7 +46,7 @@ namespace FsLib
             signed char ReadByte(void);
 
         private:
-            // Storage handle.
+            /// @brief Handle to storage opened.
             FsStorage m_StorageHandle;
     };
 } // namespace FsLib

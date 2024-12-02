@@ -25,6 +25,8 @@ FsLib::File::~File()
     File::Close();
 }
 
+extern void Print(const char *Format, ...);
+
 void FsLib::File::Open(const FsLib::Path &FilePath, uint32_t OpenFlags, int64_t FileSize)
 {
     // Just in case this is reused.
@@ -49,16 +51,23 @@ void FsLib::File::Open(const FsLib::Path &FilePath, uint32_t OpenFlags, int64_t 
         return;
     }
 
-    if (OpenFlags & FsOpenMode_Create && FsLib::FileExists(FilePath) && !FsLib::DeleteFile(FilePath))
+    if ((OpenFlags & FsOpenMode_Create) && FsLib::FileExists(FilePath) && !FsLib::DeleteFile(FilePath))
     {
         // Previous calls should set error. Let's not worry about it.
         return;
     }
 
-    if (OpenFlags & FsOpenMode_Create && !FsLib::CreateFile(FilePath, FileSize))
+    if ((OpenFlags & FsOpenMode_Create) && !FsLib::CreateFile(FilePath, FileSize))
     {
         return;
     }
+
+    Print("Open flags before: 0x%08X.\n", OpenFlags);
+
+    // We need to remove FsLib's added flag.
+    OpenFlags &= ~FsOpenMode_Create;
+
+    Print("Open flags after: 0x%08X.\n", OpenFlags);
 
     Result FsError = fsFsOpenFile(FileSystem, FilePath.GetPath(), OpenFlags, &m_FileHandle);
     if (R_FAILED(FsError))

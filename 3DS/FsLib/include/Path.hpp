@@ -154,23 +154,73 @@ namespace FsLib
             static constexpr uint16_t NotFound = -1;
 
         private:
-            // First is the pointer to path data, second is pointer to the ':'.
+            /// @brief Buffer 0x301 + Device length * sizeof(char16_t) bytes long containing path data.
             char16_t *m_Path = nullptr;
+
+            /// @brief Pointer to where the end of the device in the path is located.
             const char16_t *m_DeviceEnd = nullptr;
-            // First is the actual size of the path buffer, second is the current, actual length of the path.
+
+            /// @brief Size of path buffer.
             uint16_t m_PathSize = 0;
+
+            /// @brief Current length of the path.
             uint16_t m_PathLength = 0;
-            // This allocates memory to hold the string.
+
+            /// @brief Allocates memory to hold path.
+            /// @param PathSize Size of buffer for path.
+            /// @return True on success. False on failure.
+            /// @note The path is a raw pointer to allocated memory so copies can be made.
             bool AllocatePath(uint16_t PathSize);
-            // This frees it.
+
+            /// @brief Frees memory used for path buffer if it isn't nullptr.
             void FreePath(void);
     };
+
+    /// @brief Concatenates a path to a string and returns a new one. Checks are performed and / is added if needed.
+    /// @param Path1 BasePath
+    /// @param Path2 Path to concatenate to Path1
+    /// @return New path containing concatenated paths.
     FsLib::Path operator/(const FsLib::Path &Path1, const char16_t *Path2);
+
+    /// @brief Concatenates a path to a string and returns a new one. Checks are performed and / is added if needed.
+    /// @param Path1 BasePath
+    /// @param Path2 Path to concatenate to Path1
+    /// @return New path containing concatenated paths.
     FsLib::Path operator/(const FsLib::Path &Path1, const uint16_t *Path2);
+
+    /// @brief Concatenates a path to a string and returns a new one. Checks are performed and / is added if needed.
+    /// @param Path1 BasePath
+    /// @param Path2 Path to concatenate to Path1
+    /// @return New path containing concatenated paths.
     FsLib::Path operator/(const FsLib::Path &Path1, const std::u16string &Path2);
+
+    /// @brief Concatenates a path to a string and returns a new one. Checks are performed and / is added if needed.
+    /// @param Path1 BasePath
+    /// @param Path2 Path to concatenate to Path1
+    /// @return New path containing concatenated paths.
     FsLib::Path operator/(const FsLib::Path &Path1, std::u16string_view Path2);
+
+    /// @brief Concatenates a path to a string and returns a new one. No checks are performed and Path2 is appended as-is.
+    /// @param Path1 BasePath
+    /// @param Path2 Path to concatenate to Path1
+    /// @return New path containing concatenated paths.
     FsLib::Path operator+(const FsLib::Path &Path1, const char16_t *Path2);
+
+    /// @brief Concatenates a path to a string and returns a new one. No checks are performed and Path2 is appended as-is.
+    /// @param Path1 BasePath
+    /// @param Path2 Path to concatenate to Path1
+    /// @return New path containing concatenated paths.
     FsLib::Path operator+(const FsLib::Path &Path1, const uint16_t *Path2);
+
+    /// @brief Concatenates a path to a string and returns a new one. No checks are performed and Path2 is appended as-is.
+    /// @param Path1 BasePath
+    /// @param Path2 Path to concatenate to Path1
+    /// @return New path containing concatenated paths.
     FsLib::Path operator+(const FsLib::Path &Path1, const std::u16string &Path2);
+
+    /// @brief Concatenates a path to a string and returns a new one. No checks are performed and Path2 is appended as-is.
+    /// @param Path1 BasePath
+    /// @param Path2 Path to concatenate to Path1
+    /// @return New path containing concatenated paths.
     FsLib::Path operator+(const FsLib::Path &Path1, std::u16string_view Path2);
 } // namespace FsLib

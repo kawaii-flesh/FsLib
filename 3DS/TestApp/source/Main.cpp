@@ -59,6 +59,13 @@ int main(void)
         return -2;
     }
 
+    FsLib::File Test(u"sdmc:/boot.3dsx", FS_OPEN_READ);
+    for (uint32_t i = 0; i < Test.GetSize(); i++)
+    {
+        printf("%02X", Test.GetCharacter());
+    }
+    printf("\n");
+
     printf("Press Start to exit.");
     while (aptMainLoop())
     {

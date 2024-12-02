@@ -6,6 +6,7 @@
 
 namespace FsLib
 {
+    /// @brief Opens and reads directories.
     class Directory
     {
         public:
@@ -39,13 +40,17 @@ namespace FsLib
             std::u16string_view GetEntryAt(int Index) const;
 
         private:
-            // Directory handle.
+            /// @brief DirectoryHandle.
             Handle m_DirectoryHandle;
-            // Whether Open was successful
+
+            /// @brief Whether or not Directory::Open was successful.
             bool m_WasOpened = false;
-            // Directory entry vector.
+
+            /// @brief Vector of 3DS FS_DirectoryEntry's. 3DS has no way of retrieving a count first or this wouldn't be a vector.
             std::vector<FS_DirectoryEntry> m_DirectoryList;
-            // Shortcut to close directory handle. Automatically called after read and not needed outside of here.
+
+            /// @brief Closes directory handle. The directory is read in its entirety when open is called. Public access is not needed.
+            /// @return
             bool Close(void);
     };
 } // namespace FsLib

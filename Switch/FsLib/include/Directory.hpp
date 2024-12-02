@@ -5,6 +5,7 @@
 
 namespace FsLib
 {
+    /// @brief Class for opening and reading entries from directories.
     class Directory
     {
         public:
