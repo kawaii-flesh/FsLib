@@ -24,7 +24,7 @@ namespace FsLib
             /// @return True on success. False on failure.
             bool IsOpen(void) const;
 
-            /// @brief Returns the number of entries succefully read from the directory.
+            /// @brief Returns the number of entries successfully read from the directory.
             /// @return Number of entries read from directory.
             uint32_t GetEntryCount(void) const;
 
@@ -40,7 +40,7 @@ namespace FsLib
 
         private:
             // Directory handle.
-            Handle m_DirectoryHande;
+            Handle m_DirectoryHandle;
             // Whether Open was successful
             bool m_WasOpened = false;
             // Directory entry vector.

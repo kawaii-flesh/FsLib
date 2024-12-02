@@ -54,7 +54,7 @@ void FsLib::Directory::Open(const FsLib::Path &DirectoryPath)
         return;
     }
 
-    Result FsError = FSUSER_OpenDirectory(&m_DirectoryHande, Archive, DirectoryPath.GetPath());
+    Result FsError = FSUSER_OpenDirectory(&m_DirectoryHandle, Archive, DirectoryPath.GetPath());
     if (R_FAILED(FsError))
     {
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening directory: 0x%08X.", FsError);
@@ -64,7 +64,7 @@ void FsLib::Directory::Open(const FsLib::Path &DirectoryPath)
     // Switch has a function to fetch entry count. 3DS doesn't, so we have to loop and load one at a time.
     uint32_t EntriesRead = 0;
     FS_DirectoryEntry CurrentEntry;
-    while (R_SUCCEEDED(FSDIR_Read(m_DirectoryHande, &EntriesRead, 1, &CurrentEntry)) && EntriesRead == 1)
+    while (R_SUCCEEDED(FSDIR_Read(m_DirectoryHandle, &EntriesRead, 1, &CurrentEntry)) && EntriesRead == 1)
     {
         m_DirectoryList.push_back(CurrentEntry);
     }
@@ -105,7 +105,7 @@ std::u16string_view FsLib::Directory::GetEntryAt(int Index) const
 
 bool FsLib::Directory::Close(void)
 {
-    Result FsError = FSDIR_Close(m_DirectoryHande);
+    Result FsError = FSDIR_Close(m_DirectoryHandle);
     if (R_FAILED(FsError))
     {
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error closing directory handle: 0x%08X.", FsError);

@@ -15,14 +15,28 @@ namespace FsLib
     {
         public:
             /// @brief Creates a new path for use with FsLib
-            /// @param StringType String to assign. Path supports most standard UTF-16 string types.
+            /// @param P String to assign from.
             Path(void) = default;
+
+            /// @brief Creates a new path for use with FsLib
+            /// @param P String to assign from.
             Path(const Path &P);
+
+            /// @brief Creates a new path for use with FsLib
+            /// @param P String to assign from.
             Path(const char16_t *P);
+
+            /// @brief Creates a new path for use with FsLib
+            /// @param P String to assign from.
             Path(const uint16_t *P);
+
+            /// @brief Creates a new path for use with FsLib
+            /// @param P String to assign from.
             Path(const std::u16string &P);
+
+            /// @brief Creates a new path for use with FsLib
+            /// @param P String to assign from.
             Path(std::u16string_view P);
-            Path(Path &&P);
 
             /// @brief Frees path buffer.
             ~Path();
@@ -74,27 +88,67 @@ namespace FsLib
 
             /// @brief Assigns Path from various standard UTF-16 string types.
             /// @param P Path to assign from
-            /// @return Refrence to current path.
+            /// @return Reference to current path.
             Path &operator=(const Path &P);
+
+            /// @brief Assigns Path from various standard UTF-16 string types.
+            /// @param P Path to assign from
+            /// @return Reference to current path.
             Path &operator=(const char16_t *P);
+
+            /// @brief Assigns Path from various standard UTF-16 string types.
+            /// @param P Path to assign from
+            /// @return Reference to current path.
             Path &operator=(const uint16_t *P);
+
+            /// @brief Assigns Path from various standard UTF-16 string types.
+            /// @param P Path to assign from
+            /// @return Reference to current path.
             Path &operator=(const std::u16string &P);
+
+            /// @brief Assigns Path from various standard UTF-16 string types.
+            /// @param P Path to assign from
+            /// @return Reference to current path.
             Path &operator=(std::u16string_view P);
 
             /// @brief Preferred appending operator. Adds / if needed between paths. Also trims slashes from input.
             /// @param P String to append.
             /// @return Reference to current Path
             Path &operator/=(const char16_t *P);
+
+            /// @brief Preferred appending operator. Adds / if needed between paths. Also trims slashes from input.
+            /// @param P String to append.
+            /// @return Reference to current Path
             Path &operator/=(const uint16_t *P);
+
+            /// @brief Preferred appending operator. Adds / if needed between paths. Also trims slashes from input.
+            /// @param P String to append.
+            /// @return Reference to current Path
             Path &operator/=(const std::u16string &P);
+
+            /// @brief Preferred appending operator. Adds / if needed between paths. Also trims slashes from input.
+            /// @param P String to append.
+            /// @return Reference to current Path
             Path &operator/=(std::u16string_view P);
 
             /// @brief Unchecked appending operator. Input is not checked for validity of string appended.
             /// @param P String to append.
             /// @return Reference to current Path.
             Path &operator+=(const char16_t *P);
+
+            /// @brief Unchecked appending operator. Input is not checked for validity of string appended.
+            /// @param P String to append.
+            /// @return Reference to current Path.
             Path &operator+=(const uint16_t *P);
+
+            /// @brief Unchecked appending operator. Input is not checked for validity of string appended.
+            /// @param P String to append.
+            /// @return Reference to current Path.
             Path &operator+=(const std::u16string &P);
+
+            /// @brief Unchecked appending operator. Input is not checked for validity of string appended.
+            /// @param P String to append.
+            /// @return Reference to current Path.
             Path &operator+=(std::u16string_view P);
 
             static constexpr uint16_t NotFound = -1;

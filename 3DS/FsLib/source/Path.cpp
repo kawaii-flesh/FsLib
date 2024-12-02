@@ -69,14 +69,6 @@ FsLib::Path::Path(std::u16string_view P)
     *this = P;
 }
 
-FsLib::Path::Path(FsLib::Path &&P) : m_Path(P.m_Path), m_DeviceEnd(P.m_DeviceEnd), m_PathSize(P.m_PathSize), m_PathLength(P.m_PathLength)
-{
-    P.m_Path = nullptr;
-    P.m_DeviceEnd = nullptr;
-    P.m_PathSize = 0;
-    P.m_PathLength = 0;
-}
-
 FsLib::Path::~Path()
 {
     Path::FreePath();

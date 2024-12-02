@@ -17,8 +17,11 @@ jobs:
     - name: Set up Doxygen
       run: sudo apt-get install doxygen
 
-    - name: Generate Doxygen documentation
-      run: doxygen Doxyfile
+    - name: Generate Doxygen 3DS
+      run: doxygen Doxyfile_3DS
+
+    - name: Generate Doxygen Switch
+      run: doxygen Doxyfile_Switch
 
     - name: Set up Git
       run: |
@@ -29,9 +32,6 @@ jobs:
       run: |
         git checkout --orphan gh-pages
         git rm -rf .  # Clean up any existing files
-
-        # Move generated docs to the root
-        mv html/* .
 
         # Commit and push
         git add .

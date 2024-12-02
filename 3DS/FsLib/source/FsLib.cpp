@@ -1,5 +1,6 @@
 #include "FsLib.hpp"
 #include "String.hpp"
+#include <3ds.h>
 #include <unordered_map>
 
 namespace
@@ -34,6 +35,7 @@ bool FsLib::Initialize(void)
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening SDMC Archive: 0x%08X.", FsError);
         return false;
     }
+
     return true;
 }
 
