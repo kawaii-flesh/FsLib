@@ -2,9 +2,8 @@
 #include "BisFileSystem.hpp"
 #include "Directory.hpp"
 #include "DirectoryFunctions.hpp"
+#include "File.hpp"
 #include "FileFunctions.hpp"
-#include "InputFile.hpp"
-#include "OutputFile.hpp"
 #include "Path.hpp"
 #include "SaveFileSystem.hpp"
 #include "Storage.hpp"
@@ -13,22 +12,63 @@
 
 namespace FsLib
 {
-    // Initializes fslib. Basically steals LibNX's SDMC handle and does nothing else.
+    /// @brief Initializes FsLib. Steals LibNX's sdmc handle.
+    /// @note Once FsLib::Dev is implemented for Switch this will get more interesting.
     void Initialize(void);
-    // Exits
+
+    /// @brief Exits FsLib closing any remaining open devices.
     void Exit(void);
-    // Returns internal error string.
+
+    /// @brief Returns the internal error string for slightly more descriptive errors than a bool.
+    /// @return Internal error string.
     const char *GetErrorString(void);
-    // Maps DeviceName to FileSystem. If device name is already in use, previous one is closed before continuing. Returns false if something failed.
+
+    /**
+     * @brief Maps FileSystem to DeviceName internally.
+     *
+     * @param DeviceName Name to use for Device.
+     * @param FileSystem FileSystem to map to DeviceName.
+     * @return True on success. False on failure.
+     * @note If a FileSystem is already mapped to DeviceName, it <b>will</b> be unmounted and replaced with FileSystem instead of just
+     * returning NULL like fs_dev. There is also <b>no</b> real limit to how many devices you can have open besides the Switch handle limit.
+     * fs_dev only allows 32 at a time.
+     */
     bool MapFileSystem(std::string_view DeviceName, FsFileSystem *FileSystem);
-    // Retrieves handle to FileSystem mapped to DeviceName. Returns false if DeviceName isn't found.
+
+    /// @brief Attempts to find Device in map.
+    /// @param DeviceName Name of the Device to locate.
+    /// @param FileSystemOut Set to pointer to FileSystem handle mapped to DeviceName.
+    /// @return True if DeviceName is found, false if it isn't.
+    /// @note This isn't really useful outside of internal FsLib functions, but I don't want to hide it like archive_dev does in ctrulib.
     bool GetFileSystemByDeviceName(std::string_view DeviceName, FsFileSystem **FileSystemOut);
-    // Commits data to filesystem associated with DeviceName
+
+    /// @brief Attempts to commit data to DeviceName.
+    /// @param DeviceName Name of device to commit data to.
+    /// @return True on success. False on failure.
     bool CommitDataToFileSystem(std::string_view DeviceName);
-    // Attempts to get the free space available from fileSystem.
+
+    /**
+     * @brief Attempts to get the free space available on Device passed.
+     *
+     * @param DeviceRoot Root of device.
+     * @param SizeOut The size retrieved if successful.
+     * @return True on success. False on failure.
+     * @note This function requires a path to work. DeviceRoot should be `sdmc:/` instead of `sdmc`, for example.
+     */
     bool GetDeviceFreeSpace(const FsLib::Path &DeviceRoot, int64_t &SizeOut);
-    // Attempts to get the total space available from filesystem.
+
+    /**
+     * @brief Attempts to get the total space of Device passed.
+     *
+     * @param DeviceRoot Root of device.
+     * @param SizeOut The size retrieved if successful.
+     * @return True on success. False on failure.
+     * @note This function requires a path to work. DeviceRoot should be `sdmc:/` instead of `sdmc`, for example.
+     */
     bool GetDeviceTotalSpace(const FsLib::Path &DeviceRoot, int64_t &SizeOut);
-    // Closes filesystem handle associated with deviceName.
+
+    /// @brief Closes filesystem mapped to DeviceName
+    /// @param DeviceName Name of device to close.
+    /// @return True on success. False on Failure or device not found.
     bool CloseFileSystem(std::string_view DeviceName);
 } // namespace FsLib

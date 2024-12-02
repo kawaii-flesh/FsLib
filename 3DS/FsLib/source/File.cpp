@@ -262,18 +262,20 @@ void FsLib::File::EnsureOffsetIsValid(void)
 
 bool FsLib::File::ResizeIfNeeded(size_t BufferSize)
 {
-    size_t WriteSizeRemaining = m_FileSize - m_Offset;
+    size_t SpaceRemaining = m_FileSize - m_Offset;
 
-    if (BufferSize > WriteSizeRemaining)
+    if (BufferSize < SpaceRemaining)
     {
-        int64_t NewFileSize = (m_FileSize - WriteSizeRemaining) + BufferSize;
-        Result FsError = FSFILE_SetSize(m_FileHandle, static_cast<uint64_t>(NewFileSize));
-        if (R_FAILED(FsError))
-        {
-            g_FsLibErrorString = FsLib::String::GetFormattedString("Error resizing file to fit buffer: 0x%08X.", FsError);
-            return false;
-        }
-        m_FileSize = NewFileSize;
+        return true;
     }
+
+    int64_t NewFileSize = m_Offset + BufferSize;
+    Result FsError = FSFILE_SetSize(m_FileHandle, static_cast<uint64_t>(NewFileSize));
+    if (R_FAILED(FsError))
+    {
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error resizing file to fit buffer: 0x%08X.", FsError);
+        return false;
+    }
+    m_FileSize = NewFileSize;
     return true;
 }

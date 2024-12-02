@@ -8,23 +8,38 @@ namespace FsLib
     class Directory
     {
         public:
+            /// @brief Default constructor for Directory.
             Directory(void) = default;
-            // This constructor just calls Open for you. See that for more information.
+
+            /// @brief Attempts to open Directory path and read all entries. IsOpen can be used to check if this was successful.
+            /// @param DirectoryPath Path to directory.
             Directory(const FsLib::Path &DirectoryPath);
-            /*
-                Opens directory passed if possible. Entries are sorted Directories -> Files and pseudo-alphabetically.
-                Path needs a trailing slash to work correctly. I'll change that later if I feel like it.
-            */
+
+            /// @brief Attempts to open Directory path and read all entries. IsOpen can be used to check if this was successful.
+            /// @param DirectoryPath Path to directory.
             void Open(const FsLib::Path &DirectoryPath);
-            // Returns whether opening was successful or not.
+
+            /// @brief Returns if directory was successfully opened.
+            /// @return True if it was. False if it wasn't.
             bool IsOpen(void) const;
-            // Returns number of entries in directory.
+
+            /// @brief Returns total number of entries read from directory.
+            /// @return Total numbers of entries read from directory.
             int64_t GetEntryCount(void) const;
-            // Returns file size of entry.
+
+            /// @brief Returns the size of the entry at Index.
+            /// @param Index Index of entry.
+            /// @return Size of entry. 0 if Index is out of bounds.
             int64_t GetEntrySizeAt(int Index) const;
-            // Returns full file name of entry at index. Returns NULL if entry is out of bounds.
-            const char *GetEntryAt(int index) const;
-            // Returns whether entry at index is a directory or not. Returns false if Index is out of bounds.
+
+            /// @brief Returns the name of the entry at Index.
+            /// @param Index Index of entry.
+            /// @return Name of the entry. nullptr if Index is out of bounds.
+            const char *GetEntryAt(int Index) const;
+
+            /// @brief Returns whether or not the entry at Index is a directory.
+            /// @param Index Index of entry.
+            /// @return True if the item is a directory. False if it is not or out of bounds.
             bool EntryAtIsDirectory(int Index) const;
 
         private:
@@ -36,7 +51,8 @@ namespace FsLib
             std::unique_ptr<FsDirectoryEntry[]> m_DirectoryList;
             // Whether or not directory was opened and read.
             bool m_WasRead = false;
-            // Closes the directory handle. Not needed publicly since directory handle is closed after reading entries.
+
+            /// @brief Private: Closes directory handle. Directory is never truly kept open. This is not needed outside of Directory.
             void Close(void);
     };
 } // namespace FsLib

@@ -3,34 +3,47 @@
 
 namespace FsLib
 {
-
+    /// @brief Values used for seeking in streams.
     enum class SeekOrigin
     {
         Beginning,
         Current,
         End
     };
-    // This is a base class for Files, Storage, and whatever else it can be used for down the line.
+
+    /// @brief This is the base class all File and storage types are derived from.
     class Stream
     {
         public:
+            /// @brief Default Stream constructor.
             Stream(void) = default;
-            // Returns if stream was successfully opened.
+
+            /// @brief Checks if stream was successfully opened.
+            /// @return True on success. False on failure.
             bool IsOpen(void) const;
-            // Returns the current offset of the stream.
+
+            /// @brief Gets the current offset in the stream.
+            /// @return Current offset of the stream.
             int64_t Tell(void) const;
-            // Returns the stream's size;
+
+            /// @brief Gets the size of the current stream.
+            /// @return Stream's size.
             int64_t GetSize(void) const;
-            // Returns if offset is >= to StreamSize
+
+            /// @brief Returns if the end of the stream has been reached.
+            /// @return True if end of stream has been reached. False if it hasn't.
             bool EndOfStream(void) const;
-            /*
-                Seeks to the position specified in stream.
-                Origin can be:
-                    FsLib::SeekOrigin::Beginning,
-                    FsLib::SeekOrigin::Current
-                    FsLib::SeekOrigin::End
-                Offset will be corrected if it is out of bounds.
-            */
+
+            /**
+             * @brief Seeks to Offset relative to Origin
+             *
+             * @param Offset Offset to seek to.
+             * @param Origin Origin from whence to seek.
+             * @note Origin can be one of the following:
+             *      1. FsLib::SeekOrigin::Beginning
+             *      2. FsLib::SeekOrigin::Current
+             *      3. FsLib::SeekOrigin::End
+             */
             void Seek(int64_t Offset, FsLib::SeekOrigin Origin);
 
         protected:

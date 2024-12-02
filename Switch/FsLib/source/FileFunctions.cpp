@@ -6,6 +6,31 @@
 
 extern std::string g_FsLibErrorString;
 
+bool FsLib::CreateFile(const FsLib::Path &FilePath, int64_t FileSize)
+{
+    if (!FilePath.IsValid())
+    {
+        g_FsLibErrorString = ERROR_INVALID_PATH;
+        return false;
+    }
+
+    FsFileSystem *FileSystem;
+    if (!FsLib::GetFileSystemByDeviceName(FilePath.GetDeviceName(), &FileSystem))
+    {
+        g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
+        return false;
+    }
+
+    Result FsError = fsFsCreateFile(FileSystem, FilePath.GetPath(), FileSize, 0);
+    if (R_FAILED(FsError))
+    {
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error creating file: 0x%X.", FsError);
+        return false;
+    }
+
+    return true;
+}
+
 bool FsLib::FileExists(const FsLib::Path &FilePath)
 {
     if (!FilePath.IsValid())
