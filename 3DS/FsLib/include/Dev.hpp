@@ -2,6 +2,7 @@
 
 namespace FsLib
 {
+    /// @brief Contains the function for overriding archive_dev.
     namespace Dev
     {
         /**

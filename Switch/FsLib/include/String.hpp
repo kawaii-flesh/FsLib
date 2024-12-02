@@ -3,6 +3,7 @@
 
 namespace FsLib
 {
+    /// @brief Contains the function for constructing error strings.
     namespace String
     {
         /// @brief This is just used internally to make setting the error string easier.

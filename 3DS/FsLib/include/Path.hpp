@@ -6,11 +6,10 @@
 
 namespace FsLib
 {
-    /*
-        Stealing this from Switch. I'm not aware of a max path value for 3DS.
-        I don't feel like constantly allocating memory when I can just memcpy.
-    */
+    /// @brief The maximum path length FsLib on 3DS supports.
     static constexpr size_t MAX_PATH = 0x301;
+
+    /// @brief Class to make working with UTF-16 paths easier to manage.
     class Path
     {
         public:

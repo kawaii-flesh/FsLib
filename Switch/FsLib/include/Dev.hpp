@@ -2,6 +2,7 @@
 
 namespace FsLib
 {
+    /// @brief Contains the function for overriding fs_dev.
     namespace Dev
     {
         /**

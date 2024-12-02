@@ -5,6 +5,7 @@
 namespace FsLib
 {
     /**
+     * @brief Class for reading from raw storage volumes.
      * @note This still needs a lot of work for the different storage types. This class is <b>read only</b> for a reason.
      * Even with that, it can still <b>read the most sensitive data</b> on the Switch.
     */
