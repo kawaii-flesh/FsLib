@@ -4,8 +4,7 @@ WIP, Switch and 3DS ~~(Maybe soon?)~~ FS function wrapper written in modern C++ 
 
 # Documentation
 <br>
-<center style="font-size: 36px"><a href="https://J-D-K.github.io/FsLib/Switch/">Switch</a>&ensp;&ensp;&ensp;&ensp;&ensp;<a href="https://J-D-K.github.io/FsLib/3DS/">3DS </a></center>
-<center style="font-size: 36px"></center>
+<p style="text-align:center; font-size: 36px"><a href="https://J-D-K.github.io/FsLib/Switch/">Switch</a>&ensp;&ensp;&ensp;&ensp;&ensp;<a href="https://J-D-K.github.io/FsLib/3DS/">3DS </a></p>
 
 # Notes
 * The first priority is getting JKSV fully functional using this library. JKSV's functionality will take priority over adding functions for absolutely everything. A sample/testing program is included if you want a rough idea of functions and use.
