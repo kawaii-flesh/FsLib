@@ -7,6 +7,17 @@ namespace
     const char *ForbiddenPathCharacters = "<>:\"|?*";
 }
 
+
+std::string EnsureSdmcPrefix(const char *Path)
+{
+    const char *DefaultDevice = "sdmc:";
+    if (std::strncmp(Path, DefaultDevice, std::strlen(DefaultDevice)) == 0)
+    {
+        return std::string(Path);
+    }
+    return std::string(DefaultDevice) + Path;
+}
+
 // This will get the trimmed version of the path. Passing NULL to PathBegin will skip  trimming
 void GetTrimmedPath(const char *Path, const char **PathBegin, size_t &PathLength)
 {
@@ -33,22 +44,22 @@ FsLib::Path::Path(const FsLib::Path &P)
 
 FsLib::Path::Path(const char *P)
 {
-    *this = P;
+    *this = EnsureSdmcPrefix(P).c_str();
 }
 
 FsLib::Path::Path(const std::string &P)
 {
-    *this = P;
+    *this = EnsureSdmcPrefix(P.c_str()).c_str();
 }
 
 FsLib::Path::Path(std::string_view P)
 {
-    *this = P;
+    *this = EnsureSdmcPrefix(P.data()).c_str();
 }
 
 FsLib::Path::Path(const std::filesystem::path &P)
 {
-    *this = P;
+    *this = EnsureSdmcPrefix(P.string().c_str()).c_str();
 }
 
 FsLib::Path::~Path()
@@ -175,52 +186,45 @@ FsLib::Path &FsLib::Path::operator=(const FsLib::Path &P)
 
 FsLib::Path &FsLib::Path::operator=(const char *P)
 {
-    /*
-        Need to calculate the path's full size since the Switch expects a string FS_MAX_PATH in length starting from the '/'.
-    */
-    m_DeviceEnd = std::strchr(P, ':');
+    std::string PrefixedPath = EnsureSdmcPrefix(P);
+    m_DeviceEnd = std::strchr(PrefixedPath.c_str(), ':');
     if (!m_DeviceEnd)
     {
-        // Should do something here...
         return *this;
     }
 
-    m_PathSize = FS_MAX_PATH + ((m_DeviceEnd - P) + 1);
+    m_PathSize = FS_MAX_PATH + ((m_DeviceEnd - PrefixedPath.c_str()) + 1);
     if (!Path::AllocatePath(m_PathSize))
     {
         return *this;
     }
 
-    // We're going to use this here too, but we're going to ignore where it says the path begins.
     const char *PathBegin = NULL;
     size_t PathLength = 0;
     GetTrimmedPath(m_DeviceEnd + 1, &PathBegin, PathLength);
 
-    // Copy the device string first.
-    std::memcpy(m_Path, P, (m_DeviceEnd - P) + 2);
-    // Copy the rest of the path beginning with where slashes end.
+    std::memcpy(m_Path, PrefixedPath.c_str(), (m_DeviceEnd - PrefixedPath.c_str()) + 2);
     std::memcpy(&m_Path[std::strlen(m_Path)], PathBegin, PathLength);
-    // Set everything up.
+
     m_DeviceEnd = std::strchr(m_Path, ':');
     m_PathLength = std::strlen(m_Path);
 
-    // Should be good to go.
     return *this;
 }
 
 FsLib::Path &FsLib::Path::operator=(const std::string &P)
 {
-    return *this = P.c_str();
+    return *this = EnsureSdmcPrefix(P.c_str()).c_str();
 }
 
 FsLib::Path &FsLib::Path::operator=(std::string_view P)
 {
-    return *this = P.data();
+    return *this = EnsureSdmcPrefix(P.data()).c_str();
 }
 
 FsLib::Path &FsLib::Path::operator=(const std::filesystem::path &P)
 {
-    return *this = P.string().c_str();
+    return *this = EnsureSdmcPrefix(P.string().c_str()).c_str();
 }
 
 FsLib::Path &FsLib::Path::operator/=(const char *P)
