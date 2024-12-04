@@ -59,12 +59,18 @@ int main(void)
         return -2;
     }
 
-    FsLib::File Test(u"sdmc:/boot.3dsx", FS_OPEN_READ);
-    for (uint32_t i = 0; i < Test.GetSize(); i++)
+    if (!FsLib::OpenGameCardSaveData(u"gamecard"))
     {
-        printf("%02X", Test.GetCharacter());
+        return -3;
     }
-    printf("\n");
+
+    FsLib::Path GCRoot = u"gamecard:/";
+    printf("GCRoot.GetLength() = %u.", GCRoot.GetLength());
+
+    if (!FsLib::DeleteDirectoryRecursively(GCRoot))
+    {
+        printf("Error: %s\n", FsLib::GetErrorString());
+    }
 
     printf("Press Start to exit.");
     while (aptMainLoop())

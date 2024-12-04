@@ -39,6 +39,11 @@ namespace FsLib
             /// @return Entry at index or empty if out of bounds.
             std::u16string_view GetEntryAt(int Index) const;
 
+            /// @brief Operator to return the name of the entry at index.
+            /// @param Index Index of entry to get.
+            /// @return Name of entry. If out of bounds, nullptr.
+            const char16_t *operator[](int Index) const;
+
         private:
             /// @brief DirectoryHandle.
             Handle m_DirectoryHandle;

@@ -127,6 +127,15 @@ bool FsLib::Directory::EntryAtIsDirectory(int Index) const
     return m_DirectoryList[Index].type == FsDirEntryType_Dir;
 }
 
+const char *FsLib::Directory::operator[](int Index) const
+{
+    if (Index < 0 || Index > m_EntryCount)
+    {
+        return nullptr;
+    }
+    return m_DirectoryList[Index].name;
+}
+
 void FsLib::Directory::Close(void)
 {
     fsDirClose(&m_DirectoryHandle);

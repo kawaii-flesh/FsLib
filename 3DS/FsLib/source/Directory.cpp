@@ -103,6 +103,15 @@ std::u16string_view FsLib::Directory::GetEntryAt(int Index) const
     return std::u16string_view(reinterpret_cast<const char16_t *>(m_DirectoryList[Index].name));
 }
 
+const char16_t *FsLib::Directory::operator[](int Index) const
+{
+    if (Index < 0 || Index >= static_cast<int>(m_DirectoryList.size()))
+    {
+        return nullptr;
+    }
+    return reinterpret_cast<const char16_t *>(m_DirectoryList.at(Index).name);
+}
+
 bool FsLib::Directory::Close(void)
 {
     Result FsError = FSDIR_Close(m_DirectoryHandle);

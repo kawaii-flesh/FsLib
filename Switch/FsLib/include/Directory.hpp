@@ -43,6 +43,11 @@ namespace FsLib
             /// @return True if the item is a directory. False if it is not or out of bounds.
             bool EntryAtIsDirectory(int Index) const;
 
+            /// @brief Returns entry name at Index.
+            /// @param Index Index of entry.
+            /// @return Entry's name. If out of bounds, nullptr.
+            const char *operator[](int Index) const;
+
         private:
             // Directory Handle/service.
             FsDir m_DirectoryHandle;
