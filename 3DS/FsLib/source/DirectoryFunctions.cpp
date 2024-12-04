@@ -151,7 +151,7 @@ bool FsLib::DeleteDirectoryRecursively(const FsLib::Path &DirectoryPath)
         and why it fails when called on the root.
     */
     auto PathBegin = std::char_traits<char16_t>::find(DirectoryPath.CString(), DirectoryPath.GetLength(), u'/');
-    if (std::char_traits<char16_t>::length(PathBegin) > 1 && !FsLib::CreateDirectory(DirectoryPath))
+    if (std::char_traits<char16_t>::length(PathBegin) > 1 && !FsLib::DeleteDirectory(DirectoryPath))
     {
         return false;
     }
