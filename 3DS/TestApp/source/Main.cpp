@@ -72,6 +72,11 @@ int main(void)
         printf("Error: %s\n", FsLib::GetErrorString());
     }
 
+    if (!FsLib::ControlDevice(u"gamecard"))
+    {
+        printf("Error %s\n", FsLib::GetErrorString());
+    }
+
     printf("Press Start to exit.");
     while (aptMainLoop())
     {

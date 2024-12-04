@@ -1,4 +1,5 @@
 #include "DirectoryFunctions.hpp"
+#include "Directory.hpp"
 #include "ErrorCommon.h"
 #include "FsLib.hpp"
 #include "String.hpp"
@@ -124,23 +125,34 @@ bool FsLib::DeleteDirectory(const FsLib::Path &DirectoryPath)
 
 bool FsLib::DeleteDirectoryRecursively(const FsLib::Path &DirectoryPath)
 {
-    if (!DirectoryPath.IsValid())
+    FsLib::Directory TargetDirectory(DirectoryPath);
+    if (!TargetDirectory.IsOpen())
     {
-        g_FsLibErrorString = ERROR_INVALID_PATH;
+        // We're going to do this because
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error deleting directory recursively: %s", g_FsLibErrorString.c_str());
         return false;
     }
 
-    FS_Archive Archive;
-    if (!FsLib::GetArchiveByDeviceName(DirectoryPath.GetDevice(), &Archive))
+    for (uint32_t i = 0; i < TargetDirectory.GetEntryCount(); i++)
     {
-        g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
-        return false;
+        FsLib::Path NewTarget = DirectoryPath / TargetDirectory[i];
+        if (TargetDirectory.EntryAtIsDirectory(i) && !FsLib::DeleteDirectoryRecursively(NewTarget))
+        {
+            return false;
+        }
+        else if (!FsLib::DeleteFile(NewTarget))
+        {
+            return false;
+        }
     }
 
-    Result FsError = FSUSER_DeleteDirectoryRecursively(Archive, DirectoryPath.GetPath());
-    if (R_FAILED(FsError))
+    /*
+        Make sure we're not trying to delete a device root before returning failure. I think this is what's wrong with Nintendo's implementation
+        and why it fails when called on the root.
+    */
+    auto PathBegin = std::char_traits<char16_t>::find(DirectoryPath.CString(), DirectoryPath.GetLength(), u'/');
+    if (std::char_traits<char16_t>::length(PathBegin) > 1 && !FsLib::CreateDirectory(DirectoryPath))
     {
-        g_FsLibErrorString = FsLib::String::GetFormattedString("Error deleting directory recursively: 0x%08X.", FsError);
         return false;
     }
     return true;
