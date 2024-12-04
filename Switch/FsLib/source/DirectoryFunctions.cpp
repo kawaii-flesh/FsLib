@@ -74,23 +74,29 @@ bool FsLib::DeleteDirectory(const FsLib::Path &DirectoryPath)
 
 bool FsLib::DeleteDirectoryRecursively(const FsLib::Path &DirectoryPath)
 {
-    if (!DirectoryPath.IsValid())
+    FsLib::Directory TargetDirectory(DirectoryPath);
+    if (!TargetDirectory.IsOpen())
     {
-        g_FsLibErrorString = ERROR_INVALID_PATH;
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error deleting directory recursively: %s", g_FsLibErrorString.c_str());
         return false;
     }
 
-    FsFileSystem *FileSystem;
-    if (!FsLib::GetFileSystemByDeviceName(DirectoryPath.GetDeviceName(), &FileSystem))
+    for (int64_t i = 0; i < TargetDirectory.GetEntryCount(); i++)
     {
-        g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
-        return false;
+        FsLib::Path TargetPath = DirectoryPath / TargetDirectory[i];
+        if (TargetDirectory.EntryAtIsDirectory(i) && !FsLib::DeleteDirectoryRecursively(TargetPath))
+        {
+            return false;
+        }
+        else if (!TargetDirectory.EntryAtIsDirectory(i) && !FsLib::DeleteFile(TargetPath))
+        {
+            return false;
+        }
     }
-
-    Result FsError = fsFsDeleteDirectoryRecursively(FileSystem, DirectoryPath.GetPath());
-    if (R_FAILED(FsError))
+    // Nintendo's implementation of this function will try to delete the root and report failure. Mine doesn't.
+    auto PathBegin = std::char_traits<char>::find(DirectoryPath.CString(), DirectoryPath.GetLength(), '/');
+    if (std::char_traits<char>::length(PathBegin) > 1 && !FsLib::DeleteDirectory(DirectoryPath))
     {
-        g_FsLibErrorString = FsLib::String::GetFormattedString("Error deleting directory recursively: 0x%X.", FsError);
         return false;
     }
     return true;

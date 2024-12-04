@@ -59,22 +59,11 @@ int main(void)
         return -2;
     }
 
-    if (!FsLib::OpenGameCardSaveData(u"gamecard"))
-    {
-        return -3;
-    }
 
-    FsLib::Path GCRoot = u"gamecard:/";
-    printf("GCRoot.GetLength() = %u.", GCRoot.GetLength());
-
-    if (!FsLib::DeleteDirectoryRecursively(GCRoot))
+    FsLib::Path JKSMRoot = u"sdmc:/JKSM";
+    if (!FsLib::DeleteDirectoryRecursively(JKSMRoot))
     {
-        printf("Error: %s\n", FsLib::GetErrorString());
-    }
-
-    if (!FsLib::ControlDevice(u"gamecard"))
-    {
-        printf("Error %s\n", FsLib::GetErrorString());
+        printf("%s\n", FsLib::GetErrorString());
     }
 
     printf("Press Start to exit.");

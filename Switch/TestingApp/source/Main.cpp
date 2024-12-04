@@ -40,6 +40,12 @@ int main(void)
     padConfigureInput(1, HidNpadStyleSet_NpadStandard);
     padInitializeDefault(&GamePad);
 
+    // I'm just targeting biggestDump's folder because I don't care about it.
+    if (!FsLib::DeleteDirectoryRecursively("sdmc:/FirmwareDump"))
+    {
+        Print("%s\n", FsLib::GetErrorString());
+    }
+
     Print("Press + to exit.");
 
     while (true)

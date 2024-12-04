@@ -140,12 +140,11 @@ bool FsLib::DeleteDirectoryRecursively(const FsLib::Path &DirectoryPath)
         {
             return false;
         }
-        else if (!FsLib::DeleteFile(NewTarget))
+        else if (!TargetDirectory.EntryAtIsDirectory(i) && !FsLib::DeleteFile(NewTarget))
         {
             return false;
         }
     }
-
     /*
         Make sure we're not trying to delete a device root before returning failure. I think this is what's wrong with Nintendo's implementation
         and why it fails when called on the root.

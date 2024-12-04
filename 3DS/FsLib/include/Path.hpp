@@ -77,7 +77,7 @@ namespace FsLib
             /// @return Path's extension.
             std::u16string_view GetExtension(void) const;
 
-            /// @brief Returns and FS_Path for use with 3DS FS functions.
+            /// @brief Returns an FS_Path for use with 3DS FS functions.
             /// @return FS_Path
             FS_Path GetPath(void) const;
 

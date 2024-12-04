@@ -90,7 +90,7 @@ bool FsLib::Directory::EntryAtIsDirectory(int Index) const
     {
         return false;
     }
-    return m_DirectoryList[Index].attributes == FS_ATTRIBUTE_DIRECTORY;
+    return (m_DirectoryList[Index].attributes & FS_ATTRIBUTE_DIRECTORY);
 }
 
 std::u16string_view FsLib::Directory::GetEntryAt(int Index) const
@@ -100,7 +100,7 @@ std::u16string_view FsLib::Directory::GetEntryAt(int Index) const
         // I'm hoping this works the way I want and string_view.empty is true.
         return std::u16string_view(u"");
     }
-    return std::u16string_view(reinterpret_cast<const char16_t *>(m_DirectoryList[Index].name));
+    return std::u16string_view(reinterpret_cast<const char16_t *>(m_DirectoryList.at(Index).name));
 }
 
 const char16_t *FsLib::Directory::operator[](int Index) const
