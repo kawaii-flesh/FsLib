@@ -32,24 +32,30 @@ void FsLib::File::Open(const FsLib::Path &FilePath, uint32_t OpenFlags, uint64_t
         return;
     }
 
-    // Need to save these.
-    m_Flags = OpenFlags;
-
-    if (m_Flags & FS_OPEN_CREATE && FsLib::FileExists(FilePath) && !FsLib::DeleteFile(FilePath))
-    {
-        return;
-    }
-
-    if (m_Flags & FS_OPEN_CREATE && !FsLib::CreateFile(FilePath, FileSize))
-    {
-        return;
-    }
-
     FS_Archive Archive;
     if (!FsLib::GetArchiveByDeviceName(FilePath.GetDevice(), &Archive))
     {
         g_FsLibErrorString = ERROR_DEVICE_NOT_FOUND;
         return;
+    }
+
+    // Need to save these.
+    m_Flags = OpenFlags;
+
+    if ((m_Flags & FS_OPEN_CREATE) && FsLib::FileExists(FilePath) && !FsLib::DeleteFile(FilePath))
+    {
+        return;
+    }
+
+    if ((m_Flags & FS_OPEN_CREATE) && !FsLib::CreateFile(FilePath, FileSize))
+    {
+        return;
+    }
+
+    // Need to remove this for Extra Data. I already took care of this part anyway.
+    if (m_Flags & FS_OPEN_CREATE)
+    {
+        m_Flags &= ~FS_OPEN_CREATE;
     }
 
     Result FsError = FSUSER_OpenFile(&m_FileHandle, Archive, FilePath.GetPath(), m_Flags, 0);
