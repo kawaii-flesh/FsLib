@@ -9,5 +9,5 @@ switch:
 	$(MAKE) -C 3DS
 
 clean:
-	$(MAKE) -C switch clean
-	$(MAKE) -C 3ds clean
+	$(MAKE) -C Switch clean
+	$(MAKE) -C 3DS clean
