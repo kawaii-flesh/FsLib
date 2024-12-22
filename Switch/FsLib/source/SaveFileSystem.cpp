@@ -5,17 +5,21 @@
 
 extern std::string g_FsLibErrorString;
 
-bool FsLib::OpenSystemSaveFileSystem(std::string_view DeviceName, uint64_t SystemSaveID, AccountUid AccountID)
+bool FsLib::OpenSystemSaveFileSystem(std::string_view DeviceName,
+                                     uint64_t SystemSaveID,
+                                     FsSaveDataSpaceId SaveDataSpaceID,
+                                     FsSaveDataRank SaveDataRank,
+                                     AccountUid AccountID)
 {
     FsSaveDataAttribute SaveDataAttributes = {.application_id = 0,
                                               .uid = AccountID,
                                               .system_save_data_id = SystemSaveID,
                                               .save_data_type = FsSaveDataType_System,
-                                              .save_data_rank = FsSaveDataRank_Primary,
+                                              .save_data_rank = SaveDataRank,
                                               .save_data_index = 0};
 
     FsFileSystem FileSystem;
-    Result FsError = fsOpenSaveDataFileSystem(&FileSystem, FsSaveDataSpaceId_User, &SaveDataAttributes);
+    Result FsError = fsOpenSaveDataFileSystemBySystemSaveDataId(&FileSystem, SaveDataSpaceID, &SaveDataAttributes);
     if (R_FAILED(FsError))
     {
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening system save data: 0x%X.", FsError);
@@ -31,17 +35,21 @@ bool FsLib::OpenSystemSaveFileSystem(std::string_view DeviceName, uint64_t Syste
     return true;
 }
 
-bool FsLib::OpenAccountSaveFileSystem(std::string_view DeviceName, uint64_t ApplicationID, AccountUid UserID)
+bool FsLib::OpenAccountSaveFileSystem(std::string_view DeviceName,
+                                      uint64_t ApplicationID,
+                                      AccountUid UserID,
+                                      FsSaveDataSpaceId SaveDataSpaceID,
+                                      FsSaveDataRank SaveDataRank)
 {
     FsSaveDataAttribute SaveDataAttributes = {.application_id = ApplicationID,
                                               .uid = UserID,
                                               .system_save_data_id = 0,
                                               .save_data_type = FsSaveDataType_Account,
-                                              .save_data_rank = FsSaveDataRank_Primary,
+                                              .save_data_rank = SaveDataRank,
                                               .save_data_index = 0};
 
     FsFileSystem FileSystem;
-    Result FsError = fsOpenSaveDataFileSystem(&FileSystem, FsSaveDataSpaceId_User, &SaveDataAttributes);
+    Result FsError = fsOpenSaveDataFileSystem(&FileSystem, SaveDataSpaceID, &SaveDataAttributes);
     if (R_FAILED(FsError))
     {
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening account save data: 0x%X.", FsError);
@@ -135,17 +143,21 @@ bool FsLib::OpenTemporarySaveFileSystem(std::string_view DeviceName)
     return true;
 }
 
-bool FsLib::OpenCacheSaveFileSystem(std::string_view DeviceName, uint64_t ApplicationID, uint16_t SaveIndex)
+bool FsLib::OpenCacheSaveFileSystem(std::string_view DeviceName,
+                                    uint64_t ApplicationID,
+                                    uint16_t SaveIndex,
+                                    FsSaveDataSpaceId SaveDataSpaceID,
+                                    FsSaveDataRank SaveDataRank)
 {
     FsSaveDataAttribute SaveDataAttributes = {.application_id = ApplicationID,
                                               .uid = {0},
                                               .system_save_data_id = 0,
                                               .save_data_type = FsSaveDataType_Cache,
-                                              .save_data_rank = FsSaveDataRank_Primary,
+                                              .save_data_rank = SaveDataRank,
                                               .save_data_index = SaveIndex};
 
     FsFileSystem FileSystem;
-    Result FsError = fsOpenSaveDataFileSystem(&FileSystem, FsSaveDataSpaceId_User, &SaveDataAttributes);
+    Result FsError = fsOpenSaveDataFileSystem(&FileSystem, SaveDataSpaceID, &SaveDataAttributes);
     if (R_FAILED(FsError))
     {
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening cache save data: 0x%X.", FsError);
