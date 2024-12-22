@@ -183,7 +183,7 @@ bool FsLib::OpenSystemBCATSaveFileSystem(std::string_view DeviceName, uint64_t S
                                               .save_data_index = 0};
 
     FsFileSystem FileSystem;
-    Result FsError = fsOpenSaveDataFileSystem(&FileSystem, FsSaveDataSpaceId_User, &SaveDataAttributes);
+    Result FsError = fsOpenSaveDataFileSystemBySystemSaveDataId(&FileSystem, FsSaveDataSpaceId_User, &SaveDataAttributes);
     if (R_FAILED(FsError))
     {
         g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening system bcat save data: 0x%X.", FsError);
