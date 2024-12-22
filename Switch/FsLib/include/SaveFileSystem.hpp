@@ -8,8 +8,9 @@ namespace FsLib
     /// @brief Attempts to open system save data with SystemSaveID and map it to DeviceName.
     /// @param DeviceName Name of device to map to.
     /// @param SystemSaveID ID of system save.
+    /// @param AccountID ID of account to use. This is 0 by default as that is what most system save data uses.
     /// @return True on success. False on failure.
-    bool OpenSystemSaveFileSystem(std::string_view DeviceName, uint64_t SystemSaveID);
+    bool OpenSystemSaveFileSystem(std::string_view DeviceName, uint64_t SystemSaveID, AccountUid AccountID = {0});
 
     /// @brief Attempts to open account save data with ApplicationID and UserID and map it to DeviceName.
     /// @param DeviceName Name of device to map to.

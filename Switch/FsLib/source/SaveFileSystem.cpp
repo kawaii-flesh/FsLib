@@ -5,10 +5,10 @@
 
 extern std::string g_FsLibErrorString;
 
-bool FsLib::OpenSystemSaveFileSystem(std::string_view DeviceName, uint64_t SystemSaveID)
+bool FsLib::OpenSystemSaveFileSystem(std::string_view DeviceName, uint64_t SystemSaveID, AccountUid AccountID)
 {
     FsSaveDataAttribute SaveDataAttributes = {.application_id = 0,
-                                              .uid = {0},
+                                              .uid = AccountID,
                                               .system_save_data_id = SystemSaveID,
                                               .save_data_type = FsSaveDataType_System,
                                               .save_data_rank = FsSaveDataRank_Primary,
