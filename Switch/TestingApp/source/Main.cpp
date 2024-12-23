@@ -8,6 +8,7 @@
 namespace
 {
     constexpr int VA_BUFFER_SIZE = 0x1000;
+    constexpr uint64_t TARGET_SYSTEM_SAVE = 0x8000000000000011;
 } // namespace
 
 // Feels stupid but needed to get actual output in real time on switch.
@@ -39,6 +40,17 @@ int main(void)
     PadState GamePad;
     padConfigureInput(1, HidNpadStyleSet_NpadStandard);
     padInitializeDefault(&GamePad);
+
+    if (!FsLib::OpenSystemSaveFileSystem("system", TARGET_SYSTEM_SAVE))
+    {
+        Print("%s\n", FsLib::GetErrorString());
+    }
+
+    FsLib::Directory SaveRoot("system:/");
+    for (int64_t i = 0; i < SaveRoot.GetEntryCount(); i++)
+    {
+        Print("%s\n", SaveRoot[i]);
+    }
 
     Print("Press + to exit.");
 
