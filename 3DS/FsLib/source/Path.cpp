@@ -190,7 +190,11 @@ std::u16string_view FsLib::Path::GetExtension(void) const
 
 FS_Path FsLib::Path::GetPath(void) const
 {
-    return {PATH_UTF16, (std::char_traits<char16_t>::length(m_DeviceEnd + 1) * sizeof(char16_t)) + sizeof(char16_t), m_DeviceEnd + 1};
+    FS_Path ReturnPath = {PATH_UTF16,
+                          (std::char_traits<char16_t>::length(m_DeviceEnd + 1) * sizeof(char16_t)) + sizeof(char16_t),
+                          m_DeviceEnd + 1};
+
+    return ReturnPath;
 }
 
 size_t FsLib::Path::GetLength(void) const

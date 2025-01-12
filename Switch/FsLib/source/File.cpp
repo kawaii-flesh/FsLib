@@ -61,7 +61,10 @@ void FsLib::File::Open(const FsLib::Path &FilePath, uint32_t OpenFlags, int64_t 
     }
 
     // We need to remove FsLib's added flag.
-    OpenFlags &= ~FsOpenMode_Create;
+    if (OpenFlags & FsOpenMode_Create)
+    {
+        OpenFlags &= ~FsOpenMode_Create;
+    }
 
     Result FsError = fsFsOpenFile(FileSystem, FilePath.GetPath(), OpenFlags, &m_FileHandle);
     if (R_FAILED(FsError))
