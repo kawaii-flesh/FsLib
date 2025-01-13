@@ -248,7 +248,7 @@ bool FsLib::File::ResizeIfNeeded(size_t BufferSize)
     size_t SpaceRemaining = m_StreamSize - m_Offset;
 
     // Resize isn't required. Everything will be fine.
-    if (BufferSize < SpaceRemaining)
+    if (BufferSize <= SpaceRemaining)
     {
         return true;
     }
