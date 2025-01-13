@@ -107,6 +107,27 @@ bool FsLib::OpenSystemSaveData(std::u16string_view DeviceName, uint32_t UniqueID
     return true;
 }
 
+bool FsLib::OpenSystemModuleSaveData(std::u16string_view DeviceName, uint32_t UniqueID)
+{
+    FS_Archive Archive;
+    uint32_t BinaryData[] = {MEDIATYPE_NAND, 0x00010000 | UniqueID};
+    FS_Path PathData = {.type = PATH_BINARY, .size = 0x08, .data = BinaryData};
+    Result FsError = FSUSER_OpenArchive(&Archive, ARCHIVE_SYSTEM_SAVEDATA, PathData);
+    if (R_FAILED(FsError))
+    {
+        g_FsLibErrorString = FsLib::String::GetFormattedString("Error opening system module save data %08X: 0x%08X.", UniqueID, FsError);
+        return false;
+    }
+
+    if (!FsLib::MapArchiveToDevice(DeviceName, Archive))
+    {
+        FSUSER_CloseArchive(Archive);
+        return false;
+    }
+
+    return true;
+}
+
 bool FsLib::OpenGameCardSaveData(std::u16string_view DeviceName)
 {
     FS_Archive Archive;

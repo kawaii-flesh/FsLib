@@ -33,6 +33,12 @@ namespace FsLib
     /// @return True on success. False on failure.
     bool OpenSystemSaveData(std::u16string_view DeviceName, uint32_t UniqueID);
 
+    /// @brief Opens system save data archive of a system module and maps it to DeviceName
+    /// @param DeviceName Name of device to use. Ex: u"SystemModule"
+    /// @param UniqueID ID of archive to open.
+    /// @return True on success. False on failure.
+    bool OpenSystemModuleSaveData(std::u16string_view DeviceName, uint32_t UniqueID);
+
     /// @brief Opens the save data for the inserted game card and maps it to DeviceName.
     /// @param DeviceName Name of device to use. Ex: u"GameCard"
     /// @return True on success. False on failure.
