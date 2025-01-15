@@ -2,10 +2,12 @@
 #include "Dev.hpp"
 #include "Directory.hpp"
 #include "DirectoryFunctions.hpp"
+#include "ExtData.hpp"
 #include "File.hpp"
 #include "FileFunctions.hpp"
 #include "Path.hpp"
 #include "SaveDataArchive.hpp"
+#include "SecureValue.hpp"
 #include <3ds.h>
 #include <string>
 
