@@ -1,9 +1,9 @@
 #pragma once
 
-namespace FsLib
+namespace fslib
 {
     /// @brief Contains the function for overriding fs_dev.
-    namespace Dev
+    namespace dev
     {
         /**
          * @brief Initializes a bare-bones compatibility layer so devkitPro libs can read and write files on the SD card.
@@ -14,6 +14,6 @@ namespace FsLib
          * end result is cleaner for the end user. Having to implement a complete version of LibNX's initialization code just to bypass one
          * function was a nightmare. Don't ask me how I know...
          */
-        bool InitializeSDMC(void);
-    } // namespace Dev
-} // namespace FsLib
+        bool initializeSDMC(void);
+    } // namespace dev
+} // namespace fslib

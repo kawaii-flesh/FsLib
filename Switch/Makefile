@@ -6,7 +6,7 @@ FsLib:
 	$(MAKE) -C FsLib
 
 TestingApp: FsLib
-	$(MAKE) send -C TestingApp
+	$(MAKE) -C TestingApp
 
 clean:
 	$(MAKE) -C FsLib clean

@@ -59,12 +59,14 @@ int main(void)
         return -2;
     }
 
+    // This doesn't seem to be working the way I thought it would...
+    FsLib::Path TestPath = u"sdmc:/JKSM/User Saves/Game/Backup.zip";
+    std::u16string_view Extension = TestPath.GetExtension();
 
-    FsLib::Path JKSMRoot = u"sdmc:/JKSM";
-    if (!FsLib::DeleteDirectoryRecursively(JKSMRoot))
-    {
-        printf("%s\n", FsLib::GetErrorString());
-    }
+    // Convert it to UTF-8 and print it.
+    std::string UTF8Extension = UTF16ToUTF8(Extension);
+    printf("Path extension: %s\n", UTF8Extension.c_str());
+
 
     printf("Press Start to exit.");
     while (aptMainLoop())
