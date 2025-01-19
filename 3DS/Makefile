@@ -9,7 +9,8 @@ TestApp: FsLib
 	$(MAKE) -C TestApp
 
 Examples: FsLib
-	$(MAKE) -C Examples
+# I'll update these later. Don't have time right now.
+#	$(MAKE) -C Examples
 
 clean:
 	$(MAKE) -C FsLib clean

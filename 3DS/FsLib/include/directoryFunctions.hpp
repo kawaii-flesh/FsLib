@@ -1,35 +1,35 @@
 #pragma once
-#include "Path.hpp"
+#include "path.hpp"
 
-namespace FsLib
+namespace fslib
 {
     /// @brief Attempts to open directory at Directory path to see if it exists and is a directory.
-    /// @param DirectoryPath Path to test.
+    /// @param directoryPath Path to test.
     /// @return True if the directory exists and can be opened. False if it does not.
-    bool DirectoryExists(const FsLib::Path &DirectoryPath);
+    bool directoryExists(const fslib::Path &directoryPath);
 
     /// @brief Attempts to create directory with DirectoryPath.
-    /// @param DirectoryPath Path to create.
+    /// @param directoryPath Path to create.
     /// @return True on success. False on failure.
-    bool CreateDirectory(const FsLib::Path &DirectoryPath);
+    bool createDirectory(const fslib::Path &directoryPath);
 
     /// @brief Attempts to create every directory in Directory path. Does not need a trailing slash. Warning: This is a bit slow.
     /// @return True on success. False on failure.
-    bool CreateDirectoriesRecursively(const FsLib::Path &DirectoryPath);
+    bool createDirectoriesRecursively(const fslib::Path &directoryPath);
 
     /// @brief Attempts to rename directory from OldPath to NewPath. Both must be on the same device.
-    /// @param OldPath Original name of target directory.
-    /// @param NewPath New name of target directory.
+    /// @param oldPath Original name of target directory.
+    /// @param newPath New name of target directory.
     /// @return True on success. False on failure.
-    bool RenameDirectory(const FsLib::Path &OldPath, const FsLib::Path &NewPath);
+    bool renameDirectory(const fslib::Path &oldPath, const fslib::Path &newPath);
 
     /// @brief Attempts to delete the directory passed in DirectoryPath.
-    /// @param DirectoryPath Target directory path.
+    /// @param directoryPath Target directory path.
     /// @return True on success. False on failure.
-    bool DeleteDirectory(const FsLib::Path &DirectoryPath);
+    bool deleteDirectory(const fslib::Path &directoryPath);
 
     /// @brief Attempts to recursively delete DirectoryPath
-    /// @param DirectoryPath Path to the directory to delete.
+    /// @param directoryPath Path to the directory to delete.
     /// @return True on success. False on failure.
-    bool DeleteDirectoryRecursively(const FsLib::Path &DirectoryPath);
-} // namespace FsLib
+    bool deleteDirectoryRecursively(const fslib::Path &directoryPath);
+} // namespace fslib
