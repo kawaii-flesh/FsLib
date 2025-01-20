@@ -83,14 +83,14 @@ bool fslib::deleteDirectoryRecursively(const fslib::Path &directoryPath)
         return false;
     }
 
-    for (int64_t i = 0; i < targetDirectory.getEntryCount(); i++)
+    for (int64_t i = 0; i < targetDirectory.getCount(); i++)
     {
         fslib::Path targetPath = directoryPath / targetDirectory[i];
-        if (targetDirectory.entryAtIsDirectory(i) && !fslib::deleteDirectoryRecursively(targetPath))
+        if (targetDirectory.isDirectory(i) && !fslib::deleteDirectoryRecursively(targetPath))
         {
             return false;
         }
-        else if (!targetDirectory.entryAtIsDirectory(i) && !fslib::deleteFile(targetPath))
+        else if (!targetDirectory.isDirectory(i) && !fslib::deleteFile(targetPath))
         {
             return false;
         }

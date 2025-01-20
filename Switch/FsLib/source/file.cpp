@@ -134,7 +134,7 @@ bool fslib::File::readLine(char *lineOut, size_t lineLength)
     // Loop within length. I might want to revise this later.
     for (size_t i = 0; i < lineLength; i++)
     {
-        if (Stream::endOfStream() || (nextCharacter = File::getCharacter()) == -1)
+        if (Stream::endOfStream() || (nextCharacter = File::getByte()) == -1)
         {
             // End of file before new line or character read was bad.
             return false;
@@ -154,7 +154,7 @@ bool fslib::File::readLine(char *lineOut, size_t lineLength)
     return false;
 }
 
-signed char fslib::File::getCharacter(void)
+signed char fslib::File::getByte(void)
 {
     if (!m_isOpen || !File::isOpenForReading())
     {
@@ -206,7 +206,7 @@ bool fslib::File::writef(const char *format, ...)
     return File::write(vaBuffer, std::char_traits<char>::length(vaBuffer));
 }
 
-bool fslib::File::putCharacter(char character)
+bool fslib::File::putByte(char byte)
 {
     // L o L
     if (!m_isOpen || !File::isOpenForWriting() || !File::resizeIfNeeded(1))
@@ -216,7 +216,7 @@ bool fslib::File::putCharacter(char character)
     }
 
     // I'm not calling another function for 1 byte.
-    Result fsError = fsFileWrite(&m_fileHandle, m_offset++, &character, 1, FsWriteOption_None);
+    Result fsError = fsFileWrite(&m_fileHandle, m_offset++, &byte, 1, FsWriteOption_None);
     if (R_FAILED(fsError))
     {
         g_fslibErrorString = string::getFormattedString("Error writing a single, tiny, miniscule byte to file: 0x%X.", fsError);

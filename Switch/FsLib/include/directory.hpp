@@ -28,22 +28,22 @@ namespace fslib
 
             /// @brief Returns total number of entries read from directory.
             /// @return Total numbers of entries read from directory.
-            int64_t getEntryCount(void) const;
+            int64_t getCount(void) const;
 
             /// @brief Returns the size of the entry at Index.
             /// @param Index Index of entry.
             /// @return Size of entry. 0 if Index is out of bounds.
-            int64_t getEntrySizeAt(int index) const;
+            int64_t getEntrySize(int index) const;
 
             /// @brief Returns the name of the entry at Index.
             /// @param Index Index of entry.
             /// @return Name of the entry. nullptr if Index is out of bounds.
-            const char *getEntryAt(int index) const;
+            const char *getEntry(int index) const;
 
             /// @brief Returns whether or not the entry at Index is a directory.
             /// @param Index Index of entry.
             /// @return True if the item is a directory. False if it is not or out of bounds.
-            bool entryAtIsDirectory(int index) const;
+            bool isDirectory(int index) const;
 
             /// @brief Returns entry name at Index.
             /// @param Index Index of entry.

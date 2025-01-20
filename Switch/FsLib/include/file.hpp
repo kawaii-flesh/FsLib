@@ -54,7 +54,7 @@ namespace fslib
 
             /// @brief Attempts to read a single character or byte from file.
             /// @return Byte read.
-            signed char getCharacter(void);
+            signed char getByte(void);
 
             /// @brief Attempts to write Buffer of BufferSize bytes to file.
             /// @param buffer Buffer containing data.
@@ -69,9 +69,9 @@ namespace fslib
             bool writef(const char *format, ...);
 
             /// @brief Writes a single byte to file.
-            /// @param character Byte to write.
+            /// @param byte Byte to write.
             /// @return True on success. False on failure.
-            bool putCharacter(char character);
+            bool putByte(char byte);
 
             /// @brief Operator for quick string writing.
             /// @param string String to write.

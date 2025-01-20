@@ -94,7 +94,7 @@ int main(void)
     else
     {
         print("Switch folder contents:\n");
-        for (int64_t i = 0; i < switchFolder.getEntryCount(); i++)
+        for (int64_t i = 0; i < switchFolder.getCount(); i++)
         {
             print("\t%s\n", switchFolder[i]);
         }

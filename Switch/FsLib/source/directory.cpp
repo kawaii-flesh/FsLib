@@ -98,12 +98,12 @@ bool fslib::Directory::isOpen(void) const
     return m_wasRead;
 }
 
-int64_t fslib::Directory::getEntryCount(void) const
+int64_t fslib::Directory::getCount(void) const
 {
     return m_entryCount;
 }
 
-int64_t fslib::Directory::getEntrySizeAt(int index) const
+int64_t fslib::Directory::getEntrySize(int index) const
 {
     if (index < 0 || index >= m_entryCount)
     {
@@ -112,7 +112,7 @@ int64_t fslib::Directory::getEntrySizeAt(int index) const
     return m_directoryList[index].file_size;
 }
 
-const char *fslib::Directory::getEntryAt(int index) const
+const char *fslib::Directory::getEntry(int index) const
 {
     if (index < 0 || index >= m_entryCount)
     {
@@ -121,7 +121,7 @@ const char *fslib::Directory::getEntryAt(int index) const
     return m_directoryList[index].name;
 }
 
-bool fslib::Directory::entryAtIsDirectory(int index) const
+bool fslib::Directory::isDirectory(int index) const
 {
     if (index < 0 || index >= m_entryCount)
     {
