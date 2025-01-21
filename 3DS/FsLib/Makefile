@@ -26,7 +26,7 @@ INCLUDES	:=	include
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
-CFLAGS	:=	-g -Wall -O2 -mword-relocations -Wno-psabi \
+CFLAGS	:=	-g -Wall -Werror -O2 -mword-relocations -Wno-psabi \
 			-ffunction-sections \
 			$(ARCH)
 
