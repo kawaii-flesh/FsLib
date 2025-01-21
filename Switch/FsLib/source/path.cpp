@@ -8,6 +8,16 @@ namespace
     const char *FORBIDDEN_PATH_CHARACTERS = "<>:\"|?*";
 } // namespace
 
+std::string ensureSdmcPrefix(const char *path)
+{
+    const char *defaultDevice = "sdmc:";
+    if (std::strncmp(path, defaultDevice, std::strlen(defaultDevice)) == 0)
+    {
+        return std::string(path);
+    }
+    return std::string(defaultDevice) + path;
+}
+
 // This will get the trimmed down version of the path with no beginning or trailing slashes. Passing NULL or nullptr to pathBegin will skip trimming the beginning.
 static void getTrimmedPath(const char *path, const char **pathBegin, size_t &pathLengthOut)
 {
@@ -38,22 +48,22 @@ fslib::Path::Path(const fslib::Path &path)
 
 fslib::Path::Path(const char *pathData)
 {
-    *this = pathData;
+    *this = ensureSdmcPrefix(pathData);
 }
 
 fslib::Path::Path(const std::string &pathData)
 {
-    *this = pathData;
+    *this = ensureSdmcPrefix(pathData.c_str());
 }
 
 fslib::Path::Path(std::string_view pathData)
 {
-    *this = pathData;
+    *this = ensureSdmcPrefix(pathData.data());
 }
 
 fslib::Path::Path(const std::filesystem::path &pathData)
 {
-    *this = pathData;
+    *this = ensureSdmcPrefix(pathData.c_str());
 }
 
 fslib::Path::~Path()
